@@ -26,6 +26,7 @@ from .analyze import compute_stats, daily_ohlcv
 # Import CLI handlers programmatically
 from src.cli.commands import train_commands as train_cli
 from src.cli.commands import backtest_commands as backtest_cli
+from src.utils.config_manager import get_config
 
 
 def newest_dir(root: str, prefix: str) -> str | None:
@@ -41,6 +42,8 @@ def newest_dir(root: str, prefix: str) -> str | None:
 
 def run_pipeline() -> int:
     cfg = AppConfig()
+    runtime_config = get_config()
+    runtime_config.reset()
 
     # Output roots (clean, self-contained)
     out_root = Path("oneclick")
@@ -53,6 +56,7 @@ def run_pipeline() -> int:
         ensure_dir(str(p))
 
     symbol = cfg.symbol
+    model_type = runtime_config.get("model.model_type", "double_dqn")
     timeframe = cfg.timeframes[0]
     start = cfg.start_dt()
     end = cfg.end_dt()
@@ -99,15 +103,15 @@ def run_pipeline() -> int:
         return 4
 
     # 4) Train
-    print("[4/8] Train model (double_dqn)")
+    print(f"[4/8] Train model ({model_type})")
     try:
         args = SimpleNamespace(
             input=str(proc_file),
             output=str(model_root),
-            model_type="double_dqn",
+            model_type=model_type,
             window_size=60,
             batch_size=64,
-            epochs=100000,  # timesteps for environment training
+            epochs=None,
             learning_rate=None,
             discount_factor=None,
             target_update=None,
@@ -122,7 +126,7 @@ def run_pipeline() -> int:
         print(f'  Training device: {device_msg}')
         train_cli.handle_model(args)
         # Find newest model dir
-        model_dir = newest_dir(str(model_root), "double_dqn_")
+        model_dir = newest_dir(str(model_root), f"{args.model_type}_")
         if not model_dir:
             print("  Could not locate created model directory.")
             return 5
@@ -209,3 +213,5 @@ def run_pipeline() -> int:
 
 if __name__ == "__main__":
     sys.exit(run_pipeline())
+
+

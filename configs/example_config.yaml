@@ -2,12 +2,8 @@ general:
   project_name: CRYPPO
   project_full_name: CRYPtocurrency Position Optimization
   version: 0.1.0
-  description: "\u0E23\u0E30\u0E1A\u0E1A\u0E08\u0E33\u0E25\u0E2D\u0E07\u0E01\u0E32\
-    \u0E23\u0E40\u0E17\u0E23\u0E14\u0E04\u0E23\u0E34\u0E1B\u0E42\u0E15\u0E17\u0E35\
-    \u0E48\u0E2A\u0E21\u0E08\u0E23\u0E34\u0E07\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\
-    \u0E01\u0E32\u0E23\u0E1E\u0E31\u0E12\u0E19\u0E32\u0E41\u0E25\u0E30\u0E17\u0E14\
-    \u0E2A\u0E2D\u0E1A\u0E2D\u0E31\u0E25\u0E01\u0E2D\u0E23\u0E34\u0E17\u0E36\u0E21\
-    \ Reinforcement Learning \u0E02\u0E31\u0E49\u0E19\u0E2A\u0E39\u0E07"
+  description: ระบบจำลองการเทรดคริปโตที่สมจริงสำหรับการพัฒนาและทดสอบอัลกอริทึม Reinforcement
+    Learning ขั้นสูง
   log_level: INFO
   random_seed: 42
   timezone: Asia/Bangkok
@@ -50,12 +46,12 @@ preprocessing:
     volume_method: pct_change
     other_method: diff
     price_columns:
-      - open
-      - high
-      - low
-      - close
+    - open
+    - high
+    - low
+    - close
     volume_columns:
-      - volume
+    - volume
     epsilon: 1.0e-08
     dropna: true
     fillna_value: 0.0
@@ -78,26 +74,29 @@ indicators:
   bollinger_std: 2.0
 environment:
   initial_balance: 10000.0
-  position_mode: fixed_value
-  position_value: 100.0
-  failure_penalty: -2500.0
+  position_mode: fraction
+  failure_penalty: -15.0
   fee_rate: 0.0025
-  leverage: 1.0
-  liquidation_threshold: 0.8
-  stop_loss: 0.1
-  take_profit: 0.2
+  leverage: 5.0
+  liquidation_threshold: 0.2
+  stop_loss: null
+  take_profit: null
   action_type: discrete
   slippage: 0.0005
   render_mode: null
   episode_length: null
-  reward_function: sharpe
+  reward_function: alpha
   use_detail_timeframe: true
   use_transaction_costs: true
   use_liquidation: true
   use_realistic_slippage: true
+  idle_penalty: 0.01
+  position_size: 0.12
+  max_position_steps: 960
+  funding_rate: 5.0e-05
 model:
   model_type: double_dqn
-  learning_rate: 0.0001
+  learning_rate: 0.0002
   discount_factor: 0.99
   optimizer: adam
   loss_function: mse
@@ -107,18 +106,18 @@ model:
   min_replay_buffer_size: 1000
   exploration_initial: 1.0
   exploration_final: 0.05
-  exploration_decay: 0.99
+  exploration_decay: 0.999
   hidden_layers:
+  - 512
   - 256
   - 128
-  - 64
   activation_function: relu
   use_batch_norm: true
   dropout_rate: 0.2
   weight_decay: 1.0e-05
   clip_grad_norm: 1.0
   double_q: true
-  dueling: false
+  dueling: true
   noisy: false
   prioritized_replay: false
   alpha: 0.6
@@ -126,14 +125,14 @@ model:
   beta_increment: 0.001
   reg_lambda: 0.01
 training:
-  total_timesteps: 1000000
+  total_timesteps: 700000
   save_frequency: 10000
   eval_frequency: 5000
   log_frequency: 1000
   checkpoint_dir: outputs/models
   log_dir: outputs/logs
   use_tensorboard: true
-  max_episode_steps: 1000
+  max_episode_steps: 720
   early_stopping_patience: 10
   early_stopping_threshold: 0.01
   num_eval_episodes: 5
@@ -142,11 +141,11 @@ backtest:
   end_date: null
   initial_balance: 10000.0
   fee_rate: 0.0025
-  leverage: 1.0
+  leverage: 5.0
   use_stop_loss: true
   use_take_profit: true
-  stop_loss: 0.1
-  take_profit: 0.2
+  stop_loss: 0.12
+  take_profit: 0.25
   plot_results: true
   save_trades: true
   output_dir: outputs/backtest_results

@@ -307,7 +307,7 @@ def process_df(df: pd.DataFrame) -> pd.DataFrame:
     out = out.join(elliott_df)
 
     out.replace([np.inf, -np.inf], np.nan, inplace=True)
-    out.fillna(method='ffill', inplace=True)
-    out.fillna(method='bfill', inplace=True)
+    out.ffill(inplace=True)
+    out.bfill(inplace=True)
 
     return out

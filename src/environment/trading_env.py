@@ -41,8 +41,18 @@ class TradingEnv(BaseEnv):
         self.use_position_info = use_position_info
         self.normalize_obs = normalize_obs
         self.failure_penalty = float(env_cfg.get("failure_penalty", -1000.0))
+        self.idle_penalty = float(env_cfg.get("idle_penalty", 0.0))
+        self.max_position_steps = env_cfg.get("max_position_steps")
         self.history = []
         self.current_step = 0
+        self._prev_equity = self.initial_balance
+        self.last_equity = self.initial_balance
+        self.last_action = self.ACTIONS['NONE']
+        self.position_step_counter = 0
+        self.benchmark_equity = self.initial_balance
+        self._prev_benchmark_equity = self.initial_balance
+        self.initial_price = 0.0
+
 
         if file_path:
             self.data_manager = MarketDataManager(
@@ -111,7 +121,14 @@ class TradingEnv(BaseEnv):
         self.current_step = max(0, min(idx, len(self.data_manager.data) - self.window_size))
         self.prices = self.data_manager.raw_data['close'].to_numpy()
         self.dates = self.data_manager.raw_data['timestamp'].to_numpy()
+        self.initial_price = float(self.prices[self.current_step]) if len(self.prices) else 0.0
         self.simulator.reset(self.initial_balance)
+        self.position_step_counter = 0
+        self._prev_equity = self.initial_balance
+        self.benchmark_equity = self.initial_balance
+        self._prev_benchmark_equity = self.initial_balance
+        self.last_equity = self.initial_balance
+        self.last_action = self.ACTIONS['NONE']
         self.history.clear()
         obs = self._get_observation()
         info.update({'step': self.current_step, 'price': self.prices[self.current_step]})
@@ -167,6 +184,8 @@ class TradingEnv(BaseEnv):
         step_index = self.current_step
         price = self.prices[step_index]
         prev_price = self.prices[step_index - 1] if step_index > 0 else price
+        prev_equity = self.simulator.get_equity(prev_price)
+        self._prev_equity = prev_equity
 
         operation_ok = True
         if action == self.ACTIONS['LONG']:
@@ -174,26 +193,44 @@ class TradingEnv(BaseEnv):
         elif action == self.ACTIONS['SHORT']:
             operation_ok = self.simulator.open_short_position(price)
         elif action == self.ACTIONS['EXIT']:
+            if self.simulator.has_position():
+                operation_ok = self.simulator.close_position(price)
+            else:
+                operation_ok = True
+        elif action == self.ACTIONS['NONE'] and self.simulator.has_position():
             operation_ok = self.simulator.close_position(price)
+
+        if action in (self.ACTIONS['LONG'], self.ACTIONS['SHORT']) and operation_ok:
+            self.position_step_counter = 0
 
         failure_reason = self.simulator.failure_reason
         if not operation_ok and failure_reason:
+            next_index = min(step_index + 1, len(self.prices) - 1)
+            self.current_step = next_index
+            obs = self._get_observation()
+            done = self.current_step >= len(self.prices) - 1
             info = self._make_info(price, step_index, action)
             info['failure_reason'] = failure_reason
-            obs = self._get_observation()
-            penalty = self.failure_penalty
+            self.last_action = action
             self.simulator.clear_failure()
-            return obs, penalty, True, info
+            return obs, self.failure_penalty, done, info
 
         self.simulator.update(price)
+        if self.simulator.has_position():
+            self.position_step_counter += 1
+            if self.max_position_steps and self.position_step_counter >= int(self.max_position_steps):
+                self.simulator.close_position(price)
         failure_reason = self.simulator.failure_reason
         if failure_reason and not self.simulator.has_position():
+            next_index = min(step_index + 1, len(self.prices) - 1)
+            self.current_step = next_index
+            obs = self._get_observation()
+            done = self.current_step >= len(self.prices) - 1
             info = self._make_info(price, step_index, action)
             info['failure_reason'] = failure_reason
-            obs = self._get_observation()
-            penalty = self.failure_penalty
+            self.last_action = action
             self.simulator.clear_failure()
-            return obs, penalty, True, info
+            return obs, self.failure_penalty, done, info
 
         self.current_step += 1
         done = self.current_step >= len(self.prices) - 1
@@ -201,9 +238,16 @@ class TradingEnv(BaseEnv):
         if done and self.simulator.has_position():
             self.simulator.close_position(price)
 
+        if not self.simulator.has_position():
+            self.position_step_counter = 0
+
+        if not self.simulator.has_position():
+            self.position_step_counter = 0
+
         reward = self.reward_function(self.simulator, price, prev_price)
         obs = self._get_observation()
         info = self._make_info(price, step_index, action)
+        self.last_action = action
 
         return obs, reward, done, info
 
@@ -285,23 +329,107 @@ class TradingEnv(BaseEnv):
             'sharpe': self._sharpe_reward,
             'sortino': self._sortino_reward,
             'calmar': self._calmar_reward,
-            'custom': self._custom_reward
+            'custom': self._custom_reward,
+            'equity': self._equity_reward,
+            'directional': self._directional_reward,
+            'long_bias': self._long_bias_reward,
+            'alpha': self._alpha_reward
         }
         return funcs.get(rt, funcs['profit'])
     
     def _return_reward(self, simulator: TradingSimulator, current_price: float, prev_price: float) -> float:
         if simulator.position_type == 'none':
-            return 0.0
-        
-        price_change = (current_price - prev_price) / prev_price
-        
+            return -self.idle_penalty if self.idle_penalty else 0.0
+
+        price_change = (current_price - prev_price) / max(abs(prev_price), 1e-9)
+        reward = price_change * 100.0 if simulator.position_type == 'long' else -price_change * 100.0
+        return reward
+
+
+    def _equity_reward(self, simulator: TradingSimulator, current_price: float, prev_price: float) -> float:
+
+        prev_equity = getattr(self, '_prev_equity', simulator.get_equity(prev_price))
+
+        current_equity = simulator.get_equity(current_price)
+
+        delta = current_equity - prev_equity
+
+        reward = (delta / max(self.initial_balance, 1e-9)) * 100.0
+
+
+
+        if self.last_action == self.ACTIONS['NONE'] and not simulator.has_position():
+
+            reward -= self.idle_penalty
+
+
+
+        self._prev_equity = current_equity
+
+        self.last_equity = current_equity
+
+        return reward
+
+
+
+    def _directional_reward(self, simulator: TradingSimulator, current_price: float, prev_price: float) -> float:
+
+        price_change = (current_price - prev_price) / max(abs(prev_price), 1e-9)
+
+
+
+        if price_change > 0:
+
+            if simulator.position_type == 'long':
+
+                reward = abs(price_change) * 100.0
+
+            elif simulator.position_type == 'short':
+
+                reward = -abs(price_change) * 100.0
+
+            else:
+
+                reward = -self.idle_penalty
+
+        elif price_change < 0:
+
+            if simulator.position_type == 'short':
+
+                reward = abs(price_change) * 100.0
+
+            elif simulator.position_type == 'long':
+
+                reward = -abs(price_change) * 100.0
+
+            else:
+
+                reward = -self.idle_penalty
+
+        else:
+
+            reward = -self.idle_penalty if not simulator.has_position() else 0.0
+
+
+
+        return reward
+
+
+
+    def _long_bias_reward(self, simulator: TradingSimulator, current_price: float, prev_price: float) -> float:
+
         if simulator.position_type == 'long':
-            return price_change * 100
-        elif simulator.position_type == 'short':
-            return -price_change * 100
-        
-        return 0.0
-    
+
+            return 1.0
+
+        if simulator.position_type == 'short':
+
+            return -1.0
+
+        return -0.2
+
+
+
     def _sharpe_reward(self, simulator: TradingSimulator, current_price: float, prev_price: float) -> float:
         returns = self._return_reward(simulator, current_price, prev_price)
         
@@ -471,3 +599,20 @@ class TradingEnv(BaseEnv):
             plt.close(fig)
         
         return fig
+    def _alpha_reward(self, simulator: TradingSimulator, current_price: float, prev_price: float) -> float:
+        prev_equity = getattr(self, '_prev_equity', simulator.get_equity(prev_price))
+        current_equity = simulator.get_equity(current_price)
+        agent_delta = current_equity - prev_equity
+
+        if not hasattr(self, 'initial_price') or self.initial_price == 0:
+            self.initial_price = float(prev_price) if prev_price else 1.0
+        prev_bench = getattr(self, '_prev_benchmark_equity', self.benchmark_equity)
+        self.benchmark_equity = self.initial_balance * (current_price / max(self.initial_price, 1e-9))
+        benchmark_delta = self.benchmark_equity - prev_bench
+
+        reward = (agent_delta - benchmark_delta) / max(self.initial_balance, 1e-9) * 100.0
+
+        self._prev_equity = current_equity
+        self._prev_benchmark_equity = self.benchmark_equity
+        return reward
+

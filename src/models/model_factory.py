@@ -5,6 +5,7 @@ from src.models.base_model import BaseModel
 from src.models.dqn.dqn import DQN
 from src.models.dqn.double_dqn import DoubleDQN
 from src.models.dqn.dueling_dqn import DuelingDQN
+from src.models.rule_based.always_long import AlwaysLongModel
 
 logger = logging.getLogger('models.factory')
 
@@ -13,6 +14,7 @@ class ModelFactory:
         'dqn': DQN,
         'double_dqn': DoubleDQN,
         'dueling_dqn': DuelingDQN,
+        'always_long': AlwaysLongModel,
     }
     
     @classmethod

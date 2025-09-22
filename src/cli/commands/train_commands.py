@@ -10,6 +10,7 @@ import pandas as pd
 
 from src.data.managers.data_manager import MarketDataManager
 from src.models.model_factory import ModelFactory
+from src.models.rule_based.always_long import AlwaysLongModel
 from src.environment.trading_env import TradingEnv
 from src.utils.config_manager import get_config
 
@@ -111,7 +112,7 @@ def train_with_environment(model, env: TradingEnv, config, model_dir: str) -> Di
     # Data manager helper values for sampling different starting points
     data_len = len(env.data_manager.data) if env.data_manager and env.data_manager.data is not None else 0
     if data_len:
-        total_timesteps = min(total_timesteps, max(data_len, 50000))
+        total_timesteps = max(total_timesteps, max(data_len, 50000))
     max_start = max(0, data_len - env.window_size - 2)
 
     while timesteps < total_timesteps:
@@ -175,7 +176,8 @@ def evaluate_with_environment(model, env: TradingEnv) -> Dict[str, Any]:
     action_counts = {}
     portfolio_values = []
 
-    model.policy_net.eval()
+    if hasattr(model, "policy_net"):
+        model.policy_net.eval()
 
     while not done:
         action = model.select_action(state, evaluation=True)
@@ -192,7 +194,8 @@ def evaluate_with_environment(model, env: TradingEnv) -> Dict[str, Any]:
         equity = info.get('equity') or env.simulator.get_equity(info.get('price', 0))
         portfolio_values.append(float(equity))
 
-    model.policy_net.train()
+    if hasattr(model, "policy_net"):
+        model.policy_net.train()
 
     total_actions = sum(action_counts.values()) or 1
     action_distribution = {
@@ -259,6 +262,8 @@ def handle_model(args):
         config=config
     )
 
+    skip_training = isinstance(model, AlwaysLongModel)
+
     env = _build_environment(config, args.input)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -266,7 +271,11 @@ def handle_model(args):
     model_dir = os.path.join(args.output, model_name)
     os.makedirs(model_dir, exist_ok=True)
 
-    train_summary = train_with_environment(model, env, config, model_dir)
+    train_summary = train_with_environment(model, env, config, model_dir) if not skip_training else {
+        "episodes": 0,
+        "timesteps": 0,
+        "history": []
+    }
     model.is_trained = True
     logger.info(f"การเทรนเสร็จสิ้น: episodes={train_summary["episodes"]}, timesteps={train_summary["timesteps"]}")
 

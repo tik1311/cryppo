@@ -26,15 +26,16 @@ class TradingSimulator:
 
     def __init__(
         self,
-        initial_balance: float = 10000.0,
-        transaction_fee: float = 0.0025,
-        slippage: float = 0.0005,
-        leverage: float = 1.0,
-        liquidation_threshold: float = 0.8,
-        position_size: Union[float, str] = 1.0,
+        initial_balance: Optional[float] = None,
+        transaction_fee: Optional[float] = None,
+        slippage: Optional[float] = None,
+        leverage: Optional[float] = None,
+        liquidation_threshold: Optional[float] = None,
+        position_size: Union[float, str, None] = None,
         stop_loss: Optional[float] = None,
         take_profit: Optional[float] = None,
-        max_positions: int = 1,
+        max_positions: Optional[int] = None,
+        funding_rate: Optional[float] = None,
         config = None
     ):
         self.config = config if config is not None else get_config()
@@ -45,6 +46,7 @@ class TradingSimulator:
         self.slippage = slippage if slippage is not None else env_config.get("slippage", 0.0005)
         self.leverage = leverage if leverage is not None else env_config.get("leverage", 1.0)
         self.liquidation_threshold = liquidation_threshold if liquidation_threshold is not None else env_config.get("liquidation_threshold", 0.8)
+        self.funding_rate = funding_rate if funding_rate is not None else env_config.get("funding_rate", 0.0)
 
         self.position_mode = str(env_config.get("position_mode", "fraction")).lower()
         if self.position_mode not in {"fixed_value", "fraction"}:
@@ -112,6 +114,23 @@ class TradingSimulator:
         self.failure_reason = reason
         if message:
             self._warn_once(f"failure_{reason}", message, level=level)
+
+    def _apply_funding(self, price: float) -> None:
+        if self.position_type == 'none' or not self.funding_rate:
+            return
+        position_value = abs(price * self.units)
+        if position_value <= self.FUNDS_EPSILON:
+            return
+        funding_cost = position_value * float(self.funding_rate)
+        if self.position_type == 'short':
+            funding_cost = -funding_cost
+
+        self.balance -= funding_cost
+        if funding_cost > 0:
+            self.total_fee += funding_cost
+        self.total_profit -= funding_cost
+        self.profit -= funding_cost
+        self._normalize_balance()
 
     def open_long_position(self, price: float, units: Optional[float] = None, timestamp: Optional[datetime] = None) -> bool:
         if self.position_type != 'none':
@@ -308,32 +327,34 @@ class TradingSimulator:
     def update(self, price: float) -> bool:
         if self.position_type == 'none':
             return False
-        
+
+        self._apply_funding(price)
+
         current_profit_percent = (price / self.position_price - 1) * 100 if self.position_type == 'long' else (self.position_price / price - 1) * 100
-        
+
         if self.take_profit is not None and current_profit_percent >= self.take_profit:
             logger.info(f"Taking profit at {current_profit_percent:.2f}% (take profit: {self.take_profit}%)")
             return self.close_position(price)
-        
+
         if self.stop_loss is not None and current_profit_percent <= -self.stop_loss:
             logger.info(f"Stopping loss at {current_profit_percent:.2f}% (stop loss: {self.stop_loss}%)")
             return self.close_position(price)
-        
+
         if self.position_type == 'short':
             position_value = price * self.units
 
             if abs(position_value) <= self.FUNDS_EPSILON:
-                self._set_failure("position_value_zero", "Position value too small to evaluate margin; closing short position")
+                self._set_failure('position_value_zero', 'Position value too small to evaluate margin; closing short position')
                 return self.close_position(price)
 
             margin_ratio = self.margin / max(abs(position_value), self.FUNDS_EPSILON)
 
             if margin_ratio < self.liquidation_threshold:
-                self._set_failure("liquidation", f"Liquidation: Margin Ratio = {margin_ratio:.2f} (threshold: {self.liquidation_threshold})")
+                self._set_failure('liquidation', f"Liquidation: Margin Ratio = {margin_ratio:.2f} (threshold: {self.liquidation_threshold})")
                 return self.close_position(price)
 
         return False
-    
+
     def get_equity(self, price: float) -> float:
         equity = self.balance
 

@@ -289,14 +289,17 @@ def handle_run(args):
     
     while not done:
         # Greedy action from policy network (use last timestep)
-        with torch.no_grad():
-            st = torch.tensor(observation, dtype=torch.float32, device=model.device)
-            q = model.policy_net(st)
-            if q.dim() == 3:
-                q = q[-1]
-            if q.dim() == 2:
-                q = q[-1]
-            action = int(torch.argmax(q).item())
+        if hasattr(model, 'policy_net'):
+            with torch.no_grad():
+                st = torch.tensor(observation, dtype=torch.float32, device=model.device)
+                q = model.policy_net(st)
+                if q.dim() == 3:
+                    q = q[-1]
+                if q.dim() == 2:
+                    q = q[-1]
+                action = int(torch.argmax(q).item())
+        else:
+            action = model.select_action(observation, evaluation=True)
         next_observation, reward, terminated, truncated, info = env.step(action)
         done = bool(terminated) or bool(truncated)
         

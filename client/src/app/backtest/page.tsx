@@ -526,7 +526,7 @@ export default function BacktestPage() {
           {results.chart_data && results.chart_data.length > 0 && (
             <TradingChart
               data={results.chart_data}
-              symbol={selectedDataFile?.replace('USDT', '/USDT') || 'BTC/USDT'}
+              symbol={selectedDataFile ? selectedDataFile.split('_')[0].replace('USDT', '/USDT') : 'BTC/USDT'}
               height={500}
             />
           )}

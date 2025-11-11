@@ -46,6 +46,7 @@ export default function PaperTradingPage() {
   })
 
   const [models, setModels] = useState<any[]>([])
+  const [symbols, setSymbols] = useState<any[]>([])
   const [isRunning, setIsRunning] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -70,7 +71,7 @@ export default function PaperTradingPage() {
   const [chartData, setChartData] = useState<CandleData[]>([])
   const [wsClient, setWsClient] = useState<WebSocketClient | null>(null)
 
-  // Fetch available models
+  // Fetch available models and symbols
   useEffect(() => {
     const fetchModels = async () => {
       try {
@@ -84,7 +85,25 @@ export default function PaperTradingPage() {
         console.error('Error fetching models:', err)
       }
     }
+
+    const fetchSymbols = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/exchange/symbols')
+        const data = await response.json()
+        setSymbols(data.symbols || [])
+      } catch (err: any) {
+        console.error('Error fetching symbols:', err)
+        // Fallback symbols
+        setSymbols([
+          { symbol: 'BTCUSDT', display_name: 'BTC/USDT' },
+          { symbol: 'ETHUSDT', display_name: 'ETH/USDT' },
+          { symbol: 'SOLUSDT', display_name: 'SOL/USDT' },
+        ])
+      }
+    }
+
     fetchModels()
+    fetchSymbols()
   }, [])
 
   // Setup WebSocket
@@ -224,17 +243,23 @@ export default function PaperTradingPage() {
 
             {/* Symbol */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Symbol</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Symbol (Top 30 by Volume)
+              </label>
               <select
                 className="input mt-1"
                 value={config.symbol}
                 onChange={(e) => setConfig({ ...config, symbol: e.target.value })}
               >
-                <option value="BTCUSDT">BTC/USDT</option>
-                <option value="ETHUSDT">ETH/USDT</option>
-                <option value="SOLUSDT">SOL/USDT</option>
-                <option value="XRPUSDT">XRP/USDT</option>
-                <option value="ADAUSDT">ADA/USDT</option>
+                {symbols.length === 0 ? (
+                  <option value="">Loading symbols...</option>
+                ) : (
+                  symbols.map((sym, idx) => (
+                    <option key={idx} value={sym.symbol}>
+                      {sym.display_name} {sym.volume_24h > 0 && `($${(sym.volume_24h / 1e6).toFixed(0)}M)`}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 

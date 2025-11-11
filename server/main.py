@@ -41,6 +41,7 @@ app.add_middleware(
 background_tasks_status: Dict[str, dict] = {}
 training_controls: Dict[str, dict] = {}
 backtest_controls: Dict[str, dict] = {}
+paper_trading_state: Dict[str, any] = {"active": False, "task": None}
 websocket_connections: List[WebSocket] = []
 
 # Load configuration
@@ -878,6 +879,93 @@ async def get_backtest_results(task_id: str):
         "chart_data": task_status.get("results", {}).get("chart_data", []),
         "trade_history": task_status.get("results", {}).get("trade_history", [])
     }
+
+# ============================================================================
+# Paper Trading Endpoints
+# ============================================================================
+
+@app.post("/api/paper-trading/start")
+async def start_paper_trading(request: dict):
+    """Start paper trading with live market data simulation"""
+    if paper_trading_state["active"]:
+        raise HTTPException(status_code=400, detail="Paper trading already running")
+
+    paper_trading_state["active"] = True
+    paper_trading_state["config"] = request
+
+    # TODO: Implement actual paper trading logic with WebSocket updates
+    # For now, return success
+
+    return {"status": "started", "message": "Paper trading started"}
+
+@app.post("/api/paper-trading/stop")
+async def stop_paper_trading():
+    """Stop paper trading"""
+    if not paper_trading_state["active"]:
+        raise HTTPException(status_code=400, detail="Paper trading not running")
+
+    paper_trading_state["active"] = False
+    paper_trading_state["config"] = None
+
+    await ws_manager.broadcast({
+        "type": "paper_trading_stopped",
+        "message": "Paper trading stopped"
+    })
+
+    return {"status": "stopped", "message": "Paper trading stopped"}
+
+@app.get("/api/paper-trading/status")
+async def get_paper_trading_status():
+    """Get paper trading status"""
+    return {
+        "active": paper_trading_state["active"],
+        "config": paper_trading_state.get("config")
+    }
+
+@app.get("/api/exchange/symbols")
+async def get_top_symbols():
+    """Get top 30 crypto symbols by volume from Binance"""
+    try:
+        import ccxt
+
+        # Initialize Binance exchange
+        exchange = ccxt.binance()
+
+        # Fetch tickers for USDT pairs
+        tickers = exchange.fetch_tickers()
+
+        # Filter USDT pairs and sort by volume
+        usdt_pairs = []
+        for symbol, ticker in tickers.items():
+            if '/USDT' in symbol and ticker.get('quoteVolume'):
+                usdt_pairs.append({
+                    'symbol': symbol.replace('/', ''),
+                    'display_name': symbol,
+                    'volume_24h': ticker['quoteVolume'],
+                    'price': ticker.get('last', 0)
+                })
+
+        # Sort by volume and get top 30
+        usdt_pairs.sort(key=lambda x: x['volume_24h'], reverse=True)
+        top_30 = usdt_pairs[:30]
+
+        return {"symbols": top_30}
+
+    except Exception as e:
+        # Fallback to default symbols if API fails
+        default_symbols = [
+            {'symbol': 'BTCUSDT', 'display_name': 'BTC/USDT', 'volume_24h': 0, 'price': 0},
+            {'symbol': 'ETHUSDT', 'display_name': 'ETH/USDT', 'volume_24h': 0, 'price': 0},
+            {'symbol': 'BNBUSDT', 'display_name': 'BNB/USDT', 'volume_24h': 0, 'price': 0},
+            {'symbol': 'SOLUSDT', 'display_name': 'SOL/USDT', 'volume_24h': 0, 'price': 0},
+            {'symbol': 'XRPUSDT', 'display_name': 'XRP/USDT', 'volume_24h': 0, 'price': 0},
+            {'symbol': 'ADAUSDT', 'display_name': 'ADA/USDT', 'volume_24h': 0, 'price': 0},
+            {'symbol': 'DOGEUSDT', 'display_name': 'DOGE/USDT', 'volume_24h': 0, 'price': 0},
+            {'symbol': 'MATICUSDT', 'display_name': 'MATIC/USDT', 'volume_24h': 0, 'price': 0},
+            {'symbol': 'DOTUSDT', 'display_name': 'DOT/USDT', 'volume_24h': 0, 'price': 0},
+            {'symbol': 'AVAXUSDT', 'display_name': 'AVAX/USDT', 'volume_24h': 0, 'price': 0},
+        ]
+        return {"symbols": default_symbols, "error": str(e)}
 
 # ============================================================================
 # Task Status Endpoints

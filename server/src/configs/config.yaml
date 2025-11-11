@@ -1,0 +1,119 @@
+# RL Crypto Trading - 1H Configuration
+# Focused on 1-hour timeframe trading only
+
+project:
+  name: "rl-crypto-1h"
+  version: "2.0.0"
+  description: "Deep RL Cryptocurrency Trading System - 1H Timeframe"
+
+# Data Configuration
+data:
+  # Assets to trade (can add more later)
+  symbols:
+    - "BTCUSDT"
+    - "ETHUSDT"
+
+  # Only 1H timeframe
+  timeframe: "1h"
+
+  # Data period
+  train_start: "2019-01-01"
+  train_end: "2024-12-31"
+  test_start: "2025-01-01"
+  test_end: "2025-12-31"
+
+  # Exchange
+  exchange: "binance"
+
+  # Window size (72 hours = 3 days of 1H candles)
+  window_size: 72
+
+  # Data directory
+  data_dir: "./data"
+  format: "npz"  # numpy compressed format
+
+# Trading Parameters
+trading:
+  initial_balance: 10000.0
+
+  # Leverage
+  max_leverage: 3.0
+
+  # Fees (Binance Futures)
+  fee_maker: 0.0002  # 0.02%
+  fee_taker: 0.0004  # 0.04%
+  slippage: 0.0002   # 2 bps
+
+  # Risk Management
+  max_drawdown: 0.20  # 20% termination
+  stop_loss_pct: 0.02  # 2%
+  take_profit_pct: 0.04  # 4% (2:1 RR)
+
+  # Position Limits
+  max_position_pct: 0.95  # 95% of capital
+  min_position_pct: 0.05  # 5% minimum
+
+  # Holding constraints
+  max_holding_period: 240  # 10 days in hours
+  cooldown_after_sl: 12    # 12 hours cooldown after stop loss
+
+# Model Configuration
+model:
+  type: "d3qn"  # Dueling Double DQN
+
+  # Network Architecture
+  network:
+    hidden_layers: [256, 256, 128]
+    activation: "relu"
+    dropout: 0.2
+    use_batch_norm: true
+
+  # Training Hyperparameters
+  training:
+    learning_rate: 0.00025  # Lower LR for stability
+    gamma: 0.995            # Higher gamma for long-term focus
+    batch_size: 64
+    buffer_size: 100000
+    target_update_freq: 1000
+
+    # Exploration
+    epsilon_start: 1.0
+    epsilon_end: 0.05
+    epsilon_decay: 0.9995
+
+    # Training duration
+    total_timesteps: 2000000
+    n_envs: 2  # Parallel environments
+
+    # Validation
+    eval_freq: 10000
+    n_eval_episodes: 10
+
+  # Reward Function
+  reward_type: "sharpe"  # Options: profit, sharpe, sortino, calmar
+
+# Optional: QRNN Enhancement
+qrnn:
+  enabled: false
+  hidden_size: 64
+  num_layers: 2
+  use_attention: true
+
+# Logging
+logging:
+  level: "INFO"
+  log_dir: "./logs"
+  tensorboard: true
+  save_freq: 50000
+
+# Paths
+paths:
+  models: "./data/npz"
+  checkpoints: "./checkpoints"
+  results: "./results"
+
+# System
+system:
+  device: "cuda"  # or "cpu"
+  num_workers: 4
+  seed: 42

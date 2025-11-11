@@ -421,30 +421,112 @@ async def backtest_task(task_id: str, request: BacktestRequest):
                 "volume": random.uniform(1000, 10000)
             })
 
-        # Generate mock trade history
+        # Generate mock trade history (Futures Trading)
         trade_history = []
         current_time = 1704067200
         balance = request.initial_balance
+        current_position = None  # Track current position state
 
         for i in range(min(total_trades, 30)):  # Limit to 30 trades for display
-            is_buy = random.choice([True, False])
-            price = base_price * random.uniform(0.95, 1.05)
-            quantity = (balance * random.uniform(0.1, 0.5)) / price
-            value = price * quantity
-            pnl = value * random.uniform(-0.05, 0.08)  # Random P&L
+            # Determine action based on position state
+            if current_position is None:
+                # No position - open new position
+                action = random.choice(["OPEN_LONG", "OPEN_SHORT"])
+                current_position = "LONG" if action == "OPEN_LONG" else "SHORT"
+                entry_price = base_price * random.uniform(0.95, 1.05)
 
-            balance += pnl
+                # Calculate position details
+                leverage = random.uniform(1.0, request.max_leverage)
+                position_value = balance * random.uniform(0.3, 0.8) * leverage
+                quantity = position_value / entry_price
+                fee = position_value * (request.fee_rate / 100)
 
-            trade_history.append({
-                "id": str(i + 1),
-                "timestamp": current_time + (i * 3600 * random.randint(1, 24)),
-                "action": "BUY" if is_buy else "SELL",
-                "price": round(price, 2),
-                "quantity": round(quantity, 4),
-                "value": round(value, 2),
-                "pnl": round(pnl, 2),
-                "balance": round(balance, 2)
-            })
+                # Calculate liquidation price
+                margin_ratio = 1.0 / leverage
+                if current_position == "LONG":
+                    liquidation_price = entry_price * (1 - margin_ratio * 0.9)
+                    take_profit = entry_price * random.uniform(1.01, 1.05)
+                    stop_loss = entry_price * random.uniform(0.97, 0.99)
+                    break_even = entry_price * (1 + request.fee_rate / 50)
+                else:
+                    liquidation_price = entry_price * (1 + margin_ratio * 0.9)
+                    take_profit = entry_price * random.uniform(0.95, 0.99)
+                    stop_loss = entry_price * random.uniform(1.01, 1.03)
+                    break_even = entry_price * (1 - request.fee_rate / 50)
+
+                balance -= fee  # Deduct opening fee
+
+                # Funding rate (simulated, usually between -0.01% to 0.01%)
+                funding_rate = random.uniform(-0.0001, 0.0001)
+
+                trade_history.append({
+                    "id": str(i + 1),
+                    "timestamp": current_time + (i * 3600 * random.randint(1, 24)),
+                    "action": action,
+                    "position": current_position,
+                    "entry_price": round(entry_price, 2),
+                    "exit_price": None,
+                    "current_price": round(entry_price, 2),
+                    "quantity": round(quantity, 4),
+                    "leverage": round(leverage, 2),
+                    "liquidation_price": round(liquidation_price, 2),
+                    "take_profit": round(take_profit, 2),
+                    "stop_loss": round(stop_loss, 2),
+                    "break_even": round(break_even, 2),
+                    "funding_rate": round(funding_rate * 100, 4),  # As percentage
+                    "pnl": round(-fee, 2),
+                    "pnl_pct": round(-fee / balance * 100, 2),
+                    "balance": round(balance, 2),
+                    "status": "OPEN"
+                })
+
+            else:
+                # Has position - close it
+                action = f"CLOSE_{current_position}"
+                exit_price = base_price * random.uniform(0.95, 1.05)
+
+                # Get last trade (the open position)
+                last_trade = trade_history[-1]
+                entry_price = last_trade["entry_price"]
+                quantity = last_trade["quantity"]
+                leverage = last_trade["leverage"]
+
+                # Calculate P&L
+                if current_position == "LONG":
+                    pnl = (exit_price - entry_price) * quantity
+                else:
+                    pnl = (entry_price - exit_price) * quantity
+
+                # Deduct closing fee
+                position_value = exit_price * quantity
+                fee = position_value * (request.fee_rate / 100)
+                pnl -= fee
+
+                balance += pnl
+                pnl_pct = (pnl / (entry_price * quantity / leverage)) * 100
+
+                trade_history.append({
+                    "id": str(i + 1),
+                    "timestamp": current_time + (i * 3600 * random.randint(1, 48)),
+                    "action": action,
+                    "position": current_position,
+                    "entry_price": round(entry_price, 2),
+                    "exit_price": round(exit_price, 2),
+                    "current_price": round(exit_price, 2),
+                    "quantity": round(quantity, 4),
+                    "leverage": round(leverage, 2),
+                    "liquidation_price": round(last_trade["liquidation_price"], 2),
+                    "take_profit": round(last_trade["take_profit"], 2),
+                    "stop_loss": round(last_trade["stop_loss"], 2),
+                    "break_even": round(last_trade["break_even"], 2),
+                    "funding_rate": last_trade.get("funding_rate", 0.0),
+                    "pnl": round(pnl, 2),
+                    "pnl_pct": round(pnl_pct, 2),
+                    "balance": round(balance, 2),
+                    "status": "CLOSED"
+                })
+
+                current_position = None  # Reset position
 
         results = {
             "summary": {

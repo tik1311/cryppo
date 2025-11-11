@@ -13,10 +13,11 @@ class TradingEnv(gym.Env):
     """
     Trading Environment for 1H Crypto Trading
 
-    Action Space:
+    Action Space (Futures Trading):
         0: HOLD (do nothing)
-        1: BUY (go long)
-        2: SELL (close position or go short)
+        1: OPEN_LONG (or close short and go long)
+        2: OPEN_SHORT (or close long and go short)
+        3: CLOSE_POSITION (close any open position)
 
     State Space:
         - OHLCV data + technical indicators
@@ -58,8 +59,8 @@ class TradingEnv(gym.Env):
         self.n_features = data.shape[1]
         self.n_steps = len(data)
 
-        # Action space: HOLD, BUY, SELL
-        self.action_space = spaces.Discrete(3)
+        # Action space: HOLD, OPEN_LONG, OPEN_SHORT, CLOSE_POSITION
+        self.action_space = spaces.Discrete(4)
 
         # Observation space: window of features + position info
         # Position info: [is_in_position, entry_price_normalized, pnl_pct, hold_duration]
@@ -85,6 +86,13 @@ class TradingEnv(gym.Env):
         self.entry_price = 0.0
         self.position_size = 0.0
         self.hold_duration = 0
+        self.current_leverage = 0.0
+        self.liquidation_price = 0.0
+        self.take_profit = 0.0
+        self.stop_loss = 0.0
+        self.break_even = 0.0
+        self.funding_rate = 0.0001  # 0.01% default funding rate
+        self.last_funding_time = 0
 
         # Track history for rewards
         self.equity_history = [self.initial_balance]
@@ -140,10 +148,10 @@ class TradingEnv(gym.Env):
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, dict]:
         """
-        Execute one time step
+        Execute one time step (Futures Trading)
 
         Args:
-            action: 0=HOLD, 1=BUY, 2=SELL
+            action: 0=HOLD, 1=OPEN_LONG, 2=OPEN_SHORT, 3=CLOSE_POSITION
 
         Returns:
             (observation, reward, terminated, truncated, info)
@@ -154,19 +162,40 @@ class TradingEnv(gym.Env):
         # Execute action
         trade_reward = 0.0
 
-        if action == 1:  # BUY (go long)
+        if action == 1:  # OPEN_LONG
             if self.position is None:
                 self._open_position('long', current_price)
             elif self.position == 'short':
                 trade_reward = self._close_position(current_price)
                 self._open_position('long', current_price)
 
-        elif action == 2:  # SELL (close or go short)
-            if self.position == 'long':
+        elif action == 2:  # OPEN_SHORT
+            if self.position is None:
+                self._open_position('short', current_price)
+            elif self.position == 'long':
                 trade_reward = self._close_position(current_price)
-            elif self.position is None:
-                # Could implement short selling here
-                pass
+                self._open_position('short', current_price)
+
+        elif action == 3:  # CLOSE_POSITION
+            if self.position is not None:
+                trade_reward = self._close_position(current_price)
+
+        # Apply funding rate every 8 hours (simulated)
+        if self.position and self.current_step % 8 == 0:
+            funding_fee = self._apply_funding_rate(current_price)
+            self.balance -= funding_fee
+
+        # Check liquidation BEFORE updating equity
+        if self.position and self._check_liquidation(current_price):
+            # Liquidated! Force close with total loss
+            trade_reward = -self.balance * 0.9  # Lose 90% of balance
+            self.balance *= 0.1  # Keep only 10%
+            self.position = None
+            self.entry_price = 0.0
+            self.position_size = 0.0
+            self.hold_duration = 0
+            self.liquidation_price = 0.0
+            terminated = True
 
         # Update equity
         if self.position:
@@ -184,7 +213,6 @@ class TradingEnv(gym.Env):
         self.current_step += 1
 
         # Check if episode is done
-        terminated = False
         truncated = False
 
         if self.current_step >= self.n_steps - 1:
@@ -193,8 +221,8 @@ class TradingEnv(gym.Env):
                 self._close_position(current_price)
             truncated = True
 
-        if self.equity <= self.initial_balance * 0.5:
-            # Exceeded max drawdown (50%)
+        if self.equity <= self.initial_balance * 0.3:
+            # Exceeded max drawdown (70%)
             terminated = True
 
         # Get new observation
@@ -204,18 +232,39 @@ class TradingEnv(gym.Env):
         return observation, reward, terminated, truncated, info
 
     def _open_position(self, position_type: str, price: float):
-        """Open a trading position"""
+        """Open a futures trading position with leverage"""
         self.position = position_type
         self.entry_price = price
         self.hold_duration = 0
 
         # Calculate position size (use leverage)
-        available_capital = self.balance * self.max_leverage
+        self.current_leverage = self.max_leverage
+        available_capital = self.balance * self.current_leverage
         fee = available_capital * self.fee_rate
         self.position_size = (available_capital - fee) / price
 
         # Deduct fee from balance
         self.balance -= fee
+
+        # Calculate liquidation price (simplified)
+        # Liquidation happens when loss reaches margin (1/leverage of position)
+        margin_ratio = 1.0 / self.current_leverage
+        if position_type == 'long':
+            # Long: liquidated if price drops too much
+            self.liquidation_price = price * (1 - margin_ratio * 0.9)  # 90% of margin
+        else:
+            # Short: liquidated if price rises too much
+            self.liquidation_price = price * (1 + margin_ratio * 0.9)
+
+        # Set TP/SL/BE (example: 2% TP, 1% SL)
+        if position_type == 'long':
+            self.take_profit = price * 1.02  # 2% profit
+            self.stop_loss = price * 0.99    # 1% loss
+            self.break_even = price * (1 + self.fee_rate * 2)  # 2x fee to break even
+        else:
+            self.take_profit = price * 0.98
+            self.stop_loss = price * 1.01
+            self.break_even = price * (1 - self.fee_rate * 2)
 
     def _close_position(self, price: float) -> float:
         """Close current position and return PnL"""
@@ -246,8 +295,44 @@ class TradingEnv(gym.Env):
         self.entry_price = 0.0
         self.position_size = 0.0
         self.hold_duration = 0
+        self.current_leverage = 0.0
+        self.liquidation_price = 0.0
+        self.take_profit = 0.0
+        self.stop_loss = 0.0
+        self.break_even = 0.0
 
         return pnl
+
+    def _check_liquidation(self, current_price: float) -> bool:
+        """Check if position should be liquidated"""
+        if not self.position or self.liquidation_price == 0.0:
+            return False
+
+        if self.position == 'long':
+            # Long position liquidated if price drops below liquidation price
+            return current_price <= self.liquidation_price
+        else:
+            # Short position liquidated if price rises above liquidation price
+            return current_price >= self.liquidation_price
+
+    def _apply_funding_rate(self, current_price: float) -> float:
+        """
+        Apply funding rate for perpetual futures
+        Funding rate is paid every 8 hours
+        Longs pay shorts when rate is positive, vice versa when negative
+        """
+        if not self.position:
+            return 0.0
+
+        position_value = current_price * self.position_size
+        funding_fee = position_value * self.funding_rate
+
+        # Longs pay when positive rate, receive when negative
+        # Shorts receive when positive rate, pay when negative
+        if self.position == 'long':
+            return funding_fee  # Pay if positive
+        else:
+            return -funding_fee  # Receive if positive (pay if negative)
 
     def _calculate_position_pnl(self) -> float:
         """Calculate unrealized PnL of current position"""

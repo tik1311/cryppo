@@ -427,26 +427,24 @@ async def backtest_task(task_id: str, request: BacktestRequest):
         balance = request.initial_balance
 
         for i in range(min(total_trades, 30)):  # Limit to 30 trades for display
-            entry_price = base_price * random.uniform(0.95, 1.05)
-            exit_price = entry_price * random.uniform(0.97, 1.08)
-            position_size = balance * random.uniform(0.1, 0.5)
-            pnl = (exit_price - entry_price) / entry_price * position_size
-            pnl_pct = ((exit_price - entry_price) / entry_price) * 100
-
-            trade_history.append({
-                "id": i + 1,
-                "timestamp": current_time + (i * 3600 * random.randint(1, 24)),
-                "symbol": request.symbols[0],
-                "side": "LONG" if pnl > 0 else "SHORT",
-                "entry_price": round(entry_price, 2),
-                "exit_price": round(exit_price, 2),
-                "size": round(position_size / entry_price, 4),
-                "pnl": round(pnl, 2),
-                "pnl_pct": round(pnl_pct, 2),
-                "duration_hours": random.randint(1, 48)
-            })
+            is_buy = random.choice([True, False])
+            price = base_price * random.uniform(0.95, 1.05)
+            quantity = (balance * random.uniform(0.1, 0.5)) / price
+            value = price * quantity
+            pnl = value * random.uniform(-0.05, 0.08)  # Random P&L
 
             balance += pnl
+
+            trade_history.append({
+                "id": str(i + 1),
+                "timestamp": current_time + (i * 3600 * random.randint(1, 24)),
+                "action": "BUY" if is_buy else "SELL",
+                "price": round(price, 2),
+                "quantity": round(quantity, 4),
+                "value": round(value, 2),
+                "pnl": round(pnl, 2),
+                "balance": round(balance, 2)
+            })
 
         results = {
             "summary": {

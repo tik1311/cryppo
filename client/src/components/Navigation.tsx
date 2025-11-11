@@ -8,6 +8,7 @@ const navItems = [
   { name: 'Data', path: '/data' },
   { name: 'Train', path: '/train' },
   { name: 'Backtest', path: '/backtest' },
+  { name: 'Paper Trading', path: '/paper-trading' },
   { name: 'History', path: '/history' },
   { name: 'System', path: '/system' },
 ];

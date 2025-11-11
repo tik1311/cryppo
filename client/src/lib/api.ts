@@ -89,6 +89,26 @@ class APIClient {
     return this.client.get(`/api/backtest/results/${taskId}`);
   }
 
+  // Paper Trading
+  async startPaperTrading(data: {
+    model_path: string;
+    symbol: string;
+    initial_balance?: number;
+    max_leverage?: number;
+    fee_rate?: number;
+    update_interval?: number;
+  }) {
+    return this.client.post('/api/paper-trading/start', data);
+  }
+
+  async stopPaperTrading() {
+    return this.client.post('/api/paper-trading/stop');
+  }
+
+  async getPaperTradingStatus() {
+    return this.client.get('/api/paper-trading/status');
+  }
+
   // Tasks
   async getTaskStatus(taskId: string) {
     return this.client.get(`/api/tasks/${taskId}`);

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { apiClient } from '@/lib/api';
+import TradingChart from '@/components/TradingChart';
+import TradesList from '@/components/TradesList';
 
 export default function BacktestPage() {
   const [running, setRunning] = useState(false);
@@ -32,6 +34,25 @@ export default function BacktestPage() {
       // In real implementation, poll for results
       // For now, just simulate some results
       setTimeout(() => {
+        // Generate mock chart data
+        const mockChartData = Array.from({ length: 100 }, (_, i) => ({
+          time: Date.now() / 1000 - (100 - i) * 3600,
+          open: 40000 + Math.random() * 2000,
+          high: 41000 + Math.random() * 2000,
+          low: 39000 + Math.random() * 2000,
+          close: 40500 + Math.random() * 2000,
+        }));
+
+        // Generate mock trades
+        const mockTrades = Array.from({ length: 15 }, (_, i) => ({
+          timestamp: Date.now() / 1000 - (15 - i) * 7200,
+          action: i % 3 === 0 ? 'BUY' : i % 3 === 1 ? 'SELL' : 'HOLD',
+          price: 40000 + Math.random() * 2000,
+          value: 1000 + Math.random() * 500,
+          pnl: (Math.random() - 0.4) * 200,
+          balance: 10000 + (i * 100) + Math.random() * 500,
+        }));
+
         setResults({
           summary: {
             initial_balance: 10000,
@@ -50,6 +71,8 @@ export default function BacktestPage() {
             max_drawdown_pct: 8.5,
             profit_factor: 1.85,
           },
+          chart_data: mockChartData,
+          trade_history: mockTrades,
         });
       }, 3000);
     } catch (error: any) {
@@ -230,6 +253,24 @@ export default function BacktestPage() {
               </div>
             </div>
           </div>
+
+          {/* Price Chart */}
+          {results.chart_data && results.chart_data.length > 0 && (
+            <TradingChart
+              data={results.chart_data}
+              symbol={symbols.replace('USDT', '/USDT')}
+              height={500}
+            />
+          )}
+
+          {/* Trade History */}
+          {results.trade_history && results.trade_history.length > 0 && (
+            <TradesList
+              trades={results.trade_history}
+              showPnL={true}
+              maxItems={30}
+            />
+          )}
         </div>
       )}
     </div>

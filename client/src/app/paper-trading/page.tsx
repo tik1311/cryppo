@@ -6,6 +6,8 @@ import { WebSocketClient } from '@/lib/websocket'
 import TradingChart from '@/components/TradingChart'
 import MetricsDisplay from '@/components/MetricsDisplay'
 import TradesList from '@/components/TradesList'
+import CurrentPosition from '@/components/CurrentPosition'
+import PositionHistory from '@/components/PositionHistory'
 import { Time } from 'lightweight-charts'
 
 interface PaperTradingConfig {
@@ -70,6 +72,8 @@ export default function PaperTradingPage() {
   const [trades, setTrades] = useState<PaperTrade[]>([])
   const [chartData, setChartData] = useState<CandleData[]>([])
   const [wsClient, setWsClient] = useState<WebSocketClient | null>(null)
+  const [currentPosition, setCurrentPosition] = useState<any>(null)
+  const [positionHistory, setPositionHistory] = useState<any[]>([])
 
   // Fetch available models and symbols
   useEffect(() => {
@@ -342,17 +346,36 @@ export default function PaperTradingPage() {
           {/* Metrics */}
           <MetricsDisplay metrics={metrics} isLive={true} />
 
-          {/* Chart */}
-          {chartData.length > 0 && (
-            <TradingChart
-              data={chartData}
-              symbol={config.symbol.replace('USDT', '/USDT')}
-              height={500}
-            />
-          )}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Chart */}
+            <div className="lg:col-span-2">
+              {chartData.length > 0 && (
+                <TradingChart
+                  data={chartData}
+                  symbol={config.symbol.replace('USDT', '/USDT')}
+                  height={600}
+                  priceLines={currentPosition ? {
+                    entry: currentPosition.entry_price,
+                    takeProfit: currentPosition.take_profit,
+                    stopLoss: currentPosition.stop_loss,
+                    breakEven: currentPosition.break_even,
+                    liquidation: currentPosition.liquidation_price
+                  } : undefined}
+                />
+              )}
+            </div>
 
-          {/* Trades */}
-          <TradesList trades={trades} showPnL={true} maxItems={50} />
+            {/* Current Position */}
+            <div className="lg:col-span-1">
+              <CurrentPosition position={currentPosition} />
+            </div>
+          </div>
+
+          {/* Position History */}
+          <PositionHistory positions={positionHistory} maxItems={10} />
+
+          {/* Recent Trades */}
+          <TradesList trades={trades} showPnL={true} maxItems={20} />
 
           {/* Control Buttons */}
           <div className="card">

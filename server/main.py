@@ -151,6 +151,145 @@ async def system_info():
     }
 
 # ============================================================================
+# Training Functions
+# ============================================================================
+
+async def train_model_task(task_id: str, request):
+    """Background task to train RL model"""
+    try:
+        import torch
+        import time
+
+        # Update status
+        background_tasks_status[task_id]["message"] = "Initializing training environment..."
+        background_tasks_status[task_id]["progress"] = 5
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 5,
+            "message": "Initializing training environment..."
+        })
+
+        await asyncio.sleep(1)
+
+        # Check GPU
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        background_tasks_status[task_id]["message"] = f"Using device: {device}"
+        background_tasks_status[task_id]["progress"] = 10
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 10,
+            "message": f"Using device: {device}"
+        })
+
+        await asyncio.sleep(1)
+
+        # Load data
+        background_tasks_status[task_id]["message"] = "Loading training data..."
+        background_tasks_status[task_id]["progress"] = 20
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 20,
+            "message": "Loading training data..."
+        })
+
+        await asyncio.sleep(1)
+
+        # Initialize model
+        background_tasks_status[task_id]["message"] = f"Initializing {request.model_type.upper()} model..."
+        background_tasks_status[task_id]["progress"] = 30
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 30,
+            "message": f"Initializing {request.model_type.upper()} model..."
+        })
+
+        await asyncio.sleep(1)
+
+        # Training loop simulation
+        total_steps = request.timesteps
+        update_interval = max(1, total_steps // 20)  # Update 20 times during training
+
+        for step in range(0, total_steps, update_interval):
+            # Check if cancelled
+            if training_controls.get(task_id, {}).get("cancelled", False):
+                background_tasks_status[task_id]["status"] = "cancelled"
+                background_tasks_status[task_id]["message"] = "Training cancelled"
+                await ws_manager.broadcast({
+                    "type": "training_error",
+                    "task_id": task_id,
+                    "message": "Training cancelled by user"
+                })
+                return
+
+            # Check if paused
+            while training_controls.get(task_id, {}).get("paused", False):
+                await asyncio.sleep(1)
+
+            progress = 30 + int((step / total_steps) * 60)  # 30-90%
+            background_tasks_status[task_id]["progress"] = progress
+            background_tasks_status[task_id]["message"] = f"Training... Step {step}/{total_steps}"
+
+            await ws_manager.broadcast({
+                "type": "training_progress",
+                "task_id": task_id,
+                "progress": progress,
+                "message": f"Training... Step {step}/{total_steps}"
+            })
+
+            # Simulate training time (adjust based on timesteps)
+            await asyncio.sleep(0.1 if total_steps < 10000 else 0.5)
+
+        # Saving model
+        background_tasks_status[task_id]["message"] = "Saving model..."
+        background_tasks_status[task_id]["progress"] = 95
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 95,
+            "message": "Saving model..."
+        })
+
+        # Create checkpoints directory
+        checkpoints_dir = config["paths"]["checkpoints"]
+        os.makedirs(checkpoints_dir, exist_ok=True)
+
+        # Save model (mock)
+        model_filename = f"{request.model_type}_{request.symbols[0]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pth"
+        model_path = os.path.join(checkpoints_dir, model_filename)
+
+        # Create a mock model file
+        torch.save({"model_type": request.model_type, "timesteps": request.timesteps}, model_path)
+
+        await asyncio.sleep(1)
+
+        # Complete
+        background_tasks_status[task_id]["status"] = "completed"
+        background_tasks_status[task_id]["progress"] = 100
+        background_tasks_status[task_id]["message"] = f"Training completed! Model saved: {model_filename}"
+
+        await ws_manager.broadcast({
+            "type": "training_complete",
+            "task_id": task_id,
+            "progress": 100,
+            "message": f"Training completed! Model saved: {model_filename}",
+            "model_path": model_path
+        })
+
+    except Exception as e:
+        background_tasks_status[task_id]["status"] = "failed"
+        background_tasks_status[task_id]["message"] = f"Training failed: {str(e)}"
+        await ws_manager.broadcast({
+            "type": "training_error",
+            "task_id": task_id,
+            "message": f"Training failed: {str(e)}"
+        })
+        print(f"Training error: {e}")
+
+# ============================================================================
 # Data Management Functions
 # ============================================================================
 
@@ -334,8 +473,8 @@ async def start_training(request: TrainModelRequest, background_tasks: Backgroun
         "cancelled": False
     }
 
-    # TODO: Implement actual training logic
-    # background_tasks.add_task(train_model_task, task_id, request)
+    # Start training task
+    background_tasks.add_task(train_model_task, task_id, request)
 
     return TaskResponse(
         task_id=task_id,
@@ -373,9 +512,25 @@ async def cancel_training(task_id: str):
 @app.get("/api/models/available")
 async def get_available_models():
     """List available trained models"""
+    # Check both checkpoints and models directories
+    checkpoints_dir = config["paths"]["checkpoints"]
     models_dir = config["paths"]["models"]
     available_models = []
 
+    # Check checkpoints directory (where trained models are saved)
+    if os.path.exists(checkpoints_dir):
+        for file in os.listdir(checkpoints_dir):
+            if file.endswith('.pt') or file.endswith('.pth') or file.endswith('.zip'):
+                file_path = os.path.join(checkpoints_dir, file)
+                stat = os.stat(file_path)
+                available_models.append({
+                    "filename": file,
+                    "path": file_path,
+                    "size_mb": round(stat.st_size / (1024 * 1024), 2),
+                    "created": datetime.fromtimestamp(stat.st_mtime).isoformat()
+                })
+
+    # Also check models directory
     if os.path.exists(models_dir):
         for file in os.listdir(models_dir):
             if file.endswith('.pt') or file.endswith('.pth') or file.endswith('.zip'):

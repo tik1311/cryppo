@@ -31,6 +31,10 @@ export default function CandlestickChart({
 
     // Initialize chart
     const chart = init(chartRef.current)
+    if (!chart) {
+      setIsLoading(false)
+      return
+    }
     chartInstanceRef.current = chart
 
     // Configure chart
@@ -39,17 +43,14 @@ export default function CandlestickChart({
         show: true,
         horizontal: {
           show: true,
-          color: '#E5E7EB',
-          style: 'dashed'
+          color: '#E5E7EB'
         },
         vertical: {
           show: true,
-          color: '#E5E7EB',
-          style: 'dashed'
+          color: '#E5E7EB'
         }
       },
       candle: {
-        type: 'candle_solid',
         bar: {
           upColor: '#10b981',
           downColor: '#ef4444',
@@ -59,13 +60,7 @@ export default function CandlestickChart({
           downWickColor: '#ef4444'
         },
         tooltip: {
-          showRule: 'always',
-          showType: 'standard',
-          labels: ['T: ', 'O: ', 'C: ', 'H: ', 'L: ', 'V: '],
-          values: null,
-          defaultValue: 'n/a',
           rect: {
-            position: 'fixed',
             paddingLeft: 8,
             paddingRight: 8,
             paddingTop: 8,
@@ -92,11 +87,6 @@ export default function CandlestickChart({
       },
       indicator: {
         tooltip: {
-          showRule: 'always',
-          showType: 'standard',
-          showName: true,
-          showParams: true,
-          defaultValue: 'n/a',
           text: {
             size: 12,
             family: 'Inter, sans-serif',
@@ -115,8 +105,7 @@ export default function CandlestickChart({
           show: true,
           line: {
             show: true,
-            style: 'dashed',
-            dashValue: [4, 2],
+            dashedValue: [4, 2],
             size: 1,
             color: '#6B7280'
           },
@@ -140,8 +129,7 @@ export default function CandlestickChart({
           show: true,
           line: {
             show: true,
-            style: 'dashed',
-            dashValue: [4, 2],
+            dashedValue: [4, 2],
             size: 1,
             color: '#6B7280'
           },

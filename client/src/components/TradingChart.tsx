@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, Time } from 'lightweight-charts'
 
 interface CandleData {
-  time: number
+  time: Time
   open: number
   high: number
   low: number

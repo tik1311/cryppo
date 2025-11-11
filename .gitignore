@@ -143,4 +143,5 @@ client/yarn.lock
 .ruff_cache/
 .mypy_cache/
 *.pyc
-**/*.pyc
+**/*.pycclient/tsconfig.tsbuildinfo
+client/next-env.d.ts

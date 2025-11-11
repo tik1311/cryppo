@@ -106,32 +106,30 @@ cd cryppo
 
 ### 2. Run Setup Script
 
-**Linux/macOS:**
 ```bash
 chmod +x setup.sh
 ./setup.sh
 ```
 
-**Windows:**
-```cmd
-setup.bat
-```
-
-### 3. Download Data
+### 3. Start Backend Server
 ```bash
 cd server
-python download_data.py --symbols BTC/USDT ETH/USDT --start 2019-01-01 --end 2024-12-31
-```
-
-### 4. Start Backend Server
-```bash
 python main.py
 ```
 
-The API will be available at:
-- **API**: http://localhost:8000
-- **Docs**: http://localhost:8000/docs
-- **WebSocket**: ws://localhost:8000/ws
+### 4. Start Frontend (in another terminal)
+```bash
+cd client
+npm install
+npm run dev
+```
+
+### 5. Access Web UI
+
+- **Frontend**: http://localhost:3000
+- **API Docs**: http://localhost:8000/docs
+
+**Note**: All operations (data download, training, backtesting, paper trading) are performed through the Web UI. No command-line scripts are required.
 
 ---
 
@@ -140,33 +138,42 @@ The API will be available at:
 ```
 rl-crypto-1h/
 ├── server/                     # Backend (FastAPI)
-│   ├── main.py                # Main API server
-│   ├── download_data.py       # Data download script
+│   ├── main.py                # Main API server (Web UI only)
 │   └── src/                   # Core modules
-│       ├── agent/             # RL agents
-│       ├── data/              # Data processing
-│       ├── policy/            # Trading policies
-│       ├── eval/              # Backtesting
+│       ├── agent/             # RL agents (D3QN)
+│       ├── data/              # Data processing & features
+│       ├── policy/            # Trading environment
+│       ├── eval/              # Backtesting engine
 │       ├── execution/         # Paper trading
 │       ├── training/          # Training utilities
 │       ├── utils/             # Helper functions
-│       ├── database/          # Database schema
+│       ├── database/          # Database schema (SQLite)
 │       ├── configs/           # Configuration files
-│       │   └── config.yaml    # Main config
+│       │   └── config.yaml    # Main config (1H timeframe)
 │       └── legacy/            # Legacy code (for reference)
 │
-├── client/                    # Frontend (Phase 2 - Next.js)
+├── client/                    # Frontend (Next.js 14 + TypeScript)
+│   ├── package.json           # Node dependencies
 │   └── src/
 │       ├── app/               # Next.js pages
+│       │   ├── page.tsx       # Home dashboard
+│       │   ├── data/          # Data management
+│       │   ├── train/         # Training interface
+│       │   ├── backtest/      # Backtesting interface
+│       │   ├── paper-trading/ # Paper trading interface
+│       │   └── system/        # System settings
 │       ├── components/        # React components
-│       └── lib/               # API clients
+│       │   ├── CandlestickChart.tsx  # KLineChart integration
+│       │   ├── TradingChart.tsx      # Lightweight Charts
+│       │   ├── MetricsDisplay.tsx    # Live metrics
+│       │   └── TradesList.tsx        # Trade history
+│       └── lib/               # API & WebSocket clients
 │
 ├── data/                      # Data storage
-│   └── npz/                   # Model files
+│   └── npz/                   # Model files & datasets
 │
 ├── requirements.txt           # Python dependencies
-├── setup.sh                   # Setup script (Linux/macOS)
-├── setup.bat                  # Setup script (Windows)
+├── setup.sh                   # Setup script
 └── README.md                  # This file
 ```
 
@@ -210,59 +217,115 @@ model:
 
 ---
 
-## 📖 Usage
+## 📖 Web UI Usage
 
-### Download Data
-```bash
-cd server
-python download_data.py \
-  --symbols BTC/USDT ETH/USDT SOL/USDT \
-  --start 2019-01-01 \
-  --end 2024-12-31 \
-  --output ../data \
-  --format npz
-```
+All operations are performed through the Web UI at http://localhost:3000
 
-### Start API Server
-```bash
-cd server
-python main.py
-```
+### 1. Download Data
+1. Navigate to **Data** page
+2. Enter symbols (e.g., BTCUSDT, ETHUSDT)
+3. Select date range (start and end dates)
+4. Click **Download Data**
+5. View downloaded files in the data table
 
-### API Endpoints
+### 2. Train Model
+1. Navigate to **Train** page
+2. Select data files to use for training
+3. Configure hyperparameters:
+   - Model type (D3QN)
+   - Learning rate
+   - Training timesteps
+   - Reward function (Sharpe, Sortino, etc.)
+4. Click **Start Training**
+5. Monitor training progress with real-time metrics
 
-**Data Management:**
-- `POST /api/data/download` - Download market data
-- `GET /api/data/available` - List available data files
+### 3. Backtest Model
+1. Navigate to **Backtest** page
+2. Select trained model from dropdown
+3. Choose symbol and date range for testing
+4. Click **Run Backtest**
+5. View results:
+   - Performance metrics (return, Sharpe, win rate)
+   - Price chart with indicators
+   - Trade history table
 
-**Training:**
-- `POST /api/train/start` - Start training
-- `POST /api/train/pause/{task_id}` - Pause training
-- `POST /api/train/resume/{task_id}` - Resume training
-- `POST /api/train/cancel/{task_id}` - Cancel training
-- `GET /api/models/available` - List trained models
-
-**Backtesting:**
-- `POST /api/backtest/run` - Run backtest
-- `GET /api/backtest/results/{task_id}` - Get results
-
-**System:**
-- `GET /api/health` - Health check
-- `GET /api/config` - Get configuration
-- `GET /api/system/info` - System information
-
-**WebSocket:**
-- `ws://localhost:8000/ws` - Real-time updates
+### 4. Paper Trading
+1. Navigate to **Paper Trading** page
+2. Select trained model
+3. Configure:
+   - Initial balance
+   - Max leverage
+   - Fee rates
+   - Update interval
+4. Click **Start Paper Trading**
+5. Monitor live:
+   - Real-time price chart
+   - Current position and P/L
+   - Trade execution history
+   - Performance metrics
 
 ---
 
-## 📚 API Documentation
+## 🔌 API Documentation
 
-Once the server is running, visit:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+FastAPI provides interactive API documentation at http://localhost:8000/docs
 
-Interactive API documentation with try-it-out functionality.
+### Key Endpoints:
+- `POST /api/data/download` - Download market data
+- `POST /api/train/start` - Start training
+- `POST /api/backtest/run` - Run backtest
+- `POST /api/paper-trading/start` - Start paper trading
+- `GET /api/system/info` - System information
+- `WS /ws` - WebSocket for real-time updates
+
+---
+
+## 📊 Features Overview
+
+### Data Management
+- Download historical data from exchanges (Binance, etc.)
+- Support for multiple symbols (BTC, ETH, SOL, XRP, ADA)
+- 1H timeframe only
+- View and manage downloaded data files
+
+### Training
+- D3QN (Dueling Double DQN) agent
+- Customizable hyperparameters
+- Multiple reward functions (Sharpe, Sortino, Profit)
+- Real-time training progress monitoring (Future)
+- Automatic checkpoint saving
+
+### Backtesting
+- Comprehensive performance metrics
+- Visual chart with indicators
+- Trade-by-trade analysis
+- Export results to CSV/JSON (Future)
+
+### Paper Trading
+- Real-time simulation with live market data
+- Position tracking (LONG/SHORT/NEUTRAL)
+- Unrealized P/L monitoring
+- Live performance metrics
+- Trade execution history
+
+---
+
+## 🛠️ Technical Details
+
+### Backend (FastAPI)
+- **Framework**: FastAPI 0.121+
+- **WebSocket**: Real-time updates
+- **Database**: SQLite (tracking & history)
+- **ML Framework**: PyTorch 2.0+
+- **RL Library**: Custom D3QN implementation
+
+### Frontend (Next.js)
+- **Framework**: Next.js 14.0.4
+- **Language**: TypeScript 5+
+- **UI**: TailwindCSS 3.3+
+- **Charts**: KLineChart 9.8+ & Lightweight Charts 4.1+
+- **State**: Zustand 4.4+
+- **HTTP**: Axios 1.6+
 
 ---
 

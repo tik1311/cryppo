@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { apiClient } from '@/lib/api';
 import TradingChart from '@/components/TradingChart';
 import TradesList from '@/components/TradesList';
+import { Time } from 'lightweight-charts';
 
 export default function BacktestPage() {
   const [running, setRunning] = useState(false);
@@ -36,7 +37,7 @@ export default function BacktestPage() {
       setTimeout(() => {
         // Generate mock chart data
         const mockChartData = Array.from({ length: 100 }, (_, i) => ({
-          time: Date.now() / 1000 - (100 - i) * 3600,
+          time: (Date.now() / 1000 - (100 - i) * 3600) as Time,
           open: 40000 + Math.random() * 2000,
           high: 41000 + Math.random() * 2000,
           low: 39000 + Math.random() * 2000,

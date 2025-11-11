@@ -7,13 +7,16 @@ import os
 import sys
 import asyncio
 from typing import Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yaml
+import ccxt
+import pandas as pd
+import numpy as np
 
 # Add server/src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
@@ -148,6 +151,120 @@ async def system_info():
     }
 
 # ============================================================================
+# Data Management Functions
+# ============================================================================
+
+async def download_data_task(task_id: str, request: DataDownloadRequest):
+    """Background task to download market data"""
+    try:
+        # Update status
+        background_tasks_status[task_id]["message"] = "Initializing exchange connection..."
+        background_tasks_status[task_id]["progress"] = 5
+        await ws_manager.broadcast({
+            "type": "download_progress",
+            "task_id": task_id,
+            "progress": 5,
+            "message": "Initializing exchange connection..."
+        })
+
+        # Initialize exchange
+        exchange = ccxt.binance({
+            'enableRateLimit': True,
+            'options': {'defaultType': 'future'}
+        })
+
+        data_dir = config["data"]["data_dir"]
+        os.makedirs(data_dir, exist_ok=True)
+
+        total_symbols = len(request.symbols)
+
+        for idx, symbol in enumerate(request.symbols):
+            try:
+                # Update progress
+                progress = 5 + (idx / total_symbols) * 80
+                background_tasks_status[task_id]["progress"] = int(progress)
+                background_tasks_status[task_id]["message"] = f"Downloading {symbol}..."
+                await ws_manager.broadcast({
+                    "type": "download_progress",
+                    "task_id": task_id,
+                    "progress": int(progress),
+                    "message": f"Downloading {symbol}..."
+                })
+
+                # Parse dates
+                start_dt = datetime.strptime(request.start_date, "%Y-%m-%d")
+                end_dt = datetime.strptime(request.end_date, "%Y-%m-%d")
+
+                # Fetch OHLCV data
+                since = int(start_dt.timestamp() * 1000)
+                limit = 1000
+                all_candles = []
+
+                while since < int(end_dt.timestamp() * 1000):
+                    candles = await asyncio.to_thread(
+                        exchange.fetch_ohlcv,
+                        symbol,
+                        request.timeframe,
+                        since,
+                        limit
+                    )
+
+                    if not candles:
+                        break
+
+                    all_candles.extend(candles)
+                    since = candles[-1][0] + 3600000  # Add 1 hour in ms
+
+                    # Small delay to respect rate limits
+                    await asyncio.sleep(0.1)
+
+                # Convert to DataFrame
+                df = pd.DataFrame(all_candles, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+
+                # Save to npz
+                filename = f"{symbol.replace('/', '_')}_{request.timeframe}_{request.start_date}_{request.end_date}.npz"
+                filepath = os.path.join(data_dir, filename)
+
+                np.savez_compressed(
+                    filepath,
+                    timestamp=df['timestamp'].values.astype('datetime64[ns]'),
+                    open=df['open'].values,
+                    high=df['high'].values,
+                    low=df['low'].values,
+                    close=df['close'].values,
+                    volume=df['volume'].values
+                )
+
+                print(f"Downloaded {len(df)} candles for {symbol}")
+
+            except Exception as e:
+                print(f"Error downloading {symbol}: {e}")
+                background_tasks_status[task_id]["message"] = f"Error downloading {symbol}: {str(e)}"
+                continue
+
+        # Complete
+        background_tasks_status[task_id]["status"] = "completed"
+        background_tasks_status[task_id]["progress"] = 100
+        background_tasks_status[task_id]["message"] = f"Downloaded {total_symbols} symbols successfully"
+
+        await ws_manager.broadcast({
+            "type": "download_complete",
+            "task_id": task_id,
+            "progress": 100,
+            "message": f"Downloaded {total_symbols} symbols successfully"
+        })
+
+    except Exception as e:
+        background_tasks_status[task_id]["status"] = "failed"
+        background_tasks_status[task_id]["message"] = f"Download failed: {str(e)}"
+        await ws_manager.broadcast({
+            "type": "download_error",
+            "task_id": task_id,
+            "message": f"Download failed: {str(e)}"
+        })
+
+# ============================================================================
 # Data Management Endpoints
 # ============================================================================
 
@@ -169,8 +286,8 @@ async def download_data(request: DataDownloadRequest, background_tasks: Backgrou
         "message": "Starting data download..."
     }
 
-    # TODO: Implement actual download logic
-    # background_tasks.add_task(download_data_task, task_id, request)
+    # Add background task to download data
+    background_tasks.add_task(download_data_task, task_id, request)
 
     return TaskResponse(
         task_id=task_id,

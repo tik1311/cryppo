@@ -121,9 +121,19 @@ export default function PaperTradingPage() {
         setMetrics(prev => ({ ...prev, ...data.metrics }))
       }
 
-      // Add new trade
-      if (data.trade) {
-        setTrades(prev => [...prev, data.trade])
+      // Update current position
+      if (data.currentPosition !== undefined) {
+        setCurrentPosition(data.currentPosition)
+      }
+
+      // Update trades list
+      if (data.trades) {
+        setTrades(data.trades)
+      }
+
+      // Update position history
+      if (data.positionHistory) {
+        setPositionHistory(data.positionHistory)
       }
 
       // Update chart

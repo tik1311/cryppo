@@ -1,6 +1,6 @@
 """
-RL Crypto Trading - FastAPI Backend Server
-1H Timeframe Trading System
+CRYPPO - FastAPI Backend Server
+Advanced RL Trading Platform
 """
 
 import os
@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="RL Crypto Trading API",
+    title="CRYPPO API",
     description="Deep Reinforcement Learning Cryptocurrency Trading System - 1H Timeframe",
     version="2.0.0"
 )
@@ -112,7 +112,7 @@ ws_manager = WebSocketManager()
 @app.get("/")
 async def root():
     return {
-        "name": "RL Crypto Trading API",
+        "name": "CRYPPO API",
         "version": "2.0.0",
         "status": "running",
         "timeframe": "1h",
@@ -277,7 +277,7 @@ async def download_data(request: DataDownloadRequest, background_tasks: Backgrou
     if request.timeframe != "1h":
         raise HTTPException(
             status_code=400,
-            detail="Only 1h timeframe is supported in this version"
+            detail="Only flexible timeframe is supported in this version"
         )
 
     background_tasks_status[task_id] = {
@@ -469,7 +469,7 @@ if __name__ == "__main__":
     import uvicorn
 
     print("=" * 60)
-    print("RL Crypto Trading System - Backend Server")
+    print("CRYPPO System - Backend Server")
     print("Version: 2.0.0 | Timeframe: 1H Only")
     print("=" * 60)
     print("\nStarting server...")

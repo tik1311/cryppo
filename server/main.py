@@ -929,6 +929,7 @@ async def paper_trading_task(config: dict):
 
         step = 0
         last_candle_time = None
+        last_position_close_time = 0  # Cooldown to prevent opening positions too frequently
 
         while paper_trading_state["active"]:
             step += 1
@@ -1062,9 +1063,18 @@ async def paper_trading_task(config: dict):
                     })
 
                     position = None
+                    last_position_close_time = current_timestamp  # Record close time for cooldown
 
             # Open new position (random for demo)
-            if not position and action in [1, 2] and random.random() < 0.3:  # 30% chance to open
+            # Add cooldown: must wait at least 60 seconds after closing position
+            # Reduce probability from 30% to 5% to prevent spam
+            time_since_last_close = current_timestamp - last_position_close_time
+            can_open_new_position = (not position and
+                                     action in [1, 2] and
+                                     time_since_last_close >= 60 and  # 60 second cooldown
+                                     random.random() < 0.05)  # 5% chance (was 30%)
+
+            if can_open_new_position:
                 direction = 'LONG' if action == 1 else 'SHORT'
                 leverage = max_leverage
                 position_value = balance * random.uniform(0.3, 0.7) * leverage

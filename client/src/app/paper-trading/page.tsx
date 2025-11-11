@@ -45,7 +45,7 @@ export default function PaperTradingPage() {
     update_interval: 5
   })
 
-  const [models, setModels] = useState<string[]>([])
+  const [models, setModels] = useState<any[]>([])
   const [isRunning, setIsRunning] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -78,7 +78,7 @@ export default function PaperTradingPage() {
         const models = response.data.models || []
         setModels(models)
         if (models.length > 0) {
-          setConfig(prev => ({ ...prev, model_path: models[0] }))
+          setConfig(prev => ({ ...prev, model_path: models[0].path }))
         }
       } catch (err: any) {
         console.error('Error fetching models:', err)
@@ -214,9 +214,9 @@ export default function PaperTradingPage() {
                 onChange={(e) => setConfig({ ...config, model_path: e.target.value })}
               >
                 <option value="">Select a model...</option>
-                {models.map((model) => (
-                  <option key={model} value={model}>
-                    {model}
+                {models.map((model, idx) => (
+                  <option key={idx} value={model.path}>
+                    {model.filename} ({model.size_mb} MB)
                   </option>
                 ))}
               </select>

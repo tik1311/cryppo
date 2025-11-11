@@ -66,11 +66,23 @@ function TradingViewChart({
       locale: 'en',
       enable_publishing: false,
       allow_symbol_change: false,
-      save_image: false,
+      save_image: true,
       calendar: false,
       support_host: 'https://www.tradingview.com',
-      // Advanced features
-      studies: [],
+      // Advanced features - Enable drawing tools
+      drawings_access: { type: 'black', tools: [{ name: 'Regression Trend' }] },
+      enabled_features: ['study_templates', 'use_localstorage_for_settings'],
+      disabled_features: ['header_symbol_search', 'symbol_search_hot_key'],
+      // Drawing tools enabled
+      studies_overrides: {},
+      overrides: {
+        'mainSeriesProperties.candleStyle.upColor': '#26a69a',
+        'mainSeriesProperties.candleStyle.downColor': '#ef5350',
+        'mainSeriesProperties.candleStyle.borderUpColor': '#26a69a',
+        'mainSeriesProperties.candleStyle.borderDownColor': '#ef5350',
+        'mainSeriesProperties.candleStyle.wickUpColor': '#26a69a',
+        'mainSeriesProperties.candleStyle.wickDownColor': '#ef5350'
+      },
       show_popup_button: true,
       popup_width: '1000',
       popup_height: '650',

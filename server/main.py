@@ -606,6 +606,25 @@ async def download_data_task(task_id: str, request: DataDownloadRequest):
         data_dir = config["data"]["data_dir"]
         os.makedirs(data_dir, exist_ok=True)
 
+        # Calculate timeframe in milliseconds
+        timeframe_ms_map = {
+            '1m': 60000,
+            '3m': 180000,
+            '5m': 300000,
+            '15m': 900000,
+            '30m': 1800000,
+            '1h': 3600000,
+            '2h': 7200000,
+            '4h': 14400000,
+            '6h': 21600000,
+            '8h': 28800000,
+            '12h': 43200000,
+            '1d': 86400000,
+            '3d': 259200000,
+            '1w': 604800000,
+        }
+        timeframe_ms = timeframe_ms_map.get(request.timeframe, 3600000)  # Default 1h
+
         total_symbols = len(request.symbols)
 
         for idx, symbol in enumerate(request.symbols):
@@ -627,10 +646,15 @@ async def download_data_task(task_id: str, request: DataDownloadRequest):
 
                 # Fetch OHLCV data
                 since = int(start_dt.timestamp() * 1000)
-                limit = 1000
+                end_ts = int(end_dt.timestamp() * 1000)
+                limit = 1000  # Binance max limit
                 all_candles = []
 
-                while since < int(end_dt.timestamp() * 1000):
+                print(f"\n[Download] {symbol} - {request.timeframe}")
+                print(f"  Start: {start_dt} -> End: {end_dt}")
+                print(f"  Timeframe: {request.timeframe} ({timeframe_ms}ms)")
+
+                while since < end_ts:
                     candles = await asyncio.to_thread(
                         exchange.fetch_ohlcv,
                         symbol,
@@ -640,13 +664,21 @@ async def download_data_task(task_id: str, request: DataDownloadRequest):
                     )
 
                     if not candles:
+                        print(f"  No more data at timestamp {since}")
                         break
 
                     all_candles.extend(candles)
-                    since = candles[-1][0] + 3600000  # Add 1 hour in ms
+                    last_timestamp = candles[-1][0]
 
-                    # Small delay to respect rate limits
+                    # Move to next batch: last candle timestamp + 1 interval
+                    since = last_timestamp + timeframe_ms
+
+                    print(f"  Fetched {len(candles)} candles, total: {len(all_candles)}, next: {datetime.fromtimestamp(since/1000)}")
+
+                    # Small delay to respect rate limits (Binance: 1200 requests/minute)
                     await asyncio.sleep(0.1)
+
+                print(f"  ✓ Downloaded {len(all_candles)} total candles for {symbol}")
 
                 # Convert to DataFrame
                 df = pd.DataFrame(all_candles, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
@@ -703,11 +735,12 @@ async def download_data(request: DataDownloadRequest, background_tasks: Backgrou
     """Download market data from exchange"""
     task_id = str(uuid.uuid4())
 
-    # Validate timeframe (only 1h allowed)
-    if request.timeframe != "1h":
+    # Validate timeframe
+    valid_timeframes = ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w']
+    if request.timeframe not in valid_timeframes:
         raise HTTPException(
             status_code=400,
-            detail="Only flexible timeframe is supported in this version"
+            detail=f"Invalid timeframe. Supported: {', '.join(valid_timeframes)}"
         )
 
     background_tasks_status[task_id] = {

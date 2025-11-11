@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { apiClient } from '@/lib/api'
 import { WebSocketClient } from '@/lib/websocket'
 import TradingViewChart from '@/components/TradingViewChart'
-import TradingChart from '@/components/TradingChart'
+import FinancialChart from '@/components/FinancialChart'
 import MetricsDisplay from '@/components/MetricsDisplay'
 import TradesList from '@/components/TradesList'
 import CurrentPosition from '@/components/CurrentPosition'
@@ -75,7 +75,7 @@ export default function PaperTradingPage() {
   const [wsClient, setWsClient] = useState<WebSocketClient | null>(null)
   const [currentPosition, setCurrentPosition] = useState<any>(null)
   const [positionHistory, setPositionHistory] = useState<any[]>([])
-  const [chartMode, setChartMode] = useState<'tradingview' | 'priceLines'>('priceLines')
+  const [chartMode, setChartMode] = useState<'financial' | 'tradingview'>('financial')
 
   // Fetch available models and symbols
   useEffect(() => {
@@ -382,14 +382,14 @@ export default function PaperTradingPage() {
               {/* Chart Mode Switcher */}
               <div className="mb-4 flex gap-2">
                 <button
-                  onClick={() => setChartMode('priceLines')}
+                  onClick={() => setChartMode('financial')}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    chartMode === 'priceLines'
+                    chartMode === 'financial'
                       ? 'bg-primary text-white'
                       : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                   }`}
                 >
-                  📊 Price Lines View
+                  🎨 Financial Chart (Drawing Tools)
                 </button>
                 <button
                   onClick={() => setChartMode('tradingview')}
@@ -399,7 +399,7 @@ export default function PaperTradingPage() {
                       : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                   }`}
                 >
-                  📈 TradingView (Drawing Tools)
+                  📈 TradingView
                 </button>
               </div>
 
@@ -420,7 +420,7 @@ export default function PaperTradingPage() {
                 />
               ) : (
                 chartData.length > 0 && (
-                  <TradingChart
+                  <FinancialChart
                     data={chartData}
                     symbol={config.symbol.replace('USDT', '/USDT')}
                     height={650}

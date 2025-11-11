@@ -1,10 +1,10 @@
-# RL Crypto Trading - 1H Configuration
-# Focused on 1-hour timeframe trading only
+# RL Crypto Trading - Configuration
+# Focused on 
 
 project:
-  name: "rl-crypto-1h"
+  name: "cryppo"
   version: "2.0.0"
-  description: "Deep RL Cryptocurrency Trading System - 1H Timeframe"
+  description: "Deep RL Cryptocurrency Trading System - Crypto Trading Platform"
 
 # Data Configuration
 data:
@@ -13,7 +13,7 @@ data:
     - "BTCUSDT"
     - "ETHUSDT"
 
-  # Only 1H timeframe
+  # Flexible timeframe support
   timeframe: "1h"
 
   # Data period

@@ -22,10 +22,10 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="text-xl font-bold text-blue-600 dark:text-blue-400">
-              RL Crypto Trading
+              CRYPPO
             </Link>
-            <span className="ml-2 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
-              1H
+            <span className="ml-2 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded">
+              AI Trading
             </span>
           </div>
 

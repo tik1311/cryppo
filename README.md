@@ -1,11 +1,11 @@
-# RL Crypto Trading System - 1H Timeframe
+# CRYPPO - Deep RL Crypto Trading System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 
-**Deep Reinforcement Learning Cryptocurrency Trading System** - เน้นไทม์เฟรม 1 ชั่วโมง (1H) เท่านั้น
+**CRYPPO** - Advanced Deep Reinforcement Learning Cryptocurrency Trading Platform
 
-ระบบเทรดคริปโตด้วย Deep RL ที่ปรับโครงสร้างใหม่ให้เป็น Full-Stack Application พร้อม FastAPI Backend และ Next.js Frontend (Phase 2)
+Full-Stack Application พร้อม FastAPI Backend, Next.js Frontend และ Multiple RL Models (D3QN, SAC, PPO, TD3)
 
 ---
 
@@ -28,7 +28,7 @@
 
 ### Phase 1 (Current - Backend)
 - **FastAPI Backend** - RESTful API with WebSocket support
-- **1H Timeframe Only** - Focused on 1-hour candlestick data
+- **Multiple Timeframes** - Flexible timeframe support (1h, 4h, 1d)
 - **Data Management** - Download and prepare data from Binance/OKX
 - **Model Training** - Deep Dueling DQN (D3QN) with PER
 - **Backtesting** - Comprehensive backtesting engine
@@ -136,7 +136,7 @@ npm run dev
 ## 📂 Project Structure
 
 ```
-rl-crypto-1h/
+cryppo/
 ├── server/                     # Backend (FastAPI)
 │   ├── main.py                # Main API server (Web UI only)
 │   └── src/                   # Core modules
@@ -149,7 +149,7 @@ rl-crypto-1h/
 │       ├── utils/             # Helper functions
 │       ├── database/          # Database schema (SQLite)
 │       ├── configs/           # Configuration files
-│       │   └── config.yaml    # Main config (1H timeframe)
+│       │   └── config.yaml    # Main config (flexible timeframe)
 │       └── legacy/            # Legacy code (for reference)
 │
 ├── client/                    # Frontend (Next.js 14 + TypeScript)
@@ -285,7 +285,7 @@ FastAPI provides interactive API documentation at http://localhost:8000/docs
 ### Data Management
 - Download historical data from exchanges (Binance, etc.)
 - Support for multiple symbols (BTC, ETH, SOL, XRP, ADA)
-- 1H timeframe only
+- flexible timeframe only
 - View and manage downloaded data files
 
 ### Training
@@ -334,7 +334,7 @@ FastAPI provides interactive API documentation at http://localhost:8000/docs
 ### Phase 1: Backend (✅ Completed)
 - [x] FastAPI server structure
 - [x] Configuration system (YAML)
-- [x] Data download script (Binance 1H)
+- [x] Data download script (Binance)
 - [x] API endpoints structure
 - [x] WebSocket support
 - [x] **D3QN Agent implementation**

@@ -881,11 +881,291 @@ async def get_backtest_results(task_id: str):
     }
 
 # ============================================================================
+# Paper Trading Functions
+# ============================================================================
+
+async def paper_trading_task(config: dict):
+    """Background task for paper trading simulation"""
+    try:
+        import ccxt
+        import random
+        from datetime import datetime
+
+        # Initialize
+        symbol = config["symbol"]
+        initial_balance = config["initial_balance"]
+        max_leverage = config["max_leverage"]
+        fee_rate = config["fee_rate"]
+        update_interval = config.get("update_interval", 5)
+
+        # Trading state
+        balance = initial_balance
+        position = None  # None or {'direction': 'LONG'/'SHORT', 'entry_price': ..., ...}
+        position_history = []
+        trades = []
+        chart_data = []
+
+        # Initialize exchange
+        exchange = ccxt.binance()
+
+        # Fetch initial candles
+        ohlcv = exchange.fetch_ohlcv(symbol, '1h', limit=100)
+        for candle in ohlcv:
+            chart_data.append({
+                "time": int(candle[0] / 1000),
+                "open": candle[1],
+                "high": candle[2],
+                "low": candle[3],
+                "close": candle[4],
+                "volume": candle[5]
+            })
+
+        # Send initial chart data
+        await ws_manager.broadcast({
+            "type": "paper_trading_update",
+            "candle": chart_data[-1] if chart_data else None
+        })
+
+        step = 0
+        while paper_trading_state["active"]:
+            step += 1
+
+            # Fetch latest price
+            ticker = exchange.fetch_ticker(symbol)
+            current_price = ticker['last']
+
+            # Create new candle (simulated from ticker)
+            current_time = int(datetime.now().timestamp())
+            new_candle = {
+                "time": current_time,
+                "open": current_price * random.uniform(0.999, 1.001),
+                "high": current_price * random.uniform(1.001, 1.005),
+                "low": current_price * random.uniform(0.995, 0.999),
+                "close": current_price,
+                "volume": random.uniform(1000, 10000)
+            }
+            chart_data.append(new_candle)
+
+            # Keep last 500 candles
+            if len(chart_data) > 500:
+                chart_data = chart_data[-500:]
+
+            # Trading logic (simplified - using random decisions)
+            action = random.choice([0, 1, 2, 3])  # HOLD, OPEN_LONG, OPEN_SHORT, CLOSE_POSITION
+
+            # Check if should close position (TP/SL/Liquidation)
+            if position:
+                unrealized_pnl = 0
+                if position['direction'] == 'LONG':
+                    unrealized_pnl = (current_price - position['entry_price']) * position['quantity']
+                else:
+                    unrealized_pnl = (position['entry_price'] - current_price) * position['quantity']
+
+                # Check TP/SL
+                close_reason = None
+                if position['direction'] == 'LONG':
+                    if current_price >= position['take_profit']:
+                        close_reason = 'Take Profit'
+                    elif current_price <= position['stop_loss']:
+                        close_reason = 'Stop Loss'
+                    elif current_price <= position['liquidation_price']:
+                        close_reason = 'Liquidated'
+                else:
+                    if current_price <= position['take_profit']:
+                        close_reason = 'Take Profit'
+                    elif current_price >= position['stop_loss']:
+                        close_reason = 'Stop Loss'
+                    elif current_price >= position['liquidation_price']:
+                        close_reason = 'Liquidated'
+
+                # Close position if needed
+                if close_reason or action == 3:
+                    # Calculate final P&L
+                    exit_price = current_price
+                    if position['direction'] == 'LONG':
+                        pnl = (exit_price - position['entry_price']) * position['quantity']
+                    else:
+                        pnl = (position['entry_price'] - exit_price) * position['quantity']
+
+                    # Deduct closing fee
+                    closing_fee = exit_price * position['quantity'] * fee_rate
+                    pnl -= closing_fee
+
+                    balance += pnl
+                    pnl_pct = (pnl / (position['entry_price'] * position['quantity'] / position['leverage'])) * 100
+
+                    # Add to history
+                    position_history.append({
+                        "id": str(len(position_history) + 1),
+                        "direction": position['direction'],
+                        "entry_price": position['entry_price'],
+                        "exit_price": exit_price,
+                        "entry_time": position['entry_time'],
+                        "exit_time": current_time,
+                        "quantity": position['quantity'],
+                        "leverage": position['leverage'],
+                        "pnl": pnl,
+                        "pnl_pct": pnl_pct,
+                        "duration_hours": int((current_time - position['entry_time']) / 3600),
+                        "exit_reason": close_reason or 'Manual Close'
+                    })
+
+                    # Add trade
+                    trades.append({
+                        "id": str(len(trades) + 1),
+                        "timestamp": current_time,
+                        "action": f"CLOSE_{position['direction']}",
+                        "position": position['direction'],
+                        "entry_price": position['entry_price'],
+                        "exit_price": exit_price,
+                        "current_price": exit_price,
+                        "quantity": position['quantity'],
+                        "leverage": position['leverage'],
+                        "liquidation_price": position['liquidation_price'],
+                        "take_profit": position['take_profit'],
+                        "stop_loss": position['stop_loss'],
+                        "break_even": position['break_even'],
+                        "pnl": pnl,
+                        "pnl_pct": pnl_pct,
+                        "balance": balance,
+                        "status": "CLOSED"
+                    })
+
+                    position = None
+
+            # Open new position (random for demo)
+            if not position and action in [1, 2] and random.random() < 0.3:  # 30% chance to open
+                direction = 'LONG' if action == 1 else 'SHORT'
+                leverage = max_leverage
+                position_value = balance * random.uniform(0.3, 0.7) * leverage
+                quantity = position_value / current_price
+                fee = position_value * fee_rate
+
+                # Calculate price levels
+                margin_ratio = 1.0 / leverage
+                if direction == 'LONG':
+                    liquidation_price = current_price * (1 - margin_ratio * 0.9)
+                    take_profit = current_price * random.uniform(1.01, 1.03)
+                    stop_loss = current_price * random.uniform(0.97, 0.99)
+                    break_even = current_price * (1 + fee_rate * 2)
+                else:
+                    liquidation_price = current_price * (1 + margin_ratio * 0.9)
+                    take_profit = current_price * random.uniform(0.97, 0.99)
+                    stop_loss = current_price * random.uniform(1.01, 1.03)
+                    break_even = current_price * (1 - fee_rate * 2)
+
+                balance -= fee
+
+                position = {
+                    'direction': direction,
+                    'entry_price': current_price,
+                    'entry_time': current_time,
+                    'quantity': quantity,
+                    'leverage': leverage,
+                    'liquidation_price': liquidation_price,
+                    'take_profit': take_profit,
+                    'stop_loss': stop_loss,
+                    'break_even': break_even,
+                    'margin_used': position_value / leverage
+                }
+
+                # Add trade
+                trades.append({
+                    "id": str(len(trades) + 1),
+                    "timestamp": current_time,
+                    "action": f"OPEN_{direction}",
+                    "position": direction,
+                    "entry_price": current_price,
+                    "exit_price": None,
+                    "current_price": current_price,
+                    "quantity": quantity,
+                    "leverage": leverage,
+                    "liquidation_price": liquidation_price,
+                    "take_profit": take_profit,
+                    "stop_loss": stop_loss,
+                    "break_even": break_even,
+                    "pnl": -fee,
+                    "pnl_pct": -fee / balance * 100,
+                    "balance": balance,
+                    "status": "OPEN"
+                })
+
+            # Calculate metrics
+            total_trades = len([t for t in trades if 'CLOSE' in t['action']])
+            winning_trades = len([t for t in trades if 'CLOSE' in t['action'] and t['pnl'] > 0])
+            total_pnl = sum([t['pnl'] for t in trades if 'CLOSE' in t['action']])
+            win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
+
+            unrealized_pnl = 0
+            if position:
+                if position['direction'] == 'LONG':
+                    unrealized_pnl = (current_price - position['entry_price']) * position['quantity']
+                else:
+                    unrealized_pnl = (position['entry_price'] - current_price) * position['quantity']
+
+            equity = balance + unrealized_pnl
+
+            # Prepare current position data
+            current_position_data = None
+            if position:
+                unrealized_pnl_pct = (unrealized_pnl / (position['entry_price'] * position['quantity'] / position['leverage'])) * 100
+                duration_hours = int((current_time - position['entry_time']) / 3600)
+
+                current_position_data = {
+                    'direction': position['direction'],
+                    'entry_price': position['entry_price'],
+                    'current_price': current_price,
+                    'quantity': position['quantity'],
+                    'leverage': position['leverage'],
+                    'liquidation_price': position['liquidation_price'],
+                    'take_profit': position['take_profit'],
+                    'stop_loss': position['stop_loss'],
+                    'break_even': position['break_even'],
+                    'unrealized_pnl': unrealized_pnl,
+                    'unrealized_pnl_pct': unrealized_pnl_pct,
+                    'margin_used': position['margin_used'],
+                    'duration_hours': duration_hours
+                }
+
+            # Send WebSocket update
+            await ws_manager.broadcast({
+                "type": "paper_trading_update",
+                "metrics": {
+                    "balance": balance,
+                    "initial_balance": initial_balance,
+                    "total_profit": total_pnl,
+                    "total_return": ((equity - initial_balance) / initial_balance) * 100,
+                    "win_rate": win_rate,
+                    "total_trades": total_trades,
+                    "winning_trades": winning_trades,
+                    "losing_trades": total_trades - winning_trades,
+                    "current_position": position['direction'] if position else 'NEUTRAL',
+                    "position_size": position['quantity'] if position else 0,
+                    "unrealized_pnl": unrealized_pnl
+                },
+                "currentPosition": current_position_data,
+                "candle": new_candle,
+                "trades": trades[-20:],  # Last 20 trades
+                "positionHistory": position_history[-10:]  # Last 10 closed positions
+            })
+
+            # Wait for next update
+            await asyncio.sleep(update_interval)
+
+    except Exception as e:
+        print(f"Paper trading error: {e}")
+        paper_trading_state["active"] = False
+        await ws_manager.broadcast({
+            "type": "paper_trading_stopped",
+            "message": f"Paper trading stopped due to error: {str(e)}"
+        })
+
+# ============================================================================
 # Paper Trading Endpoints
 # ============================================================================
 
 @app.post("/api/paper-trading/start")
-async def start_paper_trading(request: dict):
+async def start_paper_trading(request: dict, background_tasks: BackgroundTasks):
     """Start paper trading with live market data simulation"""
     if paper_trading_state["active"]:
         raise HTTPException(status_code=400, detail="Paper trading already running")
@@ -893,8 +1173,8 @@ async def start_paper_trading(request: dict):
     paper_trading_state["active"] = True
     paper_trading_state["config"] = request
 
-    # TODO: Implement actual paper trading logic with WebSocket updates
-    # For now, return success
+    # Start paper trading task
+    background_tasks.add_task(paper_trading_task, request)
 
     return {"status": "started", "message": "Paper trading started"}
 

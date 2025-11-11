@@ -44,7 +44,7 @@ export default function PaperTradingPage() {
     initial_balance: 10000,
     max_leverage: 3.0,
     fee_rate: 0.0004,
-    update_interval: 5
+    update_interval: 2  // 2 seconds for smooth updates
   })
 
   const [models, setModels] = useState<any[]>([])
@@ -106,8 +106,26 @@ export default function PaperTradingPage() {
       }
     }
 
+    const checkPaperTradingStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/paper-trading/status')
+        const data = await response.json()
+        if (data.active) {
+          setIsRunning(true)
+          // Restore config from backend
+          if (data.config) {
+            setConfig(prev => ({ ...prev, ...data.config }))
+            setMetrics(m => ({ ...m, initial_balance: data.config.initial_balance }))
+          }
+        }
+      } catch (err: any) {
+        console.error('Error checking paper trading status:', err)
+      }
+    }
+
     fetchModels()
     fetchSymbols()
+    checkPaperTradingStatus()
   }, [])
 
   // Setup WebSocket

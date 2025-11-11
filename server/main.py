@@ -896,7 +896,7 @@ async def paper_trading_task(config: dict):
         initial_balance = config["initial_balance"]
         max_leverage = config["max_leverage"]
         fee_rate = config["fee_rate"]
-        update_interval = config.get("update_interval", 5)
+        update_interval = config.get("update_interval", 2)  # Default 2 seconds for smooth updates
 
         # Trading state
         balance = initial_balance
@@ -908,8 +908,8 @@ async def paper_trading_task(config: dict):
         # Initialize exchange
         exchange = ccxt.binance()
 
-        # Fetch initial candles
-        ohlcv = exchange.fetch_ohlcv(symbol, '1h', limit=100)
+        # Fetch initial candles (1 minute timeframe for smooth display)
+        ohlcv = exchange.fetch_ohlcv(symbol, '1m', limit=100)
         for candle in ohlcv:
             chart_data.append({
                 "time": int(candle[0] / 1000),
@@ -927,6 +927,8 @@ async def paper_trading_task(config: dict):
         })
 
         step = 0
+        last_candle_time = None
+
         while paper_trading_state["active"]:
             step += 1
 
@@ -934,21 +936,48 @@ async def paper_trading_task(config: dict):
             ticker = exchange.fetch_ticker(symbol)
             current_price = ticker['last']
 
-            # Create new candle (simulated from ticker)
-            current_time = int(datetime.now().timestamp())
-            new_candle = {
-                "time": current_time,
-                "open": current_price * random.uniform(0.999, 1.001),
-                "high": current_price * random.uniform(1.001, 1.005),
-                "low": current_price * random.uniform(0.995, 0.999),
-                "close": current_price,
-                "volume": random.uniform(1000, 10000)
-            }
-            chart_data.append(new_candle)
+            # Calculate current 1-minute candle timestamp (aligned to minute)
+            current_timestamp = int(datetime.now().timestamp())
+            current_candle_time = (current_timestamp // 60) * 60  # Align to minute boundary
 
-            # Keep last 500 candles
-            if len(chart_data) > 500:
-                chart_data = chart_data[-500:]
+            # Check if we need to create a new candle or update existing one
+            if last_candle_time is None or current_candle_time != last_candle_time:
+                # New 1-minute candle
+                new_candle = {
+                    "time": current_candle_time,
+                    "open": current_price,
+                    "high": current_price,
+                    "low": current_price,
+                    "close": current_price,
+                    "volume": ticker.get('baseVolume', random.uniform(1000, 10000))
+                }
+                chart_data.append(new_candle)
+                last_candle_time = current_candle_time
+
+                # Keep last 500 candles
+                if len(chart_data) > 500:
+                    chart_data = chart_data[-500:]
+            else:
+                # Update current candle (same minute)
+                if len(chart_data) > 0:
+                    current_candle = chart_data[-1]
+                    current_candle['high'] = max(current_candle['high'], current_price)
+                    current_candle['low'] = min(current_candle['low'], current_price)
+                    current_candle['close'] = current_price
+                    current_candle['volume'] = ticker.get('baseVolume', current_candle.get('volume', 0))
+                    new_candle = current_candle
+                else:
+                    # Fallback if chart_data is empty
+                    new_candle = {
+                        "time": current_candle_time,
+                        "open": current_price,
+                        "high": current_price,
+                        "low": current_price,
+                        "close": current_price,
+                        "volume": ticker.get('baseVolume', random.uniform(1000, 10000))
+                    }
+                    chart_data.append(new_candle)
+                    last_candle_time = current_candle_time
 
             # Trading logic (simplified - using random decisions)
             action = random.choice([0, 1, 2, 3])  # HOLD, OPEN_LONG, OPEN_SHORT, CLOSE_POSITION

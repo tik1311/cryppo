@@ -6,17 +6,17 @@
 .env.production
 *.env
 
-# Data files
-data/
+# Data files (but not client/src/app/data or client/src/lib)
+/data/
 !data/.gitkeep
-data/npz/
-data/raw/
-data/processed/
-data/indicators/
-outputs/
-logs/
-checkpoints/
-results/
+/data/npz/
+/data/raw/
+/data/processed/
+/data/indicators/
+/outputs/
+/logs/
+/checkpoints/
+/results/
 
 # API Keys & Credentials
 configs/api_keys.json

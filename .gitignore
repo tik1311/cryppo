@@ -1,17 +1,27 @@
-# .gitignore
+# .gitignore - RL Crypto Trading 1H
 
-# ข้อมูลโปรเจค
+# Environment variables
+.env
+.env.local
+.env.production
+*.env
+
+# Data files
+data/
+!data/.gitkeep
+data/npz/
 data/raw/
 data/processed/
 data/indicators/
 outputs/
 logs/
-.env
+checkpoints/
+results/
 
-# ไฟล์การตั้งค่าส่วนตัว
+# API Keys & Credentials
 configs/api_keys.json
 configs/credentials.json
-configs/personal_settings.json
+configs/secrets.yaml
 scaler_params.npy
 
 # Python
@@ -113,13 +123,24 @@ temp/
 !examples/*.parquet
 !examples/*.json
 
-simple_data/*
-advanced_results.json
-oneclick/*
-oneclick/
-simple_data/
+# Node.js (for client/)
+client/node_modules/
+client/.next/
+client/out/
+client/build/
+client/.cache/
+client/public/uploads/
+client/.vercel
+client/package-lock.json
+client/yarn.lock
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Misc
 .ruff_cache/
-
-
+.mypy_cache/
 *.pyc
 **/*.pyc

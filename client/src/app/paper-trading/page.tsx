@@ -6,6 +6,7 @@ import { WebSocketClient } from '@/lib/websocket'
 import TradingChart from '@/components/TradingChart'
 import MetricsDisplay from '@/components/MetricsDisplay'
 import TradesList from '@/components/TradesList'
+import { Time } from 'lightweight-charts'
 
 interface PaperTradingConfig {
   model_path: string
@@ -16,9 +17,9 @@ interface PaperTradingConfig {
   update_interval: number
 }
 
-interface Trade {
+interface PaperTrade {
   timestamp: number
-  action: string
+  action: 'BUY' | 'SELL' | 'HOLD'
   price: number
   value: number
   pnl: number
@@ -26,7 +27,7 @@ interface Trade {
 }
 
 interface CandleData {
-  time: number
+  time: Time
   open: number
   high: number
   low: number
@@ -65,7 +66,7 @@ export default function PaperTradingPage() {
     unrealized_pnl: 0
   })
 
-  const [trades, setTrades] = useState<Trade[]>([])
+  const [trades, setTrades] = useState<PaperTrade[]>([])
   const [chartData, setChartData] = useState<CandleData[]>([])
   const [wsClient, setWsClient] = useState<WebSocketClient | null>(null)
 
@@ -74,9 +75,10 @@ export default function PaperTradingPage() {
     const fetchModels = async () => {
       try {
         const response = await apiClient.getAvailableModels()
-        setModels(response.models || [])
-        if (response.models && response.models.length > 0) {
-          setConfig(prev => ({ ...prev, model_path: response.models[0] }))
+        const models = response.data.models || []
+        setModels(models)
+        if (models.length > 0) {
+          setConfig(prev => ({ ...prev, model_path: models[0] }))
         }
       } catch (err: any) {
         console.error('Error fetching models:', err)

@@ -144,3 +144,7 @@ client/yarn.lock
 .mypy_cache/
 *.pyc
 **/*.pyc
+
+# Next.js build artifacts
+client/tsconfig.tsbuildinfo
+client/next-env.d.ts

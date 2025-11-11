@@ -909,7 +909,8 @@ async def paper_trading_task(config: dict):
         exchange = ccxt.binance()
 
         # Fetch initial candles (1 minute timeframe for smooth display)
-        ohlcv = exchange.fetch_ohlcv(symbol, '1m', limit=100)
+        # Get more historical data for model calculations (1000 candles = ~16 hours)
+        ohlcv = exchange.fetch_ohlcv(symbol, '1m', limit=1000)
         for candle in ohlcv:
             chart_data.append({
                 "time": int(candle[0] / 1000),
@@ -1030,19 +1031,19 @@ async def paper_trading_task(config: dict):
                         "entry_price": position['entry_price'],
                         "exit_price": exit_price,
                         "entry_time": position['entry_time'],
-                        "exit_time": current_time,
+                        "exit_time": current_timestamp,
                         "quantity": position['quantity'],
                         "leverage": position['leverage'],
                         "pnl": pnl,
                         "pnl_pct": pnl_pct,
-                        "duration_hours": int((current_time - position['entry_time']) / 3600),
+                        "duration_hours": int((current_timestamp - position['entry_time']) / 3600),
                         "exit_reason": close_reason or 'Manual Close'
                     })
 
                     # Add trade
                     trades.append({
                         "id": str(len(trades) + 1),
-                        "timestamp": current_time,
+                        "timestamp": current_timestamp,
                         "action": f"CLOSE_{position['direction']}",
                         "position": position['direction'],
                         "entry_price": position['entry_price'],
@@ -1088,7 +1089,7 @@ async def paper_trading_task(config: dict):
                 position = {
                     'direction': direction,
                     'entry_price': current_price,
-                    'entry_time': current_time,
+                    'entry_time': current_timestamp,
                     'quantity': quantity,
                     'leverage': leverage,
                     'liquidation_price': liquidation_price,
@@ -1101,7 +1102,7 @@ async def paper_trading_task(config: dict):
                 # Add trade
                 trades.append({
                     "id": str(len(trades) + 1),
-                    "timestamp": current_time,
+                    "timestamp": current_timestamp,
                     "action": f"OPEN_{direction}",
                     "position": direction,
                     "entry_price": current_price,
@@ -1138,7 +1139,7 @@ async def paper_trading_task(config: dict):
             current_position_data = None
             if position:
                 unrealized_pnl_pct = (unrealized_pnl / (position['entry_price'] * position['quantity'] / position['leverage'])) * 100
-                duration_hours = int((current_time - position['entry_time']) / 3600)
+                duration_hours = int((current_timestamp - position['entry_time']) / 3600)
 
                 current_position_data = {
                     'direction': position['direction'],

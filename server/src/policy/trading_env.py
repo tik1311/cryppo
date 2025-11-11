@@ -94,6 +94,12 @@ class TradingEnv(gym.Env):
         self.funding_rate = 0.0001  # 0.01% default funding rate
         self.last_funding_time = 0
 
+        # Position duration tracking (to prevent holding too long or not trading)
+        self.steps_in_position = 0  # How long current position held
+        self.steps_without_position = 0  # How long without any position
+        self.max_position_duration = 72  # 72 hours (3 days) max hold
+        self.max_no_position_duration = 72  # 72 hours (3 days) max without position
+
         # Track history for rewards
         self.equity_history = [self.initial_balance]
         self.returns_history = []
@@ -185,6 +191,28 @@ class TradingEnv(gym.Env):
             funding_fee = self._apply_funding_rate(current_price)
             self.balance -= funding_fee
 
+        # Track position duration
+        position_penalty = 0.0
+        if self.position:
+            self.steps_in_position += 1
+            self.steps_without_position = 0
+
+            # Penalty for holding position too long (> 3 days)
+            if self.steps_in_position > self.max_position_duration:
+                position_penalty -= 0.01 * (self.steps_in_position - self.max_position_duration)
+        else:
+            self.steps_without_position += 1
+            self.steps_in_position = 0
+
+            # Penalty for not trading too long (> 3 days) - prevent lazy trading
+            if self.steps_without_position > self.max_no_position_duration:
+                position_penalty -= 0.005 * (self.steps_without_position - self.max_no_position_duration)
+
+        # Auto-close if position held too long
+        if self.position and self.steps_in_position >= self.max_position_duration * 1.2:  # 20% grace period
+            trade_reward = self._close_position(current_price)
+            trade_reward -= 0.1  # Extra penalty for forced close
+
         # Check liquidation BEFORE updating equity
         if self.position and self._check_liquidation(current_price):
             # Liquidated! Force close with total loss
@@ -195,6 +223,7 @@ class TradingEnv(gym.Env):
             self.position_size = 0.0
             self.hold_duration = 0
             self.liquidation_price = 0.0
+            self.steps_in_position = 0
             terminated = True
 
         # Update equity
@@ -206,8 +235,8 @@ class TradingEnv(gym.Env):
 
         self.equity_history.append(self.equity)
 
-        # Calculate reward
-        reward = self._calculate_reward(trade_reward)
+        # Calculate reward with position penalty
+        reward = self._calculate_reward(trade_reward) + position_penalty
 
         # Move to next step
         self.current_step += 1
@@ -300,6 +329,7 @@ class TradingEnv(gym.Env):
         self.take_profit = 0.0
         self.stop_loss = 0.0
         self.break_even = 0.0
+        self.steps_in_position = 0
 
         return pnl
 

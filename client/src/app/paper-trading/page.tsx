@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { apiClient } from '@/lib/api'
 import { WebSocketClient } from '@/lib/websocket'
-import TradingChart from '@/components/TradingChart'
+import TradingViewChart from '@/components/TradingViewChart'
 import MetricsDisplay from '@/components/MetricsDisplay'
 import TradesList from '@/components/TradesList'
 import CurrentPosition from '@/components/CurrentPosition'
@@ -375,22 +375,21 @@ export default function PaperTradingPage() {
           <MetricsDisplay metrics={metrics} isLive={true} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Chart */}
+            {/* Chart - TradingView Advanced Chart */}
             <div className="lg:col-span-2">
-              {chartData.length > 0 && (
-                <TradingChart
-                  data={chartData}
-                  symbol={config.symbol.replace('USDT', '/USDT')}
-                  height={600}
-                  priceLines={currentPosition ? {
-                    entry: currentPosition.entry_price,
-                    takeProfit: currentPosition.take_profit,
-                    stopLoss: currentPosition.stop_loss,
-                    breakEven: currentPosition.break_even,
-                    liquidation: currentPosition.liquidation_price
-                  } : undefined}
-                />
-              )}
+              <TradingViewChart
+                symbol={config.symbol}
+                height={650}
+                theme="dark"
+                interval="1"
+                priceLines={currentPosition ? {
+                  entry: currentPosition.entry_price,
+                  takeProfit: currentPosition.take_profit,
+                  stopLoss: currentPosition.stop_loss,
+                  breakEven: currentPosition.break_even,
+                  liquidation: currentPosition.liquidation_price
+                } : undefined}
+              />
             </div>
 
             {/* Current Position */}

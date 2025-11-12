@@ -1983,15 +1983,26 @@ async def list_tasks():
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket for real-time updates"""
-    await ws_manager.connect(websocket)
     try:
-        while True:
-            # Keep connection alive
-            data = await websocket.receive_text()
-            # Echo back for testing
-            await websocket.send_json({"type": "echo", "data": data})
-    except WebSocketDisconnect:
-        ws_manager.disconnect(websocket)
+        await ws_manager.connect(websocket)
+        print(f"[WebSocket] Client connected: {websocket.client}")
+
+        try:
+            while True:
+                # Keep connection alive
+                data = await websocket.receive_text()
+                # Echo back for testing
+                await websocket.send_json({"type": "echo", "data": data})
+        except WebSocketDisconnect:
+            print(f"[WebSocket] Client disconnected: {websocket.client}")
+            ws_manager.disconnect(websocket)
+        except Exception as e:
+            print(f"[WebSocket] Error in connection: {e}")
+            ws_manager.disconnect(websocket)
+    except Exception as e:
+        print(f"[WebSocket] Failed to connect: {e}")
+        import traceback
+        traceback.print_exc()
 
 # ============================================================================
 # Main Entry Point

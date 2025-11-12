@@ -281,20 +281,21 @@ def train_d3qn(
         avg_loss = np.mean(episode_losses) if episode_losses else 0.0
         agent_stats = agent.get_stats()
 
-        # Log episode
-        if episode % 10 == 0:
-            avg_reward_10 = np.mean(episode_rewards[-10:])
-            logger.log(
-                f"Episode {episode:4d} | "
-                f"Reward: {episode_reward:8.2f} | "
-                f"Avg(10): {avg_reward_10:8.2f} | "
-                f"Loss: {avg_loss:.4f} | "
-                f"ε: {agent_stats['epsilon']:.3f} | "
-                f"Steps: {step:4d} | "
-                f"Trades: {info['total_trades']:2d} | "
-                f"Win%: {info['win_rate']*100:5.1f} | "
-                f"Balance: ${info['balance']:,.0f}"
-            )
+        # Log episode (every episode for better progress tracking)
+        avg_reward_10 = np.mean(episode_rewards[-min(10, len(episode_rewards)):])
+        logger.log(
+            f"Episode {episode:4d} | "
+            f"Reward: {episode_reward:8.2f} | "
+            f"Avg(10): {avg_reward_10:8.2f} | "
+            f"Loss: {avg_loss:.4f} | "
+            f"ε: {agent_stats['epsilon']:.3f} | "
+            f"Steps: {step:4d} | "
+            f"Trades: {info['total_trades']:2d} | "
+            f"Win%: {info['win_rate']*100:5.1f} | "
+            f"Balance: ${info['balance']:,.0f}"
+        )
+        import sys
+        sys.stdout.flush()  # Force flush to ensure real-time output
 
         # Save metrics
         logger.add_episode(episode, {

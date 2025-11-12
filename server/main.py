@@ -348,7 +348,7 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
                 "type": "training_progress",
                 "task_id": task_id,
                 "progress": 15,
-                "message": "⚠️ No data found, using synthetic data for training"
+                "message": "[WARN] No data found, using synthetic data for training"
             })
 
         # Select training script
@@ -381,6 +381,12 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
         if use_sample_data:
             cmd.append("--sample-data")
 
+        # Log the command that will be executed
+        print(f"\n[TRAINING] Executing command:")
+        print(f"  Command: {' '.join(cmd)}")
+        print(f"  Working directory: {os.getcwd()}")
+        print(f"  Python path: {sys.path[:3]}")
+
         # Run training process
         background_tasks_status[task_id]["message"] = f"Starting {model_name} training for {request.timesteps:,} timesteps..."
         background_tasks_status[task_id]["progress"] = 20
@@ -391,13 +397,20 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
             "message": f"Starting {model_name} training..."
         })
 
+        # Prepare environment variables
+        env = os.environ.copy()
+        env['PYTHONPATH'] = os.getcwd()
+        env['PYTHONIOENCODING'] = 'utf-8'  # Ensure UTF-8 encoding
+
         # Start subprocess
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            bufsize=1
+            bufsize=1,
+            cwd=os.getcwd(),  # Set working directory
+            env=env  # Pass environment variables
         )
 
         # Parse output and send progress updates
@@ -454,7 +467,7 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
                         await ws_manager.broadcast({
                             "type": "training_progress",
                             "task_id": task_id,
-                            "message": "💾 Checkpoint saved",
+                            "message": "[SAVE] Checkpoint saved",
                             "details": line
                         })
 
@@ -578,7 +591,7 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
                 "type": "training_progress",
                 "task_id": task_id,
                 "progress": 15,
-                "message": "⚠️ No data found, using synthetic data for training"
+                "message": "[WARN] No data found, using synthetic data for training"
             })
 
         # Build command
@@ -603,6 +616,12 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
         if use_sample_data:
             cmd.append("--sample-data")
 
+        # Log the command that will be executed
+        print(f"\n[TRAINING] Executing command:")
+        print(f"  Command: {' '.join(cmd)}")
+        print(f"  Working directory: {os.getcwd()}")
+        print(f"  Python path: {sys.path[:3]}")
+
         # Run training process
         background_tasks_status[task_id]["message"] = f"Starting training for {episodes} episodes..."
         background_tasks_status[task_id]["progress"] = 20
@@ -613,13 +632,20 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
             "message": f"Starting training for {episodes} episodes..."
         })
 
+        # Prepare environment variables
+        env = os.environ.copy()
+        env['PYTHONPATH'] = os.getcwd()
+        env['PYTHONIOENCODING'] = 'utf-8'  # Ensure UTF-8 encoding
+
         # Start subprocess
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            bufsize=1
+            bufsize=1,
+            cwd=os.getcwd(),  # Set working directory
+            env=env  # Pass environment variables
         )
 
         # Parse output and send progress updates
@@ -1191,7 +1217,7 @@ async def download_data_task(task_id: str, request: DataDownloadRequest):
 
                 # Warn if we got significantly fewer candles than expected
                 if len(all_candles) < expected_candles * 0.8:
-                    print(f"  ⚠️  Warning: Got {len(all_candles)} candles but expected ~{expected_candles}")
+                    print(f"  [WARN]  Warning: Got {len(all_candles)} candles but expected ~{expected_candles}")
                     background_tasks_status[task_id]["message"] = f"Downloaded {symbol} - {len(all_candles)}/{expected_candles} candles (some data may be missing)"
 
 

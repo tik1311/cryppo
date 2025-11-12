@@ -339,9 +339,21 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
 
         # Check if data exists
         data_dir = Path("data")
-        data_files = list(data_dir.rglob(f"{symbol}*.parquet"))
+        print(f"[DEBUG] Checking for data in: {data_dir.absolute()}")
+        print(f"[DEBUG] Data directory exists: {data_dir.exists()}")
+
+        data_files = []
+        if data_dir.exists():
+            data_files = list(data_dir.rglob(f"{symbol}*.parquet"))
+            print(f"[DEBUG] Found {len(data_files)} parquet files for {symbol}")
+            if data_files:
+                print(f"[DEBUG] Files: {[str(f) for f in data_files]}")
+        else:
+            print(f"[DEBUG] Data directory does not exist")
 
         use_sample_data = len(data_files) == 0
+        print(f"[DEBUG] use_sample_data = {use_sample_data}")
+
         if use_sample_data:
             background_tasks_status[task_id]["message"] = "No data found, using synthetic data..."
             await ws_manager.broadcast({
@@ -379,7 +391,10 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
         ]
 
         if use_sample_data:
+            print(f"[DEBUG] Appending --sample-data flag")
             cmd.append("--sample-data")
+        else:
+            print(f"[DEBUG] NOT appending --sample-data flag (data files found)")
 
         # Log the command that will be executed
         print(f"\n[TRAINING] Executing command:")
@@ -584,9 +599,21 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
 
         # Check if data exists
         data_dir = Path("data")
-        data_files = list(data_dir.rglob(f"{symbol}*.parquet"))
+        print(f"[DEBUG] Checking for data in: {data_dir.absolute()}")
+        print(f"[DEBUG] Data directory exists: {data_dir.exists()}")
+
+        data_files = []
+        if data_dir.exists():
+            data_files = list(data_dir.rglob(f"{symbol}*.parquet"))
+            print(f"[DEBUG] Found {len(data_files)} parquet files for {symbol}")
+            if data_files:
+                print(f"[DEBUG] Files: {[str(f) for f in data_files]}")
+        else:
+            print(f"[DEBUG] Data directory does not exist")
 
         use_sample_data = len(data_files) == 0
+        print(f"[DEBUG] use_sample_data = {use_sample_data}")
+
         if use_sample_data:
             background_tasks_status[task_id]["message"] = "No data found, using synthetic data..."
             await ws_manager.broadcast({
@@ -616,7 +643,10 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
         ]
 
         if use_sample_data:
+            print(f"[DEBUG] Appending --sample-data flag")
             cmd.append("--sample-data")
+        else:
+            print(f"[DEBUG] NOT appending --sample-data flag (data files found)")
 
         # Log the command that will be executed
         print(f"\n[TRAINING] Executing command:")

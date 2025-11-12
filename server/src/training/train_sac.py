@@ -95,8 +95,26 @@ class TradingCallback(BaseCallback):
 
     def _save_metrics(self):
         """Save metrics to JSON file"""
+        import numpy as np
+
+        # Convert numpy types to Python native types
+        def convert_to_native(obj):
+            if isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, dict):
+                return {key: convert_to_native(value) for key, value in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_to_native(item) for item in obj]
+            return obj
+
+        metrics_native = convert_to_native(self.metrics)
+
         with open(self.metrics_file, 'w') as f:
-            json.dump(self.metrics, f, indent=2)
+            json.dump(metrics_native, f, indent=2)
 
 
 def train_sac(
@@ -228,7 +246,7 @@ def train_sac(
         train_freq=1,
         gradient_steps=1,
         verbose=verbose,
-        tensorboard_log=str(log_path / "tensorboard")
+        tensorboard_log=None  # Disable tensorboard to avoid dependency issues
     )
 
     print(f"[OK] SAC agent initialized")
@@ -279,7 +297,7 @@ def train_sac(
             total_timesteps=timesteps,
             callback=callbacks,
             log_interval=10,
-            progress_bar=True
+            progress_bar=False  # Disable to avoid tqdm dependency
         )
 
         print("\n" + "=" * 60)

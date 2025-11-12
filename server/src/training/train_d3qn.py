@@ -104,8 +104,26 @@ class TrainingLogger:
 
     def save_metrics(self):
         """Save metrics to JSON"""
+        import numpy as np
+
+        # Convert numpy types to Python native types
+        def convert_to_native(obj):
+            if isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, dict):
+                return {key: convert_to_native(value) for key, value in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_to_native(item) for item in obj]
+            return obj
+
+        metrics_native = convert_to_native(self.metrics)
+
         with open(self.metrics_file, 'w') as f:
-            json.dump(self.metrics, f, indent=2)
+            json.dump(metrics_native, f, indent=2)
 
 
 def train_d3qn(

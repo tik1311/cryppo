@@ -79,8 +79,26 @@ class TradingCallback(BaseCallback):
                     self._save_metrics()
 
     def _save_metrics(self):
+        import numpy as np
+
+        # Convert numpy types to Python native types
+        def convert_to_native(obj):
+            if isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, dict):
+                return {key: convert_to_native(value) for key, value in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_to_native(item) for item in obj]
+            return obj
+
+        metrics_native = convert_to_native(self.metrics)
+
         with open(self.metrics_file, 'w') as f:
-            json.dump(self.metrics, f, indent=2)
+            json.dump(metrics_native, f, indent=2)
 
 
 def train_td3(
@@ -180,7 +198,7 @@ def train_td3(
         target_noise_clip=target_noise_clip,
         action_noise=action_noise,
         verbose=verbose,
-        tensorboard_log=str(log_path / "tensorboard")
+        tensorboard_log=None  # Disable tensorboard to avoid dependency issues
     )
     print(f"[OK] TD3 agent initialized")
 
@@ -212,7 +230,7 @@ def train_td3(
             total_timesteps=timesteps,
             callback=callbacks,
             log_interval=10,
-            progress_bar=True
+            progress_bar=False  # Disable to avoid tqdm dependency
         )
         print("\n[DONE] Training complete!")
     except KeyboardInterrupt:

@@ -255,8 +255,12 @@ class TradingEnv(gym.Env):
             # Exceeded max drawdown (70%)
             terminated = True
 
-        # Get new observation
-        observation = self._get_observation()
+        # Get new observation (only if not done)
+        if truncated or terminated:
+            # Return last valid observation if episode ended
+            observation = self._get_observation() if self.current_step < self.n_steps else np.zeros(self.observation_space.shape, dtype=np.float32)
+        else:
+            observation = self._get_observation()
         info = self._get_info()
 
         return observation, reward, terminated, truncated, info

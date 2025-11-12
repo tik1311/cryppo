@@ -461,6 +461,14 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
             # Small sleep to prevent busy loop
             await asyncio.sleep(0.1)
 
+        # Read any remaining output before checking return code
+        if process.stdout:
+            remaining_output = process.stdout.read()
+            if remaining_output:
+                for line in remaining_output.split('\n'):
+                    if line.strip():
+                        print(f"[Training] {line.strip()}")
+
         # Final return code check
         return_code = process.wait()
         if return_code != 0 and not training_controls.get(task_id, {}).get("cancelled", False):
@@ -674,6 +682,14 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
 
             # Small sleep to prevent busy loop
             await asyncio.sleep(0.1)
+
+        # Read any remaining output before checking return code
+        if process.stdout:
+            remaining_output = process.stdout.read()
+            if remaining_output:
+                for line in remaining_output.split('\n'):
+                    if line.strip():
+                        print(f"[Training] {line.strip()}")
 
         # Final return code check
         return_code = process.wait()

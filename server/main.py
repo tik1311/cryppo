@@ -1275,6 +1275,40 @@ async def get_paper_trading_status():
         "config": paper_trading_state.get("config")
     }
 
+@app.get("/api/paper-trading/historical-data")
+async def get_historical_data(symbol: str, timeframe: str = '1m', limit: int = 1000):
+    """Get historical candlestick data for any timeframe"""
+    try:
+        import ccxt
+
+        # Initialize exchange
+        exchange = ccxt.binance()
+
+        # Fetch OHLCV data
+        ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
+
+        # Convert to our format
+        candles = []
+        for candle in ohlcv:
+            candles.append({
+                "time": int(candle[0] / 1000),  # Convert ms to seconds
+                "open": candle[1],
+                "high": candle[2],
+                "low": candle[3],
+                "close": candle[4],
+                "volume": candle[5]
+            })
+
+        return {
+            "symbol": symbol,
+            "timeframe": timeframe,
+            "candles": candles,
+            "count": len(candles)
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch historical data: {str(e)}")
+
 @app.get("/api/exchange/symbols")
 async def get_top_symbols():
     """Get top 30 crypto symbols by volume from Binance"""

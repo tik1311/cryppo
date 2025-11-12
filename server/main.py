@@ -663,7 +663,7 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
             "--reward", request.reward_type,
             "--eval-freq", str(request.eval_freq),
             "--save-freq", str(request.save_freq),
-            "--checkpoint-dir", config["paths"]["checkpoints"],
+            "--checkpoint-dir", os.path.abspath(config["paths"]["checkpoints"]),  # Use absolute path
             "--log-dir", "logs"
         ]
 
@@ -1444,9 +1444,13 @@ async def cancel_training(task_id: str):
 async def get_available_models():
     """List available trained models"""
     # Check both checkpoints and models directories
-    checkpoints_dir = config["paths"]["checkpoints"]
-    models_dir = config["paths"]["models"]
+    checkpoints_dir = os.path.abspath(config["paths"]["checkpoints"])
+    models_dir = os.path.abspath(config["paths"]["models"])
     available_models = []
+
+    print(f"[API] Checking for models in:")
+    print(f"  Checkpoints: {checkpoints_dir}")
+    print(f"  Models: {models_dir}")
 
     # Check checkpoints directory (where trained models are saved)
     if os.path.exists(checkpoints_dir):
@@ -1460,6 +1464,7 @@ async def get_available_models():
                     "size_mb": round(stat.st_size / (1024 * 1024), 2),
                     "created": datetime.fromtimestamp(stat.st_mtime).isoformat()
                 })
+                print(f"  Found: {file} ({stat.st_size / (1024 * 1024):.2f} MB)")
 
     # Also check models directory
     if os.path.exists(models_dir):
@@ -1473,7 +1478,9 @@ async def get_available_models():
                     "size_mb": round(stat.st_size / (1024 * 1024), 2),
                     "created": datetime.fromtimestamp(stat.st_mtime).isoformat()
                 })
+                print(f"  Found: {file} ({stat.st_size / (1024 * 1024):.2f} MB)")
 
+    print(f"[API] Total models found: {len(available_models)}")
     return {"models": available_models, "count": len(available_models)}
 
 # ============================================================================

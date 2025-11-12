@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { apiClient } from '@/lib/api'
 import { WebSocketClient } from '@/lib/websocket'
 import KLineChart from '@/components/KLineChart'
@@ -75,6 +75,8 @@ export default function PaperTradingPage() {
   const [currentPosition, setCurrentPosition] = useState<any>(null)
   const [positionHistory, setPositionHistory] = useState<any[]>([])
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('1m')
+  const [isLoadingChart, setIsLoadingChart] = useState(false)
+  const selectedTimeframeRef = useRef<string>('1m')
 
   // Fetch available models and symbols
   useEffect(() => {
@@ -155,8 +157,8 @@ export default function PaperTradingPage() {
         setPositionHistory(data.positionHistory)
       }
 
-      // Update chart
-      if (data.candle) {
+      // Update chart (only for 1m timeframe - realtime updates)
+      if (data.candle && selectedTimeframeRef.current === '1m') {
         setChartData(prev => {
           const newData = [...prev]
           const existingIndex = newData.findIndex(c => c.time === data.candle.time)
@@ -165,7 +167,7 @@ export default function PaperTradingPage() {
           } else {
             newData.push(data.candle)
           }
-          return newData.slice(-500) // Keep last 500 candles
+          return newData.slice(-1000) // Keep last 1000 candles
         })
       }
     })
@@ -239,6 +241,32 @@ export default function PaperTradingPage() {
       console.error('Error stopping paper trading:', err)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleTimeframeChange = async (newTimeframe: string) => {
+    if (!isRunning) return
+
+    setIsLoadingChart(true)
+    setSelectedTimeframe(newTimeframe)
+    selectedTimeframeRef.current = newTimeframe
+
+    try {
+      // Fetch historical data for new timeframe
+      const response = await fetch(
+        `http://localhost:8000/api/paper-trading/historical-data?symbol=${config.symbol}&timeframe=${newTimeframe}&limit=1000`
+      )
+      const data = await response.json()
+
+      if (data.candles && data.candles.length > 0) {
+        // Replace chart data with new timeframe data
+        setChartData(data.candles)
+      }
+    } catch (err: any) {
+      console.error('Error fetching historical data:', err)
+      setError('Failed to load historical data for timeframe')
+    } finally {
+      setIsLoadingChart(false)
     }
   }
 
@@ -378,13 +406,19 @@ export default function PaperTradingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Professional KLineChart */}
             <div className="lg:col-span-2">
-              {chartData.length > 0 && (
+              {isLoadingChart && (
+                <div className="card p-8 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                  <div>Loading {selectedTimeframe} data...</div>
+                </div>
+              )}
+              {!isLoadingChart && chartData.length > 0 && (
                 <KLineChart
                   data={chartData}
                   symbol={config.symbol.replace('USDT', '/USDT')}
                   height={650}
                   timeframe={selectedTimeframe}
-                  onTimeframeChange={setSelectedTimeframe}
+                  onTimeframeChange={handleTimeframeChange}
                   priceLines={currentPosition ? {
                     entry: currentPosition.entry_price,
                     takeProfit: currentPosition.take_profit,

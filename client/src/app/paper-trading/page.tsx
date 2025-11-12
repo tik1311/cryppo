@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { apiClient } from '@/lib/api'
 import { WebSocketClient } from '@/lib/websocket'
-import TradingViewChart from '@/components/TradingViewChart'
 import KLineChart from '@/components/KLineChart'
 import MetricsDisplay from '@/components/MetricsDisplay'
 import TradesList from '@/components/TradesList'
@@ -75,7 +74,7 @@ export default function PaperTradingPage() {
   const [wsClient, setWsClient] = useState<WebSocketClient | null>(null)
   const [currentPosition, setCurrentPosition] = useState<any>(null)
   const [positionHistory, setPositionHistory] = useState<any[]>([])
-  const [chartMode, setChartMode] = useState<'kline' | 'tradingview'>('kline')
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('1m')
 
   // Fetch available models and symbols
   useEffect(() => {
@@ -377,39 +376,15 @@ export default function PaperTradingPage() {
           <MetricsDisplay metrics={metrics} isLive={true} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Chart with Mode Switcher */}
+            {/* Professional KLineChart */}
             <div className="lg:col-span-2">
-              {/* Chart Mode Switcher */}
-              <div className="mb-4 flex gap-2">
-                <button
-                  onClick={() => setChartMode('kline')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    chartMode === 'kline'
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  📊 KLineChart Pro (Drawing Tools)
-                </button>
-                <button
-                  onClick={() => setChartMode('tradingview')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    chartMode === 'tradingview'
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  📈 TradingView
-                </button>
-              </div>
-
-              {/* Show chart based on selected mode */}
-              {chartMode === 'tradingview' ? (
-                <TradingViewChart
-                  symbol={config.symbol}
+              {chartData.length > 0 && (
+                <KLineChart
+                  data={chartData}
+                  symbol={config.symbol.replace('USDT', '/USDT')}
                   height={650}
-                  theme="dark"
-                  interval="1"
+                  timeframe={selectedTimeframe}
+                  onTimeframeChange={setSelectedTimeframe}
                   priceLines={currentPosition ? {
                     entry: currentPosition.entry_price,
                     takeProfit: currentPosition.take_profit,
@@ -418,21 +393,6 @@ export default function PaperTradingPage() {
                     liquidation: currentPosition.liquidation_price
                   } : undefined}
                 />
-              ) : (
-                chartData.length > 0 && (
-                  <KLineChart
-                    data={chartData}
-                    symbol={config.symbol.replace('USDT', '/USDT')}
-                    height={650}
-                    priceLines={currentPosition ? {
-                      entry: currentPosition.entry_price,
-                      takeProfit: currentPosition.take_profit,
-                      stopLoss: currentPosition.stop_loss,
-                      breakEven: currentPosition.break_even,
-                      liquidation: currentPosition.liquidation_price
-                    } : undefined}
-                  />
-                )
               )}
             </div>
 

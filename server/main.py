@@ -428,6 +428,7 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
         env = os.environ.copy()
         env['PYTHONPATH'] = os.getcwd()
         env['PYTHONIOENCODING'] = 'utf-8'  # Ensure UTF-8 encoding
+        env['PYTHONUNBUFFERED'] = '1'  # Disable output buffering for real-time logs
 
         # Start subprocess
         process = subprocess.Popen(
@@ -692,6 +693,7 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
         env = os.environ.copy()
         env['PYTHONPATH'] = os.getcwd()
         env['PYTHONIOENCODING'] = 'utf-8'  # Ensure UTF-8 encoding
+        env['PYTHONUNBUFFERED'] = '1'  # Disable output buffering for real-time logs
 
         # Start subprocess
         process = subprocess.Popen(

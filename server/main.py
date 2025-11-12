@@ -644,41 +644,97 @@ async def download_data_task(task_id: str, request: DataDownloadRequest):
                 start_dt = datetime.strptime(request.start_date, "%Y-%m-%d")
                 end_dt = datetime.strptime(request.end_date, "%Y-%m-%d")
 
-                # Fetch OHLCV data
+                # Fetch OHLCV data with retry logic
                 since = int(start_dt.timestamp() * 1000)
                 end_ts = int(end_dt.timestamp() * 1000)
                 limit = 1000  # Binance max limit
                 all_candles = []
 
+                # Calculate expected number of candles
+                time_range_ms = end_ts - since
+                expected_candles = time_range_ms // timeframe_ms
+
                 print(f"\n[Download] {symbol} - {request.timeframe}")
                 print(f"  Start: {start_dt} -> End: {end_dt}")
                 print(f"  Timeframe: {request.timeframe} ({timeframe_ms}ms)")
+                print(f"  Expected ~{expected_candles} candles")
+
+                retry_count = 0
+                max_retries = 3
+                consecutive_empty = 0
+                max_consecutive_empty = 3
 
                 while since < end_ts:
-                    candles = await asyncio.to_thread(
-                        exchange.fetch_ohlcv,
-                        symbol,
-                        request.timeframe,
-                        since,
-                        limit
-                    )
+                    try:
+                        candles = await asyncio.to_thread(
+                            exchange.fetch_ohlcv,
+                            symbol,
+                            request.timeframe,
+                            since,
+                            limit
+                        )
 
-                    if not candles:
-                        print(f"  No more data at timestamp {since}")
-                        break
+                        if not candles or len(candles) == 0:
+                            consecutive_empty += 1
+                            print(f"  Empty response at {datetime.fromtimestamp(since/1000)} (consecutive: {consecutive_empty})")
 
-                    all_candles.extend(candles)
-                    last_timestamp = candles[-1][0]
+                            # If we get multiple consecutive empty responses, we're done
+                            if consecutive_empty >= max_consecutive_empty:
+                                print(f"  Reached {consecutive_empty} consecutive empty responses, stopping")
+                                break
 
-                    # Move to next batch: last candle timestamp + 1 interval
-                    since = last_timestamp + timeframe_ms
+                            # Move forward by 1 day and try again
+                            since += 86400000  # 1 day in ms
+                            await asyncio.sleep(0.5)
+                            continue
 
-                    print(f"  Fetched {len(candles)} candles, total: {len(all_candles)}, next: {datetime.fromtimestamp(since/1000)}")
+                        # Reset consecutive empty counter on successful fetch
+                        consecutive_empty = 0
+                        retry_count = 0  # Reset retry count on success
 
-                    # Small delay to respect rate limits (Binance: 1200 requests/minute)
-                    await asyncio.sleep(0.1)
+                        all_candles.extend(candles)
+                        last_timestamp = candles[-1][0]
 
-                print(f"  ✓ Downloaded {len(all_candles)} total candles for {symbol}")
+                        # Move to next batch: last candle timestamp + 1 interval
+                        since = last_timestamp + timeframe_ms
+
+                        # Update progress with more detail
+                        progress_pct = min(90, 5 + (idx / total_symbols) * 80 + (len(all_candles) / max(expected_candles, 1)) * (80 / total_symbols))
+                        background_tasks_status[task_id]["progress"] = int(progress_pct)
+                        background_tasks_status[task_id]["message"] = f"Downloading {symbol}... ({len(all_candles)}/{expected_candles} candles)"
+
+                        await ws_manager.broadcast({
+                            "type": "download_progress",
+                            "task_id": task_id,
+                            "progress": int(progress_pct),
+                            "message": f"Downloading {symbol}... ({len(all_candles)}/{expected_candles} candles)"
+                        })
+
+                        print(f"  Fetched {len(candles)} candles, total: {len(all_candles)}/{expected_candles}, next: {datetime.fromtimestamp(since/1000)}")
+
+                        # Respect Binance rate limits (1200 req/min = 50ms per request minimum)
+                        # Use 200ms to be safe (5 req/sec = 300 req/min, well under limit)
+                        await asyncio.sleep(0.2)
+
+                    except Exception as fetch_error:
+                        retry_count += 1
+                        print(f"  Error fetching data (retry {retry_count}/{max_retries}): {fetch_error}")
+
+                        if retry_count >= max_retries:
+                            print(f"  Max retries reached, moving to next timestamp")
+                            since += limit * timeframe_ms  # Skip this batch
+                            retry_count = 0
+                            await asyncio.sleep(1)  # Longer delay after errors
+                        else:
+                            await asyncio.sleep(2 ** retry_count)  # Exponential backoff
+
+                print(f"  ✓ Downloaded {len(all_candles)} total candles for {symbol} (expected ~{expected_candles})")
+
+                # Warn if we got significantly fewer candles than expected
+                if len(all_candles) < expected_candles * 0.8:
+                    print(f"  ⚠️  Warning: Got {len(all_candles)} candles but expected ~{expected_candles}")
+                    background_tasks_status[task_id]["message"] = f"Downloaded {symbol} - {len(all_candles)}/{expected_candles} candles (some data may be missing)"
+
 
                 # Convert to DataFrame
                 df = pd.DataFrame(all_candles, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])

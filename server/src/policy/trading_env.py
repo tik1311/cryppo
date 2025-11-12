@@ -242,6 +242,7 @@ class TradingEnv(gym.Env):
         self.current_step += 1
 
         # Check if episode is done
+        terminated = False
         truncated = False
 
         if self.current_step >= self.n_steps - 1:
@@ -403,7 +404,8 @@ class TradingEnv(gym.Env):
             if len(self.equity_history) < 10:
                 return 0.0
 
-            returns = np.diff(self.equity_history[-30:]) / self.equity_history[-31:-1]
+            equity_window = np.array(self.equity_history[-30:])
+            returns = np.diff(equity_window) / equity_window[:-1]
             if len(returns) == 0 or np.std(returns) == 0:
                 return 0.0
 
@@ -415,7 +417,8 @@ class TradingEnv(gym.Env):
             if len(self.equity_history) < 10:
                 return 0.0
 
-            returns = np.diff(self.equity_history[-30:]) / self.equity_history[-31:-1]
+            equity_window = np.array(self.equity_history[-30:])
+            returns = np.diff(equity_window) / equity_window[:-1]
             downside_returns = returns[returns < 0]
 
             if len(downside_returns) == 0:

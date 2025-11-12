@@ -175,6 +175,8 @@ export default function TrainPage() {
         learning_rate: parseFloat(learningRate),
         gamma: parseFloat(gamma),
         reward_type: rewardType,
+        batch_size: parseInt(batchSize),
+        buffer_size: parseInt(bufferSize),
       });
 
       const taskId = response.data.task_id;

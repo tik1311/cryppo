@@ -35,33 +35,33 @@ print(f"[DEBUG] Current working directory: {os.getcwd()}")
 try:
     print("[DEBUG] Importing D3QNAgent...")
     from src.agent.d3qn_agent import D3QNAgent
-    print("[DEBUG] ✓ D3QNAgent imported successfully")
+    print("[DEBUG] [OK] D3QNAgent imported successfully")
 except Exception as e:
-    print(f"[DEBUG] ✗ Failed to import D3QNAgent: {e}")
+    print(f"[DEBUG] [FAIL] Failed to import D3QNAgent: {e}")
     raise
 
 try:
     print("[DEBUG] Importing TradingEnv...")
     from src.policy.trading_env import TradingEnv
-    print("[DEBUG] ✓ TradingEnv imported successfully")
+    print("[DEBUG] [OK] TradingEnv imported successfully")
 except Exception as e:
-    print(f"[DEBUG] ✗ Failed to import TradingEnv: {e}")
+    print(f"[DEBUG] [FAIL] Failed to import TradingEnv: {e}")
     raise
 
 try:
     print("[DEBUG] Importing data loader functions...")
     from src.data.loader import load_market_data, prepare_env_data, split_train_test, create_sample_data
-    print("[DEBUG] ✓ Data loader functions imported successfully")
+    print("[DEBUG] [OK] Data loader functions imported successfully")
 except Exception as e:
-    print(f"[DEBUG] ✗ Failed to import data loader functions: {e}")
+    print(f"[DEBUG] [FAIL] Failed to import data loader functions: {e}")
     raise
 
 try:
     print("[DEBUG] Importing BacktestEngine...")
     from src.eval.backtest import BacktestEngine
-    print("[DEBUG] ✓ BacktestEngine imported successfully")
+    print("[DEBUG] [OK] BacktestEngine imported successfully")
 except Exception as e:
-    print(f"[DEBUG] ✗ Failed to import BacktestEngine: {e}")
+    print(f"[DEBUG] [FAIL] Failed to import BacktestEngine: {e}")
     raise
 
 print("[DEBUG] All imports successful!")
@@ -168,20 +168,20 @@ def train_d3qn(
     checkpoint_path.mkdir(exist_ok=True, parents=True)
 
     # Load market data
-    logger.log("\n📊 Loading market data...")
+    logger.log("\n[DATA] Loading market data...")
     try:
         if use_sample_data:
-            logger.log("⚠️  Using synthetic data for testing")
+            logger.log("[WARN] Using synthetic data for testing")
             df = create_sample_data(symbol=symbol, n_samples=10000, save_dir="data")
         else:
             df = load_market_data(symbol=symbol, timeframe=timeframe)
 
-        logger.log(f"✓ Loaded {len(df):,} candles")
+        logger.log(f"[OK] Loaded {len(df):,} candles")
         logger.log(f"  Date range: {df['timestamp'].min()} to {df['timestamp'].max()}")
 
     except FileNotFoundError as e:
-        logger.log(f"❌ Error: {e}")
-        logger.log("\n💡 To download real market data:")
+        logger.log(f"[ERROR] {e}")
+        logger.log("\n[INFO] To download real market data:")
         logger.log("   1. Start the server: uvicorn server.main:app")
         logger.log("   2. Download data via API:")
         logger.log(f"      POST /api/data/download")
@@ -190,17 +190,17 @@ def train_d3qn(
         return
 
     # Prepare data
-    logger.log("\n🔧 Preparing data...")
+    logger.log("\n[PREP] Preparing data...")
     data = prepare_env_data(df, add_indicators=True, normalize=True)
-    logger.log(f"✓ Data shape: {data.shape}")
+    logger.log(f"[OK] Data shape: {data.shape}")
     logger.log(f"  Features: {data.shape[1]}")
 
     # Split into train/val/test
     train_data, val_data, test_data = split_train_test(data, train_ratio=0.7, val_ratio=0.15)
-    logger.log(f"✓ Train: {len(train_data):,} | Val: {len(val_data):,} | Test: {len(test_data):,}")
+    logger.log(f"[OK] Train: {len(train_data):,} | Val: {len(val_data):,} | Test: {len(test_data):,}")
 
     # Create environments
-    logger.log("\n🌍 Creating environments...")
+    logger.log("\n[ENV] Creating environments...")
     train_env = TradingEnv(
         data=train_data,
         initial_balance=initial_balance,
@@ -215,11 +215,11 @@ def train_d3qn(
         window_size=window_size,
         reward_type=reward_type
     )
-    logger.log(f"✓ Train env: {train_env.n_steps} steps")
-    logger.log(f"✓ Val env: {val_env.n_steps} steps")
+    logger.log(f"[OK] Train env: {train_env.n_steps} steps")
+    logger.log(f"[OK] Val env: {val_env.n_steps} steps")
 
     # Initialize agent
-    logger.log("\n🤖 Initializing D3QN agent...")
+    logger.log("\n[AGENT] Initializing D3QN agent...")
     state_dim = train_env.observation_space.shape[0] * train_env.observation_space.shape[1]  # Flatten
     action_dim = train_env.action_space.n
 
@@ -232,12 +232,12 @@ def train_d3qn(
         buffer_size=buffer_size
     )
 
-    logger.log(f"✓ State dim: {state_dim}")
-    logger.log(f"✓ Action dim: {action_dim} (HOLD, LONG, SHORT, CLOSE)")
-    logger.log(f"✓ Device: {agent.device}")
+    logger.log(f"[OK] State dim: {state_dim}")
+    logger.log(f"[OK] Action dim: {action_dim} (HOLD, LONG, SHORT, CLOSE)")
+    logger.log(f"[OK] Device: {agent.device}")
 
     # Training loop
-    logger.log("\n🚀 Starting training...")
+    logger.log("\n[TRAIN] Starting training...")
     logger.log("=" * 60)
 
     best_val_reward = -float('inf')
@@ -309,7 +309,7 @@ def train_d3qn(
 
         # Evaluate on validation set
         if episode % eval_freq == 0:
-            logger.log("\n📈 Evaluating on validation set...")
+            logger.log("\n[EVAL] Evaluating on validation set...")
             val_reward, val_info = evaluate_agent(agent, val_env, episodes=5)
             logger.log(
                 f"  Val Reward: {val_reward:.2f} | "
@@ -323,24 +323,24 @@ def train_d3qn(
                 best_val_reward = val_reward
                 best_path = checkpoint_path / "best_agent.pth"
                 agent.save(str(best_path))
-                logger.log(f"  💾 New best model saved! (reward: {val_reward:.2f})")
+                logger.log(f"  [SAVE] New best model saved! (reward: {val_reward:.2f})")
 
         # Save checkpoint
         if episode % save_freq == 0:
             checkpoint_file = checkpoint_path / f"agent_episode_{episode}.pth"
             agent.save(str(checkpoint_file))
-            logger.log(f"\n💾 Checkpoint saved: {checkpoint_file}")
+            logger.log(f"\n[SAVE] Checkpoint saved: {checkpoint_file}")
 
             # Save metrics
             logger.save_metrics()
 
     # Final evaluation
     logger.log("\n" + "=" * 60)
-    logger.log("🎉 Training complete!")
+    logger.log("[DONE] Training complete!")
     logger.log("=" * 60)
 
     # Final test
-    logger.log("\n🧪 Final evaluation on test set...")
+    logger.log("\n[TEST] Final evaluation on test set...")
     test_env = TradingEnv(
         data=test_data,
         initial_balance=initial_balance,
@@ -360,14 +360,14 @@ def train_d3qn(
     # Save final model
     final_path = checkpoint_path / "final_agent.pth"
     agent.save(str(final_path))
-    logger.log(f"\n💾 Final model saved: {final_path}")
+    logger.log(f"\n[SAVE] Final model saved: {final_path}")
 
     # Save metrics
     logger.save_metrics()
-    logger.log(f"📊 Metrics saved: {logger.metrics_file}")
-    logger.log(f"📝 Logs saved: {logger.log_file}")
+    logger.log(f"[INFO] Metrics saved: {logger.metrics_file}")
+    logger.log(f"[INFO] Logs saved: {logger.log_file}")
 
-    logger.log("\n✅ Done!")
+    logger.log("\n[COMPLETE] Done!")
 
 
 def evaluate_agent(agent: D3QNAgent, env: TradingEnv, episodes: int = 5) -> tuple:
@@ -479,7 +479,7 @@ def main():
         )
     except Exception as e:
         import traceback
-        print(f"\n❌ ERROR: Training failed!")
+        print(f"\n[ERROR] Training failed!")
         print(f"Error message: {str(e)}")
         print(f"\nFull traceback:")
         traceback.print_exc()

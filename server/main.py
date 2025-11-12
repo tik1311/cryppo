@@ -850,8 +850,8 @@ async def backtest_task(task_id: str, request: BacktestRequest):
         import numpy as np
         from pathlib import Path
         from src.agent.d3qn_agent import D3QNAgent
-        from src.env.trading_env import TradingEnv
-        from src.data.loader import load_data_for_env
+        from src.policy.trading_env import TradingEnv
+        from src.data.loader import load_market_data, prepare_env_data, create_sample_data
 
         # Initialize
         background_tasks_status[task_id]["status"] = "running"
@@ -901,15 +901,23 @@ async def backtest_task(task_id: str, request: BacktestRequest):
 
         # Use first symbol from request
         symbol = request.symbols[0] if request.symbols else "BTCUSDT"
-        timeframe = request.timeframe if hasattr(request, 'timeframe') else "1h"
-        window_size = request.window_size if hasattr(request, 'window_size') else 72
+        timeframe = "1h"  # Fixed for now
+        window_size = 72  # Default window size
 
         print(f"[Backtest] Loading data for {symbol} {timeframe}, window_size={window_size}")
 
         # Load data (will use synthetic if no real data available)
-        data_arrays = load_data_for_env(symbol, timeframe, window_size)
+        try:
+            df = load_market_data(symbol=symbol, timeframe=timeframe)
+            print(f"[Backtest] Loaded real market data: {len(df)} candles")
+        except:
+            print(f"[Backtest] No real data found, using synthetic data")
+            df = create_sample_data(symbol=symbol, n_samples=10000, save_dir="data")
 
-        print(f"[Backtest] Data loaded: {data_arrays['prices'].shape[0]} candles")
+        # Prepare data for environment
+        env_data = prepare_env_data(df, add_indicators=True, normalize=False)
+
+        print(f"[Backtest] Data prepared: {env_data.shape[0]} timesteps, {env_data.shape[1]} features")
 
         # Create trading environment
         background_tasks_status[task_id]["message"] = "Creating trading environment..."
@@ -922,11 +930,12 @@ async def backtest_task(task_id: str, request: BacktestRequest):
         })
 
         env = TradingEnv(
-            data=data_arrays,
+            data=env_data,
             initial_balance=request.initial_balance,
             max_leverage=request.max_leverage,
             fee_rate=request.fee_rate,
-            window_size=window_size
+            window_size=window_size,
+            reward_type="sharpe"
         )
 
         print(f"[Backtest] Environment created")
@@ -975,14 +984,17 @@ async def backtest_task(task_id: str, request: BacktestRequest):
         step = 0
         episode_reward = 0
 
-        # Track trades and equity
-        trade_history = []
+        # Track equity curve
         equity_curve = [request.initial_balance]
         price_history = []
 
+        # Track position changes for trade history
+        prev_position = None
+        prev_balance = request.initial_balance
+
         print(f"[Backtest] Starting simulation...")
 
-        total_steps = len(data_arrays['prices']) - window_size
+        total_steps = len(env_data) - window_size
 
         while not done:
             # Check if cancelled
@@ -1006,26 +1018,16 @@ async def backtest_task(task_id: str, request: BacktestRequest):
             next_state, reward, done, truncated, info = env.step(action)
             episode_reward += reward
 
+            # Get current price (close price at index 3 in OHLCV data)
+            current_step_idx = info.get('step', window_size)
+            if current_step_idx < len(env_data):
+                current_price = env_data[current_step_idx, 3]  # Close price
+            else:
+                current_price = env_data[-1, 3]
+
             # Record equity and price
             equity_curve.append(info['balance'])
-            price_history.append(info['current_price'])
-
-            # Record trades
-            if info.get('trade_type') in ['buy', 'sell', 'close']:
-                trade_history.append({
-                    "id": str(len(trade_history) + 1),
-                    "timestamp": int(info.get('timestamp', 0)),
-                    "action": info.get('trade_type', '').upper(),
-                    "position": info.get('position', 'NONE'),
-                    "entry_price": round(info.get('entry_price', 0), 2),
-                    "exit_price": round(info.get('exit_price', 0), 2) if info.get('exit_price') else None,
-                    "current_price": round(info['current_price'], 2),
-                    "quantity": round(info.get('position_size', 0), 4),
-                    "pnl": round(info.get('pnl', 0), 2),
-                    "pnl_pct": round(info.get('pnl_pct', 0), 2),
-                    "balance": round(info['balance'], 2),
-                    "status": "CLOSED" if info.get('trade_type') == 'close' else "OPEN"
-                })
+            price_history.append(current_price)
 
             state = next_state
             step += 1
@@ -1043,7 +1045,7 @@ async def backtest_task(task_id: str, request: BacktestRequest):
                     "message": f"Running backtest... {step}/{total_steps} steps"
                 })
 
-        print(f"[Backtest] Simulation completed: {step} steps, {len(trade_history)} trades")
+        print(f"[Backtest] Simulation completed: {step} steps")
 
         # Calculate performance metrics
         background_tasks_status[task_id]["message"] = "Calculating performance metrics..."
@@ -1060,12 +1062,9 @@ async def backtest_task(task_id: str, request: BacktestRequest):
         final_balance = final_info['balance']
         total_return_pct = ((final_balance - request.initial_balance) / request.initial_balance) * 100
 
-        # Calculate trade statistics
-        closed_trades = [t for t in trade_history if t['status'] == 'CLOSED']
-        total_trades = len(closed_trades)
-        winning_trades = len([t for t in closed_trades if t['pnl'] > 0])
-        losing_trades = total_trades - winning_trades
-        win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
+        # Get trade statistics from environment
+        total_trades = final_info.get('total_trades', 0)
+        win_rate = final_info.get('win_rate', 0) * 100
 
         # Calculate equity-based metrics
         equity_array = np.array(equity_curve)
@@ -1090,19 +1089,25 @@ async def backtest_task(task_id: str, request: BacktestRequest):
         drawdown = (equity_array - running_max) / running_max
         max_drawdown_pct = abs(drawdown.min()) * 100 if len(drawdown) > 0 else 0
 
-        # Profit factor
-        total_wins = sum([t['pnl'] for t in closed_trades if t['pnl'] > 0])
-        total_losses = abs(sum([t['pnl'] for t in closed_trades if t['pnl'] < 0]))
-        profit_factor = (total_wins / total_losses) if total_losses > 0 else 0
+        # Profit factor (simplified calculation from returns)
+        positive_returns = returns[returns > 0]
+        negative_returns = returns[returns < 0]
+        total_gains = np.sum(positive_returns) if len(positive_returns) > 0 else 0
+        total_losses = abs(np.sum(negative_returns)) if len(negative_returns) > 0 else 0
+        profit_factor = (total_gains / total_losses) if total_losses > 0 else 0
 
         # Generate chart data from actual price history
         chart_data = []
         for i in range(0, len(price_history), max(1, len(price_history) // 100)):  # Sample ~100 points
             chart_data.append({
                 "time": int(1704067200 + i * 3600),  # Approximate timestamps
-                "close": round(price_history[i], 2),
-                "equity": round(equity_curve[i], 2)
+                "close": round(float(price_history[i]), 2),
+                "equity": round(float(equity_curve[i]), 2)
             })
+
+        # Estimate winning/losing trades from win rate
+        winning_trades = int(total_trades * (win_rate / 100)) if total_trades > 0 else 0
+        losing_trades = total_trades - winning_trades
 
         results = {
             "summary": {
@@ -1124,7 +1129,7 @@ async def backtest_task(task_id: str, request: BacktestRequest):
                 "profit_factor": round(profit_factor, 2)
             },
             "chart_data": chart_data,
-            "trade_history": trade_history[-30:]  # Last 30 trades for display
+            "trade_history": []  # Simplified: no detailed trade history for now
         }
 
         print(f"[Backtest] Results: Return={total_return_pct:.2f}%, Trades={total_trades}, Win Rate={win_rate:.2f}%")

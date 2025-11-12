@@ -92,7 +92,7 @@ class TrainingLogger:
     def log(self, message: str):
         """Log message to console and file"""
         print(message)
-        with open(self.log_file, 'a') as f:
+        with open(self.log_file, 'a', encoding='utf-8') as f:
             f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {message}\n")
 
     def add_episode(self, episode: int, metrics: Dict):
@@ -288,7 +288,7 @@ def train_d3qn(
             f"Reward: {episode_reward:8.2f} | "
             f"Avg(10): {avg_reward_10:8.2f} | "
             f"Loss: {avg_loss:.4f} | "
-            f"ε: {agent_stats['epsilon']:.3f} | "
+            f"Eps: {agent_stats['epsilon']:.3f} | "  # Changed from ε to Eps
             f"Steps: {step:4d} | "
             f"Trades: {info['total_trades']:2d} | "
             f"Win%: {info['win_rate']*100:5.1f} | "

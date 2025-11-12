@@ -408,6 +408,8 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding='utf-8',  # Force UTF-8 encoding for stdout/stderr
+            errors='replace',  # Replace invalid characters instead of crashing
             bufsize=1,
             cwd=os.getcwd(),  # Set working directory
             env=env  # Pass environment variables
@@ -643,6 +645,8 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding='utf-8',  # Force UTF-8 encoding for stdout/stderr
+            errors='replace',  # Replace invalid characters instead of crashing
             bufsize=1,
             cwd=os.getcwd(),  # Set working directory
             env=env  # Pass environment variables

@@ -1985,26 +1985,38 @@ async def list_tasks():
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket for real-time updates"""
+    client_host = websocket.client.host if websocket.client else "unknown"
+    client_port = websocket.client.port if websocket.client else "unknown"
+    print(f"[WebSocket] Connection attempt from {client_host}:{client_port}")
+
     try:
+        print(f"[WebSocket] Accepting connection...")
         await ws_manager.connect(websocket)
-        print(f"[WebSocket] Client connected: {websocket.client}")
+        print(f"[WebSocket] Client connected: {client_host}:{client_port}")
 
         try:
             while True:
                 # Keep connection alive
                 data = await websocket.receive_text()
+                print(f"[WebSocket] Received from {client_host}: {data[:50]}...")
                 # Echo back for testing
                 await websocket.send_json({"type": "echo", "data": data})
         except WebSocketDisconnect:
-            print(f"[WebSocket] Client disconnected: {websocket.client}")
+            print(f"[WebSocket] Client disconnected: {client_host}:{client_port}")
             ws_manager.disconnect(websocket)
         except Exception as e:
-            print(f"[WebSocket] Error in connection: {e}")
+            print(f"[WebSocket] Error in message loop: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
             ws_manager.disconnect(websocket)
     except Exception as e:
-        print(f"[WebSocket] Failed to connect: {e}")
+        print(f"[WebSocket] Failed to accept connection: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
+        try:
+            await websocket.close(code=1008, reason=str(e)[:100])
+        except:
+            pass
 
 # ============================================================================
 # Main Entry Point

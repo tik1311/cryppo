@@ -336,18 +336,30 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
 
         # Prepare training arguments
         symbol = request.symbols[0] if request.symbols else "BTCUSDT"
+        timeframe = "1h"  # Only 1h timeframe is supported
 
-        # Check if data exists
+        # Check if data exists (use same pattern as loader.py)
         data_dir = Path("data")
         print(f"[DEBUG] Checking for data in: {data_dir.absolute()}")
         print(f"[DEBUG] Data directory exists: {data_dir.exists()}")
 
         data_files = []
         if data_dir.exists():
-            data_files = list(data_dir.rglob(f"{symbol}*.parquet"))
-            print(f"[DEBUG] Found {len(data_files)} parquet files for {symbol}")
+            # Use same pattern as loader.py: {symbol}_{timeframe}*.parquet
+            pattern = f"{symbol}_{timeframe}*.parquet"
+            data_files = list(data_dir.rglob(pattern))
+            print(f"[DEBUG] Search pattern: {pattern}")
+            print(f"[DEBUG] Found {len(data_files)} parquet files for {symbol} {timeframe}")
             if data_files:
                 print(f"[DEBUG] Files: {[str(f) for f in data_files]}")
+
+            # Also check for synthetic data files if no timeframe-specific files found
+            if not data_files:
+                synthetic_pattern = f"{symbol}*synthetic.parquet"
+                synthetic_files = list(data_dir.rglob(synthetic_pattern))
+                print(f"[DEBUG] Checking synthetic pattern: {synthetic_pattern}")
+                print(f"[DEBUG] Found {len(synthetic_files)} synthetic files")
+                # Don't use synthetic files here - let train script generate new ones
         else:
             print(f"[DEBUG] Data directory does not exist")
 
@@ -596,18 +608,30 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
 
         # Prepare training arguments
         symbol = request.symbols[0] if request.symbols else "BTCUSDT"
+        timeframe = "1h"  # Only 1h timeframe is supported
 
-        # Check if data exists
+        # Check if data exists (use same pattern as loader.py)
         data_dir = Path("data")
         print(f"[DEBUG] Checking for data in: {data_dir.absolute()}")
         print(f"[DEBUG] Data directory exists: {data_dir.exists()}")
 
         data_files = []
         if data_dir.exists():
-            data_files = list(data_dir.rglob(f"{symbol}*.parquet"))
-            print(f"[DEBUG] Found {len(data_files)} parquet files for {symbol}")
+            # Use same pattern as loader.py: {symbol}_{timeframe}*.parquet
+            pattern = f"{symbol}_{timeframe}*.parquet"
+            data_files = list(data_dir.rglob(pattern))
+            print(f"[DEBUG] Search pattern: {pattern}")
+            print(f"[DEBUG] Found {len(data_files)} parquet files for {symbol} {timeframe}")
             if data_files:
                 print(f"[DEBUG] Files: {[str(f) for f in data_files]}")
+
+            # Also check for synthetic data files if no timeframe-specific files found
+            if not data_files:
+                synthetic_pattern = f"{symbol}*synthetic.parquet"
+                synthetic_files = list(data_dir.rglob(synthetic_pattern))
+                print(f"[DEBUG] Checking synthetic pattern: {synthetic_pattern}")
+                print(f"[DEBUG] Found {len(synthetic_files)} synthetic files")
+                # Don't use synthetic files here - let train script generate new ones
         else:
             print(f"[DEBUG] Data directory does not exist")
 

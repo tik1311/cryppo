@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { init, dispose } from '@klinecharts/pro'
-import type { Chart } from '@klinecharts/pro'
+import { useEffect, useRef, useState, useMemo } from 'react'
+import dynamic from 'next/dynamic'
 
 interface CandleData {
   time: number
@@ -26,15 +25,23 @@ interface KLineChartProps {
   }
 }
 
-export default function KLineChart({
+function KLineChartInner({
   data: rawData,
   symbol,
   height = 650,
   priceLines
 }: KLineChartProps) {
   const chartRef = useRef<HTMLDivElement>(null)
-  const chartInstanceRef = useRef<Chart | null>(null)
+  const chartInstanceRef = useRef<any>(null)
   const [currentTool, setCurrentTool] = useState<string>('')
+  const [klineCharts, setKlineCharts] = useState<any>(null)
+
+  // Dynamic import klinecharts to avoid SSR issues
+  useEffect(() => {
+    import('klinecharts').then((module) => {
+      setKlineCharts(module)
+    })
+  }, [])
 
   // Convert data format for KLineChart
   const convertData = (data: any[]) => {
@@ -48,13 +55,14 @@ export default function KLineChart({
     }))
   }
 
+  // Initialize chart
   useEffect(() => {
-    if (!chartRef.current || rawData.length === 0) return
+    if (!chartRef.current || !klineCharts || rawData.length === 0) return
 
-    // Initialize chart
     const chartData = convertData(rawData)
 
-    chartInstanceRef.current = init(chartRef.current, {
+    // Create chart instance
+    chartInstanceRef.current = klineCharts.init(chartRef.current, {
       styles: {
         candle: {
           type: 'candle_solid',
@@ -75,17 +83,6 @@ export default function KLineChart({
             color: '#393939'
           }
         }
-      },
-      customApi: {
-        formatDate: (timestamp: number) => {
-          const date = new Date(timestamp)
-          return date.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          })
-        }
       }
     })
 
@@ -94,13 +91,13 @@ export default function KLineChart({
 
     return () => {
       if (chartInstanceRef.current) {
-        dispose(chartRef.current!)
+        klineCharts.dispose(chartRef.current!)
         chartInstanceRef.current = null
       }
     }
-  }, [rawData])
+  }, [klineCharts, rawData])
 
-  // Update data when new candles arrive
+  // Update latest candle
   useEffect(() => {
     if (chartInstanceRef.current && rawData.length > 0) {
       const latestCandle = convertData([rawData[rawData.length - 1]])[0]
@@ -108,19 +105,16 @@ export default function KLineChart({
     }
   }, [rawData])
 
-  // Draw price lines as overlays
+  // Draw price lines
   useEffect(() => {
-    if (!chartInstanceRef.current || !priceLines) return
-
-    const pane = chartInstanceRef.current.getChart()
-    if (!pane) return
+    if (!chartInstanceRef.current || !priceLines || !klineCharts) return
 
     // Clear previous overlays
-    pane.removeOverlay()
+    chartInstanceRef.current.removeOverlay()
 
     // Entry Price Line
     if (priceLines.entry) {
-      pane.createOverlay({
+      chartInstanceRef.current.createOverlay({
         name: 'priceLine',
         points: [{ value: priceLines.entry }],
         styles: {
@@ -132,13 +126,13 @@ export default function KLineChart({
             color: '#3b82f6'
           }
         },
-        extendData: { text: 'Entry' }
+        extendData: 'Entry'
       })
     }
 
     // Take Profit Line
     if (priceLines.takeProfit) {
-      pane.createOverlay({
+      chartInstanceRef.current.createOverlay({
         name: 'priceLine',
         points: [{ value: priceLines.takeProfit }],
         styles: {
@@ -150,13 +144,13 @@ export default function KLineChart({
             color: '#22c55e'
           }
         },
-        extendData: { text: 'TP' }
+        extendData: 'TP'
       })
     }
 
     // Stop Loss Line
     if (priceLines.stopLoss) {
-      pane.createOverlay({
+      chartInstanceRef.current.createOverlay({
         name: 'priceLine',
         points: [{ value: priceLines.stopLoss }],
         styles: {
@@ -168,13 +162,13 @@ export default function KLineChart({
             color: '#ef4444'
           }
         },
-        extendData: { text: 'SL' }
+        extendData: 'SL'
       })
     }
 
     // Break Even Line
     if (priceLines.breakEven) {
-      pane.createOverlay({
+      chartInstanceRef.current.createOverlay({
         name: 'priceLine',
         points: [{ value: priceLines.breakEven }],
         styles: {
@@ -187,13 +181,13 @@ export default function KLineChart({
             color: '#eab308'
           }
         },
-        extendData: { text: 'BE' }
+        extendData: 'BE'
       })
     }
 
     // Liquidation Line
     if (priceLines.liquidation) {
-      pane.createOverlay({
+      chartInstanceRef.current.createOverlay({
         name: 'priceLine',
         points: [{ value: priceLines.liquidation }],
         styles: {
@@ -206,26 +200,21 @@ export default function KLineChart({
             color: '#a855f7'
           }
         },
-        extendData: { text: 'Liq' }
+        extendData: 'Liq'
       })
     }
-  }, [priceLines])
+  }, [priceLines, klineCharts])
 
   const handleDrawingTool = (toolName: string) => {
     if (!chartInstanceRef.current) return
 
-    const pane = chartInstanceRef.current.getChart()
-    if (!pane) return
-
     if (currentTool === toolName) {
-      // Disable tool
       setCurrentTool('')
       return
     }
 
-    // Enable tool
     setCurrentTool(toolName)
-    pane.createOverlay({
+    chartInstanceRef.current.createOverlay({
       name: toolName,
       lock: false
     })
@@ -233,16 +222,22 @@ export default function KLineChart({
 
   const clearDrawings = () => {
     if (!chartInstanceRef.current) return
-    const pane = chartInstanceRef.current.getChart()
-    if (!pane) return
 
     // Remove all overlays except price lines
-    pane.removeOverlay({ name: 'straightLine' })
-    pane.removeOverlay({ name: 'segment' })
-    pane.removeOverlay({ name: 'fibonacciLine' })
-    pane.removeOverlay({ name: 'parallelStraightLine' })
+    chartInstanceRef.current.removeOverlay({ name: 'straightLine' })
+    chartInstanceRef.current.removeOverlay({ name: 'segment' })
+    chartInstanceRef.current.removeOverlay({ name: 'fibonacciLine' })
+    chartInstanceRef.current.removeOverlay({ name: 'parallelStraightLine' })
 
     setCurrentTool('')
+  }
+
+  if (!klineCharts) {
+    return (
+      <div className="card p-8 text-center text-gray-500" style={{ height: `${height}px` }}>
+        Loading chart...
+      </div>
+    )
   }
 
   return (
@@ -361,3 +356,6 @@ export default function KLineChart({
     </div>
   )
 }
+
+// Export with client-side only rendering
+export default KLineChartInner

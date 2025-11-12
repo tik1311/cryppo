@@ -157,18 +157,36 @@ export default function PaperTradingPage() {
         setPositionHistory(data.positionHistory)
       }
 
-      // Update chart (only for 1m timeframe - realtime updates)
-      if (data.candle && selectedTimeframeRef.current === '1m') {
-        setChartData(prev => {
-          const newData = [...prev]
-          const existingIndex = newData.findIndex(c => c.time === data.candle.time)
-          if (existingIndex >= 0) {
-            newData[existingIndex] = data.candle
-          } else {
-            newData.push(data.candle)
-          }
-          return newData.slice(-1000) // Keep last 1000 candles
-        })
+      // Update chart (live updates)
+      // Note: Backend sends 1m candles, so this only makes sense for 1m timeframe
+      // For other timeframes, the last candle price will update but structure won't match
+      if (data.candle) {
+        // Only update if we're on 1m timeframe (matching the WebSocket data)
+        if (selectedTimeframeRef.current === '1m') {
+          setChartData(prev => {
+            const newData = [...prev]
+            const existingIndex = newData.findIndex(c => c.time === data.candle.time)
+            if (existingIndex >= 0) {
+              newData[existingIndex] = data.candle
+            } else {
+              newData.push(data.candle)
+            }
+            return newData.slice(-1000) // Keep last 1000 candles
+          })
+        }
+        // For other timeframes: update last candle's close price to show current price movement
+        else {
+          setChartData(prev => {
+            if (prev.length === 0) return prev
+            const newData = [...prev]
+            const lastCandle = newData[newData.length - 1]
+            // Update close and potentially high/low
+            lastCandle.close = data.candle.close
+            lastCandle.high = Math.max(lastCandle.high, data.candle.close)
+            lastCandle.low = Math.min(lastCandle.low, data.candle.close)
+            return newData
+          })
+        }
       }
     })
 
@@ -207,7 +225,6 @@ export default function PaperTradingPage() {
 
       setIsRunning(true)
       setTrades([])
-      setChartData([])
       setMetrics({
         balance: config.initial_balance,
         initial_balance: config.initial_balance,
@@ -223,6 +240,20 @@ export default function PaperTradingPage() {
         position_size: 0,
         unrealized_pnl: 0
       })
+
+      // Load initial historical data (1000 candles of 1m)
+      try {
+        const histResponse = await fetch(
+          `http://localhost:8000/api/paper-trading/historical-data?symbol=${config.symbol}&timeframe=1m&limit=1000`
+        )
+        const histData = await histResponse.json()
+        if (histData.candles && histData.candles.length > 0) {
+          setChartData(histData.candles)
+        }
+      } catch (histErr) {
+        console.error('Error loading historical data:', histErr)
+        setChartData([])
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to start paper trading')
       console.error('Error starting paper trading:', err)

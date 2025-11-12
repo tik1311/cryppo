@@ -41,7 +41,8 @@ export default function KLineChart({
 
   const [klineCharts, setKlineCharts] = useState<any>(null)
   const [selectedIndicators, setSelectedIndicators] = useState<string[]>(['MA'])
-  const [showSettings, setShowSettings] = useState(false)
+  const [showIndicators, setShowIndicators] = useState(false)
+  const [showDrawingTools, setShowDrawingTools] = useState(false)
   const [currentTool, setCurrentTool] = useState<string>('')
 
   const timeframes = [
@@ -55,20 +56,26 @@ export default function KLineChart({
   ]
 
   const indicators = [
-    { value: 'MA', label: 'MA', name: 'Moving Average' },
-    { value: 'EMA', label: 'EMA', name: 'Exponential MA' },
-    { value: 'BOLL', label: 'BOLL', name: 'Bollinger' },
-    { value: 'MACD', label: 'MACD', name: 'MACD' },
-    { value: 'RSI', label: 'RSI', name: 'RSI' },
-    { value: 'KDJ', label: 'KDJ', name: 'KDJ' }
+    { value: 'MA', label: 'MA', name: 'Moving Average', category: 'Trend' },
+    { value: 'EMA', label: 'EMA', name: 'Exponential MA', category: 'Trend' },
+    { value: 'BOLL', label: 'BOLL', name: 'Bollinger Bands', category: 'Volatility' },
+    { value: 'SAR', label: 'SAR', name: 'Parabolic SAR', category: 'Trend' },
+    { value: 'MACD', label: 'MACD', name: 'MACD', category: 'Momentum' },
+    { value: 'RSI', label: 'RSI', name: 'RSI', category: 'Momentum' },
+    { value: 'KDJ', label: 'KDJ', name: 'KDJ', category: 'Momentum' },
+    { value: 'VOL', label: 'VOL', name: 'Volume', category: 'Volume' }
   ]
 
   const drawingTools = [
-    { value: 'segment', label: 'Trendline', icon: '📐' },
-    { value: 'rayLine', label: 'Ray Line', icon: '📏' },
-    { value: 'fibonacciLine', label: 'Fibonacci', icon: '📊' },
-    { value: 'parallelStraightLine', label: 'Channel', icon: '⫽' },
-    { value: 'priceChannelLine', label: 'Price Channel', icon: '📉' }
+    { value: 'segment', label: 'Trend Line', icon: '📐' },
+    { value: 'rayLine', label: 'Ray', icon: '📏' },
+    { value: 'priceLine', label: 'Horizontal Line', icon: '➖' },
+    { value: 'priceChannelLine', label: 'Price Channel', icon: '📊' },
+    { value: 'parallelStraightLine', label: 'Parallel Channel', icon: '⫽' },
+    { value: 'fibonacciLine', label: 'Fibonacci Retracement', icon: '📉' },
+    { value: 'rect', label: 'Rectangle', icon: '▭' },
+    { value: 'circle', label: 'Circle', icon: '○' },
+    { value: 'text', label: 'Text', icon: 'T' }
   ]
 
   // Load klinecharts library
@@ -94,7 +101,7 @@ export default function KLineChart({
   useEffect(() => {
     if (!chartRef.current || !klineCharts) return
 
-    // Initialize chart with dark theme
+    // Initialize chart with professional dark theme
     chartInstanceRef.current = klineCharts.init(chartRef.current, {
       styles: {
         candle: {
@@ -106,6 +113,17 @@ export default function KLineChart({
             downBorderColor: '#ef5350',
             upWickColor: '#26a69a',
             downWickColor: '#ef5350'
+          },
+          tooltip: {
+            showRule: 'always',
+            showType: 'rect',
+            labels: ['T: ', 'O: ', 'C: ', 'H: ', 'L: ', 'V: '],
+            text: {
+              size: 12,
+              family: 'Helvetica Neue',
+              weight: 'normal',
+              color: '#D9D9D9'
+            }
           }
         },
         grid: {
@@ -125,13 +143,41 @@ export default function KLineChart({
         xAxis: {
           axisLine: {
             show: true,
+            color: '#888888',
+            size: 1
+          },
+          tickLine: {
+            show: true,
+            length: 3,
+            size: 1,
             color: '#888888'
+          },
+          tickText: {
+            show: true,
+            color: '#D9D9D9',
+            family: 'Helvetica Neue',
+            weight: 'normal',
+            size: 12
           }
         },
         yAxis: {
           axisLine: {
             show: true,
+            color: '#888888',
+            size: 1
+          },
+          tickLine: {
+            show: true,
+            length: 3,
+            size: 1,
             color: '#888888'
+          },
+          tickText: {
+            show: true,
+            color: '#D9D9D9',
+            family: 'Helvetica Neue',
+            weight: 'normal',
+            size: 12
           }
         },
         crosshair: {
@@ -139,17 +185,63 @@ export default function KLineChart({
           horizontal: {
             show: true,
             line: {
-              color: '#888888',
+              show: true,
+              style: 'dashed',
+              dashValue: [4, 2],
               size: 1,
-              style: 'dashed'
+              color: '#888888'
+            },
+            text: {
+              show: true,
+              color: '#D9D9D9',
+              size: 12,
+              family: 'Helvetica Neue',
+              weight: 'normal',
+              paddingLeft: 2,
+              paddingRight: 2,
+              paddingTop: 2,
+              paddingBottom: 2,
+              borderSize: 1,
+              borderColor: '#505050',
+              backgroundColor: '#505050'
             }
           },
           vertical: {
             show: true,
             line: {
-              color: '#888888',
+              show: true,
+              style: 'dashed',
+              dashValue: [4, 2],
               size: 1,
-              style: 'dashed'
+              color: '#888888'
+            },
+            text: {
+              show: true,
+              color: '#D9D9D9',
+              size: 12,
+              family: 'Helvetica Neue',
+              weight: 'normal',
+              paddingLeft: 2,
+              paddingRight: 2,
+              paddingTop: 2,
+              paddingBottom: 2,
+              borderSize: 1,
+              borderColor: '#505050',
+              backgroundColor: '#505050'
+            }
+          }
+        },
+        indicator: {
+          tooltip: {
+            showRule: 'always',
+            showType: 'rect',
+            showName: true,
+            showParams: true,
+            text: {
+              size: 12,
+              family: 'Helvetica Neue',
+              weight: 'normal',
+              color: '#D9D9D9'
             }
           }
         }
@@ -193,22 +285,26 @@ export default function KLineChart({
   useEffect(() => {
     if (!chartInstanceRef.current || rawData.length === 0) return
 
+    // Skip if this is initial load (handled by timeframe effect)
+    if (lastDataLengthRef.current === 0) return
+
     const chartData = convertData(rawData)
+    const latestCandle = chartData[chartData.length - 1]
 
-    // If data length increased, we have new candles
-    if (rawData.length > lastDataLengthRef.current) {
-      // Apply all new data
-      chartInstanceRef.current.applyNewData(chartData, false)
-      lastDataLengthRef.current = rawData.length
+    // Use updateData() for all real-time updates
+    // It automatically detects:
+    // - Same timestamp → update current candle
+    // - New timestamp → append new candle
+    chartInstanceRef.current.updateData(latestCandle)
 
-      // Scroll to real-time
+    // Update our ref
+    lastDataLengthRef.current = rawData.length
+
+    // Auto-scroll to latest candle if new candle added
+    if (rawData.length > lastDataLengthRef.current - 1) {
       setTimeout(() => {
         chartInstanceRef.current?.scrollToRealTime()
       }, 50)
-    } else if (rawData.length === lastDataLengthRef.current) {
-      // Same length - update last candle
-      const latestCandle = chartData[chartData.length - 1]
-      chartInstanceRef.current.updateData(latestCandle)
     }
   }, [rawData])
 
@@ -329,7 +425,7 @@ export default function KLineChart({
       setSelectedIndicators([...selectedIndicators, indicator])
 
       // Oscillator indicators go to separate pane
-      if (indicator === 'MACD' || indicator === 'RSI' || indicator === 'KDJ') {
+      if (indicator === 'MACD' || indicator === 'RSI' || indicator === 'KDJ' || indicator === 'VOL') {
         chartInstanceRef.current.createIndicator(indicator, false)
       } else {
         // Overlay indicators on candle pane
@@ -340,11 +436,11 @@ export default function KLineChart({
 
   if (!klineCharts) {
     return (
-      <div className="card p-8 text-center text-gray-500" style={{ height: `${height}px` }}>
+      <div className="rounded-lg bg-[#0f0f0f] border border-gray-800 p-8 text-center text-gray-400" style={{ height: `${height}px` }}>
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <div>Loading professional chart...</div>
+            <div>Loading chart...</div>
           </div>
         </div>
       </div>
@@ -353,11 +449,11 @@ export default function KLineChart({
 
   if (rawData.length === 0) {
     return (
-      <div className="card p-8 text-center text-gray-500" style={{ height: `${height}px` }}>
+      <div className="rounded-lg bg-[#0f0f0f] border border-gray-800 p-8 text-center text-gray-400" style={{ height: `${height}px` }}>
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <div className="text-gray-400 mb-2">No data available</div>
-            <div className="text-sm">Start paper trading to see chart</div>
+            <div className="text-gray-500 mb-2">📊 No chart data available</div>
+            <div className="text-sm text-gray-600">Start paper trading to begin</div>
           </div>
         </div>
       </div>
@@ -365,21 +461,24 @@ export default function KLineChart({
   }
 
   return (
-    <div className="card p-0 overflow-hidden">
-      {/* Top Toolbar */}
-      <div className="p-3 bg-gray-900 border-b border-gray-700 flex items-center gap-4 flex-wrap">
+    <div className="rounded-lg bg-[#0f0f0f] border border-gray-800 overflow-hidden">
+      {/* Professional Top Toolbar */}
+      <div className="px-4 py-2.5 bg-[#0a0a0a] border-b border-gray-800 flex items-center gap-6">
         {/* Symbol */}
-        <div className="text-lg font-bold text-white">{symbol}</div>
+        <div className="flex items-center gap-2">
+          <div className="text-base font-bold text-white">{symbol}</div>
+          <div className="px-1.5 py-0.5 text-[10px] font-medium bg-gray-800 text-gray-400 rounded">PERPETUAL</div>
+        </div>
 
-        {/* Timeframe Selector */}
+        {/* Timeframes */}
         <div className="flex items-center gap-1">
           {timeframes.map((tf) => (
             <button
               key={tf.value}
               onClick={() => onTimeframeChange?.(tf.value)}
-              className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+              className={`px-2.5 py-1 text-xs font-medium rounded transition-all ${
                 timeframe === tf.value
-                  ? 'bg-primary text-white'
+                  ? 'bg-[#1a73e8] text-white'
                   : 'text-gray-400 hover:text-white hover:bg-gray-800'
               }`}
             >
@@ -388,120 +487,151 @@ export default function KLineChart({
           ))}
         </div>
 
-        {/* Indicators Button */}
+        {/* Separator */}
+        <div className="h-6 w-px bg-gray-800"></div>
+
+        {/* Indicators */}
         <button
-          onClick={() => setShowSettings(!showSettings)}
-          className="px-3 py-1 text-sm font-medium rounded bg-gray-800 text-white hover:bg-gray-700 transition-colors"
+          onClick={() => setShowIndicators(!showIndicators)}
+          className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-all ${
+            showIndicators
+              ? 'bg-gray-800 text-white'
+              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+          }`}
         >
-          📊 Indicators ({selectedIndicators.length})
+          <span>📊</span>
+          <span>Indicators</span>
+          {selectedIndicators.length > 0 && (
+            <span className="px-1.5 py-0.5 text-[10px] bg-[#1a73e8] text-white rounded">{selectedIndicators.length}</span>
+          )}
         </button>
+
+        {/* Drawing Tools */}
+        <button
+          onClick={() => setShowDrawingTools(!showDrawingTools)}
+          className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-all ${
+            showDrawingTools
+              ? 'bg-gray-800 text-white'
+              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+          }`}
+        >
+          <span>✏️</span>
+          <span>Draw</span>
+        </button>
+
+        {currentTool && (
+          <>
+            <div className="h-6 w-px bg-gray-800"></div>
+            <div className="flex items-center gap-2">
+              <div className="text-xs text-gray-400">
+                Active: <span className="text-white">{drawingTools.find(t => t.value === currentTool)?.label}</span>
+              </div>
+              <button
+                onClick={() => setCurrentTool('')}
+                className="px-2 py-0.5 text-[10px] text-gray-400 hover:text-white bg-gray-800 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Indicators Panel */}
-      {showSettings && (
-        <div className="p-4 bg-gray-800 border-b border-gray-700">
-          <div className="text-sm font-semibold text-white mb-2">Technical Indicators</div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-            {indicators.map((ind) => (
-              <button
-                key={ind.value}
-                onClick={() => toggleIndicator(ind.value)}
-                className={`px-3 py-2 text-xs font-medium rounded transition-colors ${
-                  selectedIndicators.includes(ind.value)
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-                title={ind.name}
-              >
-                {ind.label}
-              </button>
-            ))}
+      {showIndicators && (
+        <div className="px-4 py-3 bg-[#0a0a0a] border-b border-gray-800">
+          <div className="grid grid-cols-4 gap-2">
+            {indicators.map((ind) => {
+              const isActive = selectedIndicators.includes(ind.value)
+              return (
+                <button
+                  key={ind.value}
+                  onClick={() => toggleIndicator(ind.value)}
+                  className={`px-3 py-2 text-left rounded transition-all ${
+                    isActive
+                      ? 'bg-[#1a73e8] text-white'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
+                  }`}
+                >
+                  <div className="text-xs font-medium">{ind.label}</div>
+                  <div className="text-[10px] opacity-80">{ind.name}</div>
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
 
-      {/* Drawing Tools */}
-      <div className="p-3 bg-gray-800 border-b border-gray-700">
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="text-xs font-semibold text-gray-400 mr-2">Drawing Tools:</div>
-          {drawingTools.map((tool) => (
+      {/* Drawing Tools Panel */}
+      {showDrawingTools && (
+        <div className="px-4 py-3 bg-[#0a0a0a] border-b border-gray-800">
+          <div className="flex items-center gap-2 flex-wrap">
+            {drawingTools.map((tool) => (
+              <button
+                key={tool.value}
+                onClick={() => handleDrawingTool(tool.value)}
+                className={`flex items-center gap-2 px-3 py-2 rounded transition-all ${
+                  currentTool === tool.value
+                    ? 'bg-[#1a73e8] text-white'
+                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
+                }`}
+                title={tool.label}
+              >
+                <span className="text-base">{tool.icon}</span>
+                <span className="text-xs">{tool.label}</span>
+              </button>
+            ))}
+            <div className="h-6 w-px bg-gray-700 mx-1"></div>
             <button
-              key={tool.value}
-              onClick={() => handleDrawingTool(tool.value)}
-              className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
-                currentTool === tool.value
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-              title={tool.label}
+              onClick={clearDrawings}
+              className="px-3 py-2 text-xs text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded transition-all"
             >
-              {tool.icon} {tool.label}
+              🗑️ Clear All
             </button>
-          ))}
-          <button
-            onClick={clearDrawings}
-            className="px-3 py-1.5 text-sm font-medium rounded bg-red-900 text-red-300 hover:bg-red-800 transition-colors ml-2"
-          >
-            🗑️ Clear Drawings
-          </button>
-          {currentTool && (
-            <div className="text-xs text-yellow-400 ml-auto">
-              ✏️ Click and drag on chart to draw {drawingTools.find(t => t.value === currentTool)?.label}
-            </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Chart */}
-      <div ref={chartRef} style={{ height: `${height}px`, width: '100%', backgroundColor: '#1a1a1a' }} />
+      <div ref={chartRef} style={{ height: `${height}px`, width: '100%', backgroundColor: '#0f0f0f' }} />
 
       {/* Price Lines Legend */}
-      {priceLines && (
-        <div className="p-3 bg-gray-900 border-t border-gray-700">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+      {priceLines && Object.values(priceLines).some(v => v !== undefined) && (
+        <div className="px-4 py-2.5 bg-[#0a0a0a] border-t border-gray-800">
+          <div className="flex items-center gap-4 text-xs">
             {priceLines.entry && (
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                <div>
-                  <div className="text-gray-400">Entry</div>
-                  <div className="font-semibold text-white">${priceLines.entry.toFixed(2)}</div>
-                </div>
+                <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+                <span className="text-gray-400">Entry:</span>
+                <span className="text-white font-medium">${priceLines.entry.toFixed(2)}</span>
               </div>
             )}
             {priceLines.takeProfit && (
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <div>
-                  <div className="text-gray-400">Take Profit</div>
-                  <div className="font-semibold text-green-400">${priceLines.takeProfit.toFixed(2)}</div>
-                </div>
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                <span className="text-gray-400">TP:</span>
+                <span className="text-green-400 font-medium">${priceLines.takeProfit.toFixed(2)}</span>
               </div>
             )}
             {priceLines.stopLoss && (
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div>
-                  <div className="text-gray-400">Stop Loss</div>
-                  <div className="font-semibold text-red-400">${priceLines.stopLoss.toFixed(2)}</div>
-                </div>
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                <span className="text-gray-400">SL:</span>
+                <span className="text-red-400 font-medium">${priceLines.stopLoss.toFixed(2)}</span>
               </div>
             )}
             {priceLines.breakEven && (
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div>
-                  <div className="text-gray-400">Break Even</div>
-                  <div className="font-semibold text-yellow-400">${priceLines.breakEven.toFixed(2)}</div>
-                </div>
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                <span className="text-gray-400">BE:</span>
+                <span className="text-yellow-400 font-medium">${priceLines.breakEven.toFixed(2)}</span>
               </div>
             )}
             {priceLines.liquidation && (
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                <div>
-                  <div className="text-gray-400">Liquidation</div>
-                  <div className="font-semibold text-purple-400">${priceLines.liquidation.toFixed(2)}</div>
-                </div>
+                <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
+                <span className="text-gray-400">Liq:</span>
+                <span className="text-purple-400 font-medium">${priceLines.liquidation.toFixed(2)}</span>
               </div>
             )}
           </div>

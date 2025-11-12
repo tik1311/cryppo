@@ -27,10 +27,44 @@ import json
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from src.agent.d3qn_agent import D3QNAgent
-from src.policy.trading_env import TradingEnv
-from src.data.loader import load_market_data, prepare_env_data, split_train_test, create_sample_data
-from src.eval.backtest import BacktestEngine
+# Debug: Print Python path and imports
+print(f"[DEBUG] Python executable: {sys.executable}")
+print(f"[DEBUG] Python path: {sys.path[:3]}...")
+print(f"[DEBUG] Current working directory: {os.getcwd()}")
+
+try:
+    print("[DEBUG] Importing D3QNAgent...")
+    from src.agent.d3qn_agent import D3QNAgent
+    print("[DEBUG] ✓ D3QNAgent imported successfully")
+except Exception as e:
+    print(f"[DEBUG] ✗ Failed to import D3QNAgent: {e}")
+    raise
+
+try:
+    print("[DEBUG] Importing TradingEnv...")
+    from src.policy.trading_env import TradingEnv
+    print("[DEBUG] ✓ TradingEnv imported successfully")
+except Exception as e:
+    print(f"[DEBUG] ✗ Failed to import TradingEnv: {e}")
+    raise
+
+try:
+    print("[DEBUG] Importing data loader functions...")
+    from src.data.loader import load_market_data, prepare_env_data, split_train_test, create_sample_data
+    print("[DEBUG] ✓ Data loader functions imported successfully")
+except Exception as e:
+    print(f"[DEBUG] ✗ Failed to import data loader functions: {e}")
+    raise
+
+try:
+    print("[DEBUG] Importing BacktestEngine...")
+    from src.eval.backtest import BacktestEngine
+    print("[DEBUG] ✓ BacktestEngine imported successfully")
+except Exception as e:
+    print(f"[DEBUG] ✗ Failed to import BacktestEngine: {e}")
+    raise
+
+print("[DEBUG] All imports successful!")
 
 
 class TrainingLogger:
@@ -391,57 +425,65 @@ def evaluate_agent(agent: D3QNAgent, env: TradingEnv, episodes: int = 5) -> tupl
 
 def main():
     """Main entry point"""
-    parser = argparse.ArgumentParser(description="Train D3QN agent for crypto futures trading")
+    try:
+        parser = argparse.ArgumentParser(description="Train D3QN agent for crypto futures trading")
 
-    # Data parameters
-    parser.add_argument('--symbol', type=str, default='BTCUSDT', help='Trading pair symbol')
-    parser.add_argument('--timeframe', type=str, default='1h', help='Candle timeframe')
-    parser.add_argument('--sample-data', action='store_true', help='Use synthetic sample data')
+        # Data parameters
+        parser.add_argument('--symbol', type=str, default='BTCUSDT', help='Trading pair symbol')
+        parser.add_argument('--timeframe', type=str, default='1h', help='Candle timeframe')
+        parser.add_argument('--sample-data', action='store_true', help='Use synthetic sample data')
 
-    # Training parameters
-    parser.add_argument('--episodes', type=int, default=1000, help='Number of training episodes')
-    parser.add_argument('--max-steps', type=int, default=10000, help='Max steps per episode')
-    parser.add_argument('--eval-freq', type=int, default=50, help='Evaluation frequency')
-    parser.add_argument('--save-freq', type=int, default=100, help='Checkpoint save frequency')
+        # Training parameters
+        parser.add_argument('--episodes', type=int, default=1000, help='Number of training episodes')
+        parser.add_argument('--max-steps', type=int, default=10000, help='Max steps per episode')
+        parser.add_argument('--eval-freq', type=int, default=50, help='Evaluation frequency')
+        parser.add_argument('--save-freq', type=int, default=100, help='Checkpoint save frequency')
 
-    # Trading parameters
-    parser.add_argument('--balance', type=float, default=10000.0, help='Initial balance')
-    parser.add_argument('--leverage', type=float, default=3.0, help='Max leverage')
-    parser.add_argument('--window', type=int, default=72, help='Observation window size')
-    parser.add_argument('--reward', type=str, default='sharpe', choices=['profit', 'return', 'sharpe', 'sortino'], help='Reward type')
+        # Trading parameters
+        parser.add_argument('--balance', type=float, default=10000.0, help='Initial balance')
+        parser.add_argument('--leverage', type=float, default=3.0, help='Max leverage')
+        parser.add_argument('--window', type=int, default=72, help='Observation window size')
+        parser.add_argument('--reward', type=str, default='sharpe', choices=['profit', 'return', 'sharpe', 'sortino'], help='Reward type')
 
-    # Agent parameters
-    parser.add_argument('--lr', type=float, default=0.00025, help='Learning rate')
-    parser.add_argument('--gamma', type=float, default=0.995, help='Discount factor')
-    parser.add_argument('--batch-size', type=int, default=64, help='Batch size')
-    parser.add_argument('--buffer-size', type=int, default=100000, help='Replay buffer size')
+        # Agent parameters
+        parser.add_argument('--lr', type=float, default=0.00025, help='Learning rate')
+        parser.add_argument('--gamma', type=float, default=0.995, help='Discount factor')
+        parser.add_argument('--batch-size', type=int, default=64, help='Batch size')
+        parser.add_argument('--buffer-size', type=int, default=100000, help='Replay buffer size')
 
-    # Paths
-    parser.add_argument('--checkpoint-dir', type=str, default='checkpoints', help='Checkpoint directory')
-    parser.add_argument('--log-dir', type=str, default='logs', help='Log directory')
+        # Paths
+        parser.add_argument('--checkpoint-dir', type=str, default='checkpoints', help='Checkpoint directory')
+        parser.add_argument('--log-dir', type=str, default='logs', help='Log directory')
 
-    args = parser.parse_args()
+        args = parser.parse_args()
 
-    # Train
-    train_d3qn(
-        symbol=args.symbol,
-        timeframe=args.timeframe,
-        episodes=args.episodes,
-        max_steps=args.max_steps,
-        eval_freq=args.eval_freq,
-        save_freq=args.save_freq,
-        use_sample_data=args.sample_data,
-        initial_balance=args.balance,
-        max_leverage=args.leverage,
-        learning_rate=args.lr,
-        gamma=args.gamma,
-        batch_size=args.batch_size,
-        buffer_size=args.buffer_size,
-        window_size=args.window,
-        reward_type=args.reward,
-        checkpoint_dir=args.checkpoint_dir,
-        log_dir=args.log_dir
-    )
+        # Train
+        train_d3qn(
+            symbol=args.symbol,
+            timeframe=args.timeframe,
+            episodes=args.episodes,
+            max_steps=args.max_steps,
+            eval_freq=args.eval_freq,
+            save_freq=args.save_freq,
+            use_sample_data=args.sample_data,
+            initial_balance=args.balance,
+            max_leverage=args.leverage,
+            learning_rate=args.lr,
+            gamma=args.gamma,
+            batch_size=args.batch_size,
+            buffer_size=args.buffer_size,
+            window_size=args.window,
+            reward_type=args.reward,
+            checkpoint_dir=args.checkpoint_dir,
+            log_dir=args.log_dir
+        )
+    except Exception as e:
+        import traceback
+        print(f"\n❌ ERROR: Training failed!")
+        print(f"Error message: {str(e)}")
+        print(f"\nFull traceback:")
+        traceback.print_exc()
+        sys.exit(1)
 
 
 if __name__ == '__main__':

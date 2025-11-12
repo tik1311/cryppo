@@ -847,7 +847,11 @@ async def backtest_task(task_id: str, request: BacktestRequest):
     """Background task to run backtest on trained model"""
     try:
         import torch
-        import random
+        import numpy as np
+        from pathlib import Path
+        from src.agent.d3qn_agent import D3QNAgent
+        from src.env.trading_env import TradingEnv
+        from src.data.loader import load_data_for_env
 
         # Initialize
         background_tasks_status[task_id]["status"] = "running"
@@ -865,6 +869,7 @@ async def backtest_task(task_id: str, request: BacktestRequest):
 
         # GPU Detection
         device = "cuda" if (torch.cuda.is_available() and request.use_gpu) else "cpu"
+        print(f"[Backtest] Using device: {device}")
         background_tasks_status[task_id]["message"] = f"Using device: {device}"
         background_tasks_status[task_id]["progress"] = 5
         await ws_manager.broadcast({
@@ -876,33 +881,110 @@ async def backtest_task(task_id: str, request: BacktestRequest):
 
         await asyncio.sleep(0.5)
 
-        # Load model
-        background_tasks_status[task_id]["message"] = "Loading model..."
+        # Verify model file exists
+        model_path = Path(request.model_path)
+        if not model_path.exists():
+            raise FileNotFoundError(f"Model file not found: {request.model_path}")
+
+        print(f"[Backtest] Loading model from: {model_path}")
+        print(f"[Backtest] Model file size: {model_path.stat().st_size / (1024*1024):.2f} MB")
+
+        # Load market data
+        background_tasks_status[task_id]["message"] = "Loading market data..."
         background_tasks_status[task_id]["progress"] = 10
         await ws_manager.broadcast({
             "type": "backtest_progress",
             "task_id": task_id,
             "progress": 10,
-            "message": "Loading model..."
+            "message": "Loading market data..."
         })
 
-        await asyncio.sleep(1)
+        # Use first symbol from request
+        symbol = request.symbols[0] if request.symbols else "BTCUSDT"
+        timeframe = request.timeframe if hasattr(request, 'timeframe') else "1h"
+        window_size = request.window_size if hasattr(request, 'window_size') else 72
 
-        # Load data
-        background_tasks_status[task_id]["message"] = "Loading market data..."
+        print(f"[Backtest] Loading data for {symbol} {timeframe}, window_size={window_size}")
+
+        # Load data (will use synthetic if no real data available)
+        data_arrays = load_data_for_env(symbol, timeframe, window_size)
+
+        print(f"[Backtest] Data loaded: {data_arrays['prices'].shape[0]} candles")
+
+        # Create trading environment
+        background_tasks_status[task_id]["message"] = "Creating trading environment..."
         background_tasks_status[task_id]["progress"] = 20
         await ws_manager.broadcast({
             "type": "backtest_progress",
             "task_id": task_id,
             "progress": 20,
-            "message": "Loading market data..."
+            "message": "Creating trading environment..."
         })
 
-        await asyncio.sleep(1)
+        env = TradingEnv(
+            data=data_arrays,
+            initial_balance=request.initial_balance,
+            max_leverage=request.max_leverage,
+            fee_rate=request.fee_rate,
+            window_size=window_size
+        )
 
-        # Run backtest simulation
-        total_steps = 100
-        for step in range(0, total_steps, 5):
+        print(f"[Backtest] Environment created")
+
+        # Load model
+        background_tasks_status[task_id]["message"] = "Loading trained model..."
+        background_tasks_status[task_id]["progress"] = 30
+        await ws_manager.broadcast({
+            "type": "backtest_progress",
+            "task_id": task_id,
+            "progress": 30,
+            "message": "Loading trained model..."
+        })
+
+        # Create agent and load checkpoint
+        obs_shape = env.observation_space.shape
+        n_actions = env.action_space.n
+
+        agent = D3QNAgent(
+            state_dim=obs_shape[0],
+            action_dim=n_actions,
+            learning_rate=0.00025,  # Default, not used in evaluation
+            gamma=0.995,
+            device=device
+        )
+
+        # Load the trained model
+        agent.load(str(model_path))
+        agent.policy_net.eval()  # Set to evaluation mode
+
+        print(f"[Backtest] Model loaded successfully")
+
+        # Run backtest
+        background_tasks_status[task_id]["message"] = "Running backtest simulation..."
+        background_tasks_status[task_id]["progress"] = 40
+        await ws_manager.broadcast({
+            "type": "backtest_progress",
+            "task_id": task_id,
+            "progress": 40,
+            "message": "Running backtest simulation..."
+        })
+
+        # Reset environment
+        state, _ = env.reset()
+        done = False
+        step = 0
+        episode_reward = 0
+
+        # Track trades and equity
+        trade_history = []
+        equity_curve = [request.initial_balance]
+        price_history = []
+
+        print(f"[Backtest] Starting simulation...")
+
+        total_steps = len(data_arrays['prices']) - window_size
+
+        while not done:
             # Check if cancelled
             if backtest_controls.get(task_id, {}).get("cancelled", False):
                 background_tasks_status[task_id]["status"] = "cancelled"
@@ -914,177 +996,125 @@ async def backtest_task(task_id: str, request: BacktestRequest):
                 })
                 return
 
-            progress = 20 + int((step / total_steps) * 70)  # 20-90%
-            background_tasks_status[task_id]["progress"] = progress
-            background_tasks_status[task_id]["message"] = f"Running backtest... {step}/{total_steps} steps"
+            # Select action using the trained agent (no exploration)
+            with torch.no_grad():
+                state_tensor = torch.FloatTensor(state).unsqueeze(0).to(device)
+                q_values = agent.policy_net(state_tensor)
+                action = q_values.argmax(dim=1).item()
 
-            await ws_manager.broadcast({
-                "type": "backtest_progress",
-                "task_id": task_id,
-                "progress": progress,
-                "message": f"Running backtest... {step}/{total_steps} steps"
-            })
+            # Take action
+            next_state, reward, done, truncated, info = env.step(action)
+            episode_reward += reward
 
-            await asyncio.sleep(0.1)
+            # Record equity and price
+            equity_curve.append(info['balance'])
+            price_history.append(info['current_price'])
 
-        # Generate results
-        background_tasks_status[task_id]["message"] = "Generating results..."
+            # Record trades
+            if info.get('trade_type') in ['buy', 'sell', 'close']:
+                trade_history.append({
+                    "id": str(len(trade_history) + 1),
+                    "timestamp": int(info.get('timestamp', 0)),
+                    "action": info.get('trade_type', '').upper(),
+                    "position": info.get('position', 'NONE'),
+                    "entry_price": round(info.get('entry_price', 0), 2),
+                    "exit_price": round(info.get('exit_price', 0), 2) if info.get('exit_price') else None,
+                    "current_price": round(info['current_price'], 2),
+                    "quantity": round(info.get('position_size', 0), 4),
+                    "pnl": round(info.get('pnl', 0), 2),
+                    "pnl_pct": round(info.get('pnl_pct', 0), 2),
+                    "balance": round(info['balance'], 2),
+                    "status": "CLOSED" if info.get('trade_type') == 'close' else "OPEN"
+                })
+
+            state = next_state
+            step += 1
+
+            # Update progress every 100 steps
+            if step % 100 == 0:
+                progress = 40 + int((step / total_steps) * 50)  # 40-90%
+                background_tasks_status[task_id]["progress"] = progress
+                background_tasks_status[task_id]["message"] = f"Running backtest... {step}/{total_steps} steps"
+
+                await ws_manager.broadcast({
+                    "type": "backtest_progress",
+                    "task_id": task_id,
+                    "progress": progress,
+                    "message": f"Running backtest... {step}/{total_steps} steps"
+                })
+
+        print(f"[Backtest] Simulation completed: {step} steps, {len(trade_history)} trades")
+
+        # Calculate performance metrics
+        background_tasks_status[task_id]["message"] = "Calculating performance metrics..."
         background_tasks_status[task_id]["progress"] = 95
         await ws_manager.broadcast({
             "type": "backtest_progress",
             "task_id": task_id,
             "progress": 95,
-            "message": "Generating results..."
+            "message": "Calculating performance metrics..."
         })
 
-        # Create mock backtest results
-        total_trades = random.randint(50, 150)
-        winning_trades = int(total_trades * random.uniform(0.45, 0.65))
-        win_rate = (winning_trades / total_trades) * 100
+        # Get final info from environment
+        final_info = info
+        final_balance = final_info['balance']
+        total_return_pct = ((final_balance - request.initial_balance) / request.initial_balance) * 100
 
-        total_return_pct = random.uniform(-20, 80)
-        final_balance = request.initial_balance * (1 + total_return_pct / 100)
+        # Calculate trade statistics
+        closed_trades = [t for t in trade_history if t['status'] == 'CLOSED']
+        total_trades = len(closed_trades)
+        winning_trades = len([t for t in closed_trades if t['pnl'] > 0])
+        losing_trades = total_trades - winning_trades
+        win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
 
-        sharpe_ratio = random.uniform(0.5, 3.0)
-        sortino_ratio = random.uniform(0.6, 3.5)
-        max_drawdown_pct = random.uniform(-5, -30)
-        profit_factor = random.uniform(0.8, 2.5)
+        # Calculate equity-based metrics
+        equity_array = np.array(equity_curve)
+        returns = np.diff(equity_array) / equity_array[:-1]
 
-        # Generate mock chart data
+        # Sharpe ratio
+        if len(returns) > 0 and np.std(returns) > 0:
+            sharpe_ratio = np.mean(returns) / np.std(returns) * np.sqrt(252 * 24)  # Annualized for 1H
+        else:
+            sharpe_ratio = 0
+
+        # Sortino ratio
+        downside_returns = returns[returns < 0]
+        if len(downside_returns) > 0:
+            downside_std = np.std(downside_returns)
+            sortino_ratio = np.mean(returns) / downside_std * np.sqrt(252 * 24) if downside_std > 0 else 0
+        else:
+            sortino_ratio = sharpe_ratio
+
+        # Max drawdown
+        running_max = np.maximum.accumulate(equity_array)
+        drawdown = (equity_array - running_max) / running_max
+        max_drawdown_pct = abs(drawdown.min()) * 100 if len(drawdown) > 0 else 0
+
+        # Profit factor
+        total_wins = sum([t['pnl'] for t in closed_trades if t['pnl'] > 0])
+        total_losses = abs(sum([t['pnl'] for t in closed_trades if t['pnl'] < 0]))
+        profit_factor = (total_wins / total_losses) if total_losses > 0 else 0
+
+        # Generate chart data from actual price history
         chart_data = []
-        base_price = 40000 if "BTC" in request.symbols[0] else 2500
-        for i in range(100):
-            time_val = 1704067200 + (i * 3600)  # 2024-01-01 start
-            price_change = random.uniform(-0.02, 0.02)
-            base_price *= (1 + price_change)
-
+        for i in range(0, len(price_history), max(1, len(price_history) // 100)):  # Sample ~100 points
             chart_data.append({
-                "time": time_val,
-                "open": base_price * random.uniform(0.998, 1.002),
-                "high": base_price * random.uniform(1.001, 1.015),
-                "low": base_price * random.uniform(0.985, 0.999),
-                "close": base_price,
-                "volume": random.uniform(1000, 10000)
+                "time": int(1704067200 + i * 3600),  # Approximate timestamps
+                "close": round(price_history[i], 2),
+                "equity": round(equity_curve[i], 2)
             })
-
-        # Generate mock trade history (Futures Trading)
-        trade_history = []
-        current_time = 1704067200
-        balance = request.initial_balance
-        current_position = None  # Track current position state
-
-        for i in range(min(total_trades, 30)):  # Limit to 30 trades for display
-            # Determine action based on position state
-            if current_position is None:
-                # No position - open new position
-                action = random.choice(["OPEN_LONG", "OPEN_SHORT"])
-                current_position = "LONG" if action == "OPEN_LONG" else "SHORT"
-                entry_price = base_price * random.uniform(0.95, 1.05)
-
-                # Calculate position details
-                leverage = random.uniform(1.0, request.max_leverage)
-                position_value = balance * random.uniform(0.3, 0.8) * leverage
-                quantity = position_value / entry_price
-                fee = position_value * (request.fee_rate / 100)
-
-                # Calculate liquidation price
-                margin_ratio = 1.0 / leverage
-                if current_position == "LONG":
-                    liquidation_price = entry_price * (1 - margin_ratio * 0.9)
-                    take_profit = entry_price * random.uniform(1.01, 1.05)
-                    stop_loss = entry_price * random.uniform(0.97, 0.99)
-                    break_even = entry_price * (1 + request.fee_rate / 50)
-                else:
-                    liquidation_price = entry_price * (1 + margin_ratio * 0.9)
-                    take_profit = entry_price * random.uniform(0.95, 0.99)
-                    stop_loss = entry_price * random.uniform(1.01, 1.03)
-                    break_even = entry_price * (1 - request.fee_rate / 50)
-
-                balance -= fee  # Deduct opening fee
-
-                # Funding rate (simulated, usually between -0.01% to 0.01%)
-                funding_rate = random.uniform(-0.0001, 0.0001)
-
-                trade_history.append({
-                    "id": str(i + 1),
-                    "timestamp": current_time + (i * 3600 * random.randint(1, 24)),
-                    "action": action,
-                    "position": current_position,
-                    "entry_price": round(entry_price, 2),
-                    "exit_price": None,
-                    "current_price": round(entry_price, 2),
-                    "quantity": round(quantity, 4),
-                    "leverage": round(leverage, 2),
-                    "liquidation_price": round(liquidation_price, 2),
-                    "take_profit": round(take_profit, 2),
-                    "stop_loss": round(stop_loss, 2),
-                    "break_even": round(break_even, 2),
-                    "funding_rate": round(funding_rate * 100, 4),  # As percentage
-                    "pnl": round(-fee, 2),
-                    "pnl_pct": round(-fee / balance * 100, 2),
-                    "balance": round(balance, 2),
-                    "status": "OPEN"
-                })
-
-            else:
-                # Has position - close it
-                action = f"CLOSE_{current_position}"
-                exit_price = base_price * random.uniform(0.95, 1.05)
-
-                # Get last trade (the open position)
-                last_trade = trade_history[-1]
-                entry_price = last_trade["entry_price"]
-                quantity = last_trade["quantity"]
-                leverage = last_trade["leverage"]
-
-                # Calculate P&L
-                if current_position == "LONG":
-                    pnl = (exit_price - entry_price) * quantity
-                else:
-                    pnl = (entry_price - exit_price) * quantity
-
-                # Deduct closing fee
-                position_value = exit_price * quantity
-                fee = position_value * (request.fee_rate / 100)
-                pnl -= fee
-
-                balance += pnl
-                pnl_pct = (pnl / (entry_price * quantity / leverage)) * 100
-
-                trade_history.append({
-                    "id": str(i + 1),
-                    "timestamp": current_time + (i * 3600 * random.randint(1, 48)),
-                    "action": action,
-                    "position": current_position,
-                    "entry_price": round(entry_price, 2),
-                    "exit_price": round(exit_price, 2),
-                    "current_price": round(exit_price, 2),
-                    "quantity": round(quantity, 4),
-                    "leverage": round(leverage, 2),
-                    "liquidation_price": round(last_trade["liquidation_price"], 2),
-                    "take_profit": round(last_trade["take_profit"], 2),
-                    "stop_loss": round(last_trade["stop_loss"], 2),
-                    "break_even": round(last_trade["break_even"], 2),
-                    "funding_rate": last_trade.get("funding_rate", 0.0),
-                    "pnl": round(pnl, 2),
-                    "pnl_pct": round(pnl_pct, 2),
-                    "balance": round(balance, 2),
-                    "status": "CLOSED"
-                })
-
-                current_position = None  # Reset position
 
         results = {
             "summary": {
                 "total_return_pct": round(total_return_pct, 2),
                 "initial_balance": request.initial_balance,
                 "final_balance": round(final_balance, 2),
-                "max_leverage_used": round(random.uniform(1.0, request.max_leverage), 2)
+                "max_leverage_used": request.max_leverage
             },
             "trades": {
                 "total_trades": total_trades,
                 "winning_trades": winning_trades,
-                "losing_trades": total_trades - winning_trades,
+                "losing_trades": losing_trades,
                 "win_rate": round(win_rate, 2)
             },
             "performance": {
@@ -1094,8 +1124,10 @@ async def backtest_task(task_id: str, request: BacktestRequest):
                 "profit_factor": round(profit_factor, 2)
             },
             "chart_data": chart_data,
-            "trade_history": trade_history
+            "trade_history": trade_history[-30:]  # Last 30 trades for display
         }
+
+        print(f"[Backtest] Results: Return={total_return_pct:.2f}%, Trades={total_trades}, Win Rate={win_rate:.2f}%")
 
         # Store results
         background_tasks_status[task_id]["results"] = results
@@ -1116,12 +1148,17 @@ async def backtest_task(task_id: str, request: BacktestRequest):
         })
 
     except Exception as e:
+        import traceback
+        error_msg = f"Backtest failed: {str(e)}"
+        print(f"[Backtest] Error: {e}")
+        traceback.print_exc()
+
         background_tasks_status[task_id]["status"] = "failed"
-        background_tasks_status[task_id]["message"] = f"Backtest failed: {str(e)}"
+        background_tasks_status[task_id]["message"] = error_msg
         await ws_manager.broadcast({
             "type": "backtest_error",
             "task_id": task_id,
-            "message": f"Backtest failed: {str(e)}"
+            "message": error_msg
         })
         print(f"Backtest error: {e}")
 

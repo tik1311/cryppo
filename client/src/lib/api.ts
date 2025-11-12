@@ -55,6 +55,14 @@ class APIClient {
     learning_rate?: number;
     gamma?: number;
     reward_type?: string;
+    batch_size?: number;
+    buffer_size?: number;
+    window_size?: number;
+    initial_balance?: number;
+    max_leverage?: number;
+    episodes?: number;
+    eval_freq?: number;
+    save_freq?: number;
   }) {
     return this.client.post('/api/train/start', data);
   }

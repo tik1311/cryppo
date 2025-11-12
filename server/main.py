@@ -70,6 +70,14 @@ class TrainModelRequest(BaseModel):
     learning_rate: float = 0.00025
     gamma: float = 0.995
     reward_type: str = "sharpe"
+    batch_size: int = 64
+    buffer_size: int = 100000
+    window_size: int = 72
+    initial_balance: float = 10000.0
+    max_leverage: float = 3.0
+    episodes: Optional[int] = None  # If None, calculate from timesteps
+    eval_freq: int = 50
+    save_freq: int = 100
 
 class BacktestRequest(BaseModel):
     model_path: str
@@ -293,6 +301,441 @@ async def train_model_task(task_id: str, request):
             "message": f"Training failed: {str(e)}"
         })
         print(f"Training error: {e}")
+
+
+async def train_sb3_task(task_id: str, request: TrainModelRequest):
+    """Background task for Stable-Baselines3 models (SAC, PPO, TD3)"""
+    try:
+        import torch
+        import subprocess
+        import re
+        from pathlib import Path
+
+        model_name = request.model_type.upper()
+
+        # Update status
+        background_tasks_status[task_id]["message"] = f"Initializing {model_name} training..."
+        background_tasks_status[task_id]["progress"] = 5
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 5,
+            "message": f"Initializing {model_name} training..."
+        })
+
+        # Check device
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        background_tasks_status[task_id]["message"] = f"Using device: {device}"
+        background_tasks_status[task_id]["progress"] = 10
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 10,
+            "message": f"Using device: {device}"
+        })
+
+        # Prepare training arguments
+        symbol = request.symbols[0] if request.symbols else "BTCUSDT"
+
+        # Check if data exists
+        data_dir = Path("data")
+        data_files = list(data_dir.rglob(f"{symbol}*.parquet"))
+
+        use_sample_data = len(data_files) == 0
+        if use_sample_data:
+            background_tasks_status[task_id]["message"] = "No data found, using synthetic data..."
+            await ws_manager.broadcast({
+                "type": "training_progress",
+                "task_id": task_id,
+                "progress": 15,
+                "message": "⚠️ No data found, using synthetic data for training"
+            })
+
+        # Select training script
+        script_map = {
+            "sac": "train_sac",
+            "ppo": "train_ppo",
+            "td3": "train_td3"
+        }
+        script_name = script_map.get(request.model_type, "train_sac")
+
+        # Build command
+        cmd = [
+            sys.executable, "-m", f"server.src.training.{script_name}",
+            "--symbol", symbol,
+            "--timesteps", str(request.timesteps),
+            "--balance", str(request.initial_balance),
+            "--leverage", str(request.max_leverage),
+            "--lr", str(request.learning_rate),
+            "--gamma", str(request.gamma),
+            "--batch-size", str(request.batch_size),
+            "--buffer-size", str(request.buffer_size) if request.model_type != "ppo" else str(request.buffer_size // 10),
+            "--window", str(request.window_size),
+            "--reward", request.reward_type,
+            "--eval-freq", str(request.eval_freq * 10),  # SB3 uses timesteps not episodes
+            "--save-freq", str(request.save_freq * 10),
+            "--checkpoint-dir", config["paths"]["checkpoints"],
+            "--log-dir", "logs"
+        ]
+
+        if use_sample_data:
+            cmd.append("--sample-data")
+
+        # Run training process
+        background_tasks_status[task_id]["message"] = f"Starting {model_name} training for {request.timesteps:,} timesteps..."
+        background_tasks_status[task_id]["progress"] = 20
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 20,
+            "message": f"Starting {model_name} training..."
+        })
+
+        # Start subprocess
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1
+        )
+
+        # Parse output and send progress updates
+        episode_pattern = re.compile(r"Episode\s+(\d+)")
+        timestep_pattern = re.compile(r"Timestep\s+(\d+)")
+        current_timestep = 0
+
+        # Read output in a loop
+        while True:
+            # Check for cancellation
+            if training_controls.get(task_id, {}).get("cancelled", False):
+                process.terminate()
+                break
+
+            # Check if process is still running
+            return_code = process.poll()
+            if return_code is not None:
+                break
+
+            # Read line
+            if process.stdout:
+                line = process.stdout.readline()
+                if line:
+                    line = line.strip()
+                    print(f"[Training] {line}")
+
+                    # Parse timestep number
+                    match = timestep_pattern.search(line)
+                    if match:
+                        current_timestep = int(match.group(1))
+                        progress = 20 + int((current_timestep / request.timesteps) * 70)  # 20-90%
+                        progress = min(90, progress)
+
+                        background_tasks_status[task_id]["progress"] = progress
+                        background_tasks_status[task_id]["message"] = f"Timestep {current_timestep:,}/{request.timesteps:,}"
+
+                        await ws_manager.broadcast({
+                            "type": "training_progress",
+                            "task_id": task_id,
+                            "progress": progress,
+                            "message": f"Training: {current_timestep:,}/{request.timesteps:,} timesteps",
+                            "details": line
+                        })
+
+                    # Check for key messages
+                    if "Evaluating" in line or "eval" in line.lower():
+                        await ws_manager.broadcast({
+                            "type": "training_progress",
+                            "task_id": task_id,
+                            "message": "Evaluation in progress...",
+                            "details": line
+                        })
+                    elif "Saving" in line or "saved" in line.lower():
+                        await ws_manager.broadcast({
+                            "type": "training_progress",
+                            "task_id": task_id,
+                            "message": "💾 Checkpoint saved",
+                            "details": line
+                        })
+
+            # Small sleep to prevent busy loop
+            await asyncio.sleep(0.1)
+
+        # Final return code check
+        return_code = process.wait()
+        if return_code != 0 and not training_controls.get(task_id, {}).get("cancelled", False):
+            raise Exception(f"Training process exited with code {return_code}")
+
+        # Check if cancelled
+        if training_controls.get(task_id, {}).get("cancelled", False):
+            background_tasks_status[task_id]["status"] = "cancelled"
+            background_tasks_status[task_id]["message"] = "Training cancelled"
+            await ws_manager.broadcast({
+                "type": "training_error",
+                "task_id": task_id,
+                "message": "Training cancelled by user"
+            })
+            return
+
+        # Training complete
+        background_tasks_status[task_id]["progress"] = 95
+        background_tasks_status[task_id]["message"] = "Finalizing..."
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 95,
+            "message": "Training complete, finalizing..."
+        })
+
+        # Find the saved model
+        checkpoints_dir = Path(config["paths"]["checkpoints"])
+        model_files = list(checkpoints_dir.glob(f"final_{request.model_type}_model.zip"))
+        model_path = str(model_files[0]) if model_files else str(checkpoints_dir / "best" / "best_model.zip")
+
+        # Complete
+        background_tasks_status[task_id]["status"] = "completed"
+        background_tasks_status[task_id]["progress"] = 100
+        background_tasks_status[task_id]["message"] = f"{model_name} training completed!"
+
+        await ws_manager.broadcast({
+            "type": "training_complete",
+            "task_id": task_id,
+            "progress": 100,
+            "message": f"🎉 {model_name} training completed! {current_timestep:,} timesteps finished",
+            "model_path": model_path
+        })
+
+    except Exception as e:
+        import traceback
+        error_msg = f"Training failed: {str(e)}"
+        print(f"Training error: {error_msg}")
+        print(traceback.format_exc())
+
+        background_tasks_status[task_id]["status"] = "failed"
+        background_tasks_status[task_id]["message"] = error_msg
+        await ws_manager.broadcast({
+            "type": "training_error",
+            "task_id": task_id,
+            "message": error_msg
+        })
+
+
+async def train_d3qn_task(task_id: str, request: TrainModelRequest):
+    """Background task for real D3QN training"""
+    try:
+        import torch
+        import subprocess
+        import threading
+        import re
+        from pathlib import Path
+
+        # Update status
+        background_tasks_status[task_id]["message"] = "Initializing D3QN training..."
+        background_tasks_status[task_id]["progress"] = 5
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 5,
+            "message": "Initializing D3QN training..."
+        })
+
+        # Check device
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        background_tasks_status[task_id]["message"] = f"Using device: {device}"
+        background_tasks_status[task_id]["progress"] = 10
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 10,
+            "message": f"Using device: {device}"
+        })
+
+        # Calculate episodes from timesteps if not provided
+        episodes = request.episodes
+        if episodes is None:
+            # Estimate: each episode ~ 1000 steps on average
+            episodes = max(100, request.timesteps // 1000)
+
+        # Prepare training arguments
+        symbol = request.symbols[0] if request.symbols else "BTCUSDT"
+
+        # Check if data exists
+        data_dir = Path("data")
+        data_files = list(data_dir.rglob(f"{symbol}*.parquet"))
+
+        use_sample_data = len(data_files) == 0
+        if use_sample_data:
+            background_tasks_status[task_id]["message"] = "No data found, using synthetic data..."
+            await ws_manager.broadcast({
+                "type": "training_progress",
+                "task_id": task_id,
+                "progress": 15,
+                "message": "⚠️ No data found, using synthetic data for training"
+            })
+
+        # Build command
+        cmd = [
+            sys.executable, "-m", "server.src.training.train_d3qn",
+            "--symbol", symbol,
+            "--episodes", str(episodes),
+            "--balance", str(request.initial_balance),
+            "--leverage", str(request.max_leverage),
+            "--lr", str(request.learning_rate),
+            "--gamma", str(request.gamma),
+            "--batch-size", str(request.batch_size),
+            "--buffer-size", str(request.buffer_size),
+            "--window", str(request.window_size),
+            "--reward", request.reward_type,
+            "--eval-freq", str(request.eval_freq),
+            "--save-freq", str(request.save_freq),
+            "--checkpoint-dir", config["paths"]["checkpoints"],
+            "--log-dir", "logs"
+        ]
+
+        if use_sample_data:
+            cmd.append("--sample-data")
+
+        # Run training process
+        background_tasks_status[task_id]["message"] = f"Starting training for {episodes} episodes..."
+        background_tasks_status[task_id]["progress"] = 20
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 20,
+            "message": f"Starting training for {episodes} episodes..."
+        })
+
+        # Start subprocess
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1
+        )
+
+        # Parse output and send progress updates
+        episode_pattern = re.compile(r"Episode\s+(\d+)")
+        current_episode = 0
+
+        # Read output in a loop
+        while True:
+            # Check for cancellation
+            if training_controls.get(task_id, {}).get("cancelled", False):
+                process.terminate()
+                break
+
+            # Check if process is still running
+            return_code = process.poll()
+            if return_code is not None:
+                # Process finished
+                break
+
+            # Read line (non-blocking check)
+            if process.stdout:
+                line = process.stdout.readline()
+                if line:
+                    line = line.strip()
+                    print(f"[Training] {line}")
+
+                    # Parse episode number
+                    match = episode_pattern.search(line)
+                    if match:
+                        current_episode = int(match.group(1))
+                        progress = 20 + int((current_episode / episodes) * 70)  # 20-90%
+                        progress = min(90, progress)
+
+                        background_tasks_status[task_id]["progress"] = progress
+                        background_tasks_status[task_id]["message"] = f"Episode {current_episode}/{episodes}"
+
+                        await ws_manager.broadcast({
+                            "type": "training_progress",
+                            "task_id": task_id,
+                            "progress": progress,
+                            "message": f"Training: Episode {current_episode}/{episodes}",
+                            "details": line
+                        })
+
+                    # Check for key messages
+                    if "Evaluating" in line or "Val Reward" in line:
+                        await ws_manager.broadcast({
+                            "type": "training_progress",
+                            "task_id": task_id,
+                            "message": "Validation in progress...",
+                            "details": line
+                        })
+                    elif "Checkpoint saved" in line or "best model saved" in line:
+                        await ws_manager.broadcast({
+                            "type": "training_progress",
+                            "task_id": task_id,
+                            "message": "💾 Checkpoint saved",
+                            "details": line
+                        })
+
+            # Small sleep to prevent busy loop
+            await asyncio.sleep(0.1)
+
+        # Final return code check
+        return_code = process.wait()
+        if return_code != 0 and not training_controls.get(task_id, {}).get("cancelled", False):
+            raise Exception(f"Training process exited with code {return_code}")
+
+        # Check if cancelled
+        if training_controls.get(task_id, {}).get("cancelled", False):
+            background_tasks_status[task_id]["status"] = "cancelled"
+            background_tasks_status[task_id]["message"] = "Training cancelled"
+            await ws_manager.broadcast({
+                "type": "training_error",
+                "task_id": task_id,
+                "message": "Training cancelled by user"
+            })
+            return
+
+        # Training complete
+        background_tasks_status[task_id]["progress"] = 95
+        background_tasks_status[task_id]["message"] = "Finalizing..."
+        await ws_manager.broadcast({
+            "type": "training_progress",
+            "task_id": task_id,
+            "progress": 95,
+            "message": "Training complete, finalizing..."
+        })
+
+        # Find the saved model
+        checkpoints_dir = Path(config["paths"]["checkpoints"])
+        best_model = checkpoints_dir / "best_agent.pth"
+        final_model = checkpoints_dir / "final_agent.pth"
+
+        model_path = str(best_model) if best_model.exists() else str(final_model)
+
+        # Complete
+        background_tasks_status[task_id]["status"] = "completed"
+        background_tasks_status[task_id]["progress"] = 100
+        background_tasks_status[task_id]["message"] = f"Training completed! {current_episode} episodes"
+
+        await ws_manager.broadcast({
+            "type": "training_complete",
+            "task_id": task_id,
+            "progress": 100,
+            "message": f"🎉 Training completed! {current_episode} episodes finished",
+            "model_path": model_path,
+            "episodes": current_episode
+        })
+
+    except Exception as e:
+        import traceback
+        error_msg = f"Training failed: {str(e)}"
+        print(f"Training error: {error_msg}")
+        print(traceback.format_exc())
+
+        background_tasks_status[task_id]["status"] = "failed"
+        background_tasks_status[task_id]["message"] = error_msg
+        await ws_manager.broadcast({
+            "type": "training_error",
+            "task_id": task_id,
+            "message": error_msg
+        })
+
 
 # ============================================================================
 # Backtest Functions
@@ -853,8 +1296,14 @@ async def start_training(request: TrainModelRequest, background_tasks: Backgroun
         "cancelled": False
     }
 
-    # Start training task
-    background_tasks.add_task(train_model_task, task_id, request)
+    # Start appropriate training task based on model type
+    if request.model_type == "d3qn":
+        background_tasks.add_task(train_d3qn_task, task_id, request)
+    elif request.model_type in ["sac", "ppo", "td3"]:
+        background_tasks.add_task(train_sb3_task, task_id, request)
+    else:
+        # Fallback to mock training for unknown models
+        background_tasks.add_task(train_model_task, task_id, request)
 
     return TaskResponse(
         task_id=task_id,

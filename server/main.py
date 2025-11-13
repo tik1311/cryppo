@@ -850,12 +850,24 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
 async def backtest_task(task_id: str, request: BacktestRequest):
     """Background task to run backtest on trained model"""
     try:
+        # Fix sys.path for imports (critical for background tasks)
+        import sys
+        import os
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        src_path = os.path.join(current_dir, 'src')
+        if src_path not in sys.path:
+            sys.path.insert(0, src_path)
+
         import torch
         import numpy as np
         from pathlib import Path
-        from src.agent.d3qn_agent import D3QNAgent
-        from src.policy.trading_env import TradingEnv
-        from src.data.loader import load_market_data, prepare_env_data, create_sample_data
+        from agent.d3qn_agent import D3QNAgent
+        from policy.trading_env import TradingEnv
+        from data.loader import load_market_data, prepare_env_data, create_sample_data
+        from utils.logging_config import get_server_logger
+
+        logger = get_server_logger()
+        logger.info(f"[Backtest] Starting backtest task: {task_id}")
 
         # Initialize
         background_tasks_status[task_id]["status"] = "running"
@@ -1159,6 +1171,16 @@ async def backtest_task(task_id: str, request: BacktestRequest):
     except Exception as e:
         import traceback
         error_msg = f"Backtest failed: {str(e)}"
+
+        # Log to file
+        try:
+            from utils.logging_config import get_server_logger
+            logger = get_server_logger()
+            logger.error(f"[Backtest] Error in task {task_id}: {error_msg}")
+            logger.error(traceback.format_exc())
+        except:
+            pass
+
         print(f"[Backtest] Error: {e}")
         traceback.print_exc()
 
@@ -2040,34 +2062,61 @@ async def websocket_endpoint(websocket: WebSocket):
     """WebSocket for real-time updates"""
     client_host = websocket.client.host if websocket.client else "unknown"
     client_port = websocket.client.port if websocket.client else "unknown"
+
+    server_logger.info(f"[WebSocket] Connection attempt from {client_host}:{client_port}")
     print(f"[WebSocket] Connection attempt from {client_host}:{client_port}")
 
     try:
+        # Log headers for debugging
+        headers = dict(websocket.headers)
+        server_logger.debug(f"[WebSocket] Headers: {headers}")
+
         print(f"[WebSocket] Accepting connection...")
         await ws_manager.connect(websocket)
+
+        server_logger.info(f"[WebSocket] Client connected: {client_host}:{client_port}")
         print(f"[WebSocket] Client connected: {client_host}:{client_port}")
+
+        # Send welcome message
+        await websocket.send_json({
+            "type": "connected",
+            "message": "WebSocket connection established"
+        })
 
         try:
             while True:
-                # Keep connection alive
+                # Keep connection alive and receive messages
                 data = await websocket.receive_text()
-                print(f"[WebSocket] Received from {client_host}: {data[:50]}...")
-                # Echo back for testing
-                await websocket.send_json({"type": "echo", "data": data})
+                print(f"[WebSocket] Received from {client_host}: {data[:50] if len(data) > 50 else data}")
+
+                # Parse and handle message
+                try:
+                    import json
+                    msg = json.loads(data)
+                    if msg.get('type') == 'ping':
+                        await websocket.send_json({"type": "pong"})
+                except:
+                    # Echo back for testing
+                    await websocket.send_json({"type": "echo", "data": data})
+
         except WebSocketDisconnect:
+            server_logger.info(f"[WebSocket] Client disconnected: {client_host}:{client_port}")
             print(f"[WebSocket] Client disconnected: {client_host}:{client_port}")
             ws_manager.disconnect(websocket)
         except Exception as e:
+            server_logger.error(f"[WebSocket] Error in message loop: {type(e).__name__}: {e}")
             print(f"[WebSocket] Error in message loop: {type(e).__name__}: {e}")
             import traceback
             traceback.print_exc()
             ws_manager.disconnect(websocket)
+
     except Exception as e:
+        server_logger.error(f"[WebSocket] Failed to establish connection: {type(e).__name__}: {e}")
         print(f"[WebSocket] Failed to accept connection: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
         try:
-            await websocket.close(code=1008, reason=str(e)[:100])
+            await websocket.close(code=1011, reason=str(e)[:100])
         except:
             pass
 

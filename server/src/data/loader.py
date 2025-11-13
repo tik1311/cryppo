@@ -240,3 +240,95 @@ def create_sample_data(
     print(f"[OK] Saved synthetic data to: {filepath}")
 
     return df
+
+
+def download_and_save_data(
+    symbol: str,
+    timeframe: str = "1h",
+    start: str = "2023-01-01",
+    end: str = "2024-12-31",
+    exchange: str = "binance",
+    save_dir: str = "data"
+) -> pd.DataFrame:
+    """
+    Download market data from exchange and save to parquet
+
+    Args:
+        symbol: Trading symbol (e.g., BTCUSDT)
+        timeframe: Candle timeframe (1h, 4h, 1d)
+        start: Start date (YYYY-MM-DD)
+        end: End date (YYYY-MM-DD)
+        exchange: Exchange name (binance, etc.)
+        save_dir: Directory to save data
+
+    Returns:
+        DataFrame with OHLCV data
+    """
+    import ccxt
+    from datetime import datetime, timezone
+
+    print(f"\nDownloading {symbol} {timeframe} data from {exchange}...")
+    print(f"Period: {start} to {end}")
+
+    # Initialize exchange
+    if exchange.lower() == "binance":
+        ex = ccxt.binance({
+            'enableRateLimit': True,
+            'options': {'defaultType': 'future'}  # Use futures for more liquidity
+        })
+    else:
+        raise ValueError(f"Exchange {exchange} not supported yet")
+
+    # Convert dates to timestamps
+    start_ts = int(datetime.strptime(start, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp() * 1000)
+    end_ts = int(datetime.strptime(end, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp() * 1000)
+
+    # Download data in chunks
+    all_candles = []
+    current_ts = start_ts
+
+    while current_ts < end_ts:
+        try:
+            candles = ex.fetch_ohlcv(
+                symbol,
+                timeframe=timeframe,
+                since=current_ts,
+                limit=1000  # Max per request
+            )
+
+            if not candles:
+                break
+
+            all_candles.extend(candles)
+            current_ts = candles[-1][0] + 1  # Move to next timestamp
+
+            print(f"  Downloaded {len(all_candles)} candles...", end='\r')
+
+        except Exception as e:
+            print(f"\n  Error downloading: {e}")
+            break
+
+    print(f"\n  Total candles downloaded: {len(all_candles)}")
+
+    # Convert to DataFrame
+    df = pd.DataFrame(all_candles, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+    df.set_index('timestamp', inplace=True)
+
+    # Remove duplicates
+    df = df[~df.index.duplicated(keep='first')]
+
+    # Sort by timestamp
+    df.sort_index(inplace=True)
+
+    # Save to parquet
+    os.makedirs(save_dir, exist_ok=True)
+    filename = f"{symbol}_{timeframe}_{start}_{end}.parquet"
+    filepath = os.path.join(save_dir, filename)
+    df.to_parquet(filepath)
+
+    print(f"  [OK] Saved to: {filepath}")
+    print(f"  Shape: {df.shape}")
+    print(f"  Period: {df.index[0]} to {df.index[-1]}\n")
+
+    return df

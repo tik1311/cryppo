@@ -52,6 +52,27 @@ CRYPPO is an AI-powered cryptocurrency trading system that uses Deep Reinforceme
 
 ## Installation
 
+### ⚠️ Quick Fix for PyTorch DLL Error (Windows 11)
+
+**If you're seeing this error:**
+```
+OSError: [WinError 1114] DLL initialization failed
+Training failed: Error loading "torch\lib\c10.dll"
+```
+
+**Run this quick fix script:**
+```batch
+REM Make sure venv is activated first
+venv\Scripts\activate
+
+REM Run the fix script
+fix_pytorch_windows.bat
+```
+
+This will automatically switch to CPU-only PyTorch (works perfectly, just slower).
+
+---
+
 ### Prerequisites
 
 - **Python 3.10-3.12** (Python 3.12.9 recommended for Windows 11)
@@ -604,23 +625,46 @@ pip install websockets>=12.0
 - Verify frontend accessing `ws://localhost:8000/ws`
 - Try restarting both frontend and backend
 
-**4. PyTorch DLL Error (Windows) - System Info 500 Error**
+**4. PyTorch DLL Error - Training Won't Start (Windows)**
 
-**Error in logs:** `OSError: [WinError 1114] DLL initialization failed` when accessing `/api/system/info`
+**Symptoms:**
+- Error in logs: `OSError: [WinError 1114] DLL initialization failed`
+- Training fails immediately when you click "Start Training"
+- UI doesn't show progress updates
+- Server log shows: `Training error: Training failed: [WinError 1114]`
 
-**Quick Fix:**
+**Root Cause:** PyTorch CUDA requires Visual C++ Redistributable which you don't have installed.
+
+**🚀 QUICK FIX (Recommended):**
+
 ```batch
-REM Uninstall CUDA version and install CPU version
-pip3 uninstall torch torchvision
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+REM 1. Activate venv
+venv\Scripts\activate
+
+REM 2. Run the automated fix script
+fix_pytorch_windows.bat
+
+REM 3. Restart server
+cd server
+python main.py
 ```
 
-**Complete Fix:**
+The script will automatically switch to CPU-only PyTorch (works perfectly, just slower).
+
+**Manual Fix:**
+```batch
+venv\Scripts\activate
+pip3 uninstall -y torch torchvision
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+python -c "import torch; print('✓ PyTorch works!')"
+```
+
+**Complete Fix (for GPU support):**
 1. Download and install Visual C++ Redistributable: https://aka.ms/vs/17/release/vc_redist.x64.exe
 2. Restart your computer
-3. Reinstall PyTorch CUDA version if you have NVIDIA GPU
+3. Reinstall PyTorch CUDA: `pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126`
 
-**Note:** Server will still work with CPU version, just training will be slower.
+**Note:** CPU version works perfectly for training, it's just slower (5-10 min vs 30-60 sec for 10 episodes).
 
 **5. Training takes too long**
 

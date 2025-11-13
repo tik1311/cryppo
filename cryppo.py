@@ -7,11 +7,9 @@ Beautiful command-line interface inspired by Claude Code
 import sys
 import os
 import argparse
+import subprocess
 from pathlib import Path
 from typing import Optional
-
-# Add server to path
-sys.path.insert(0, str(Path(__file__).parent / "server"))
 
 from rich.console import Console
 from rich.panel import Panel
@@ -115,7 +113,18 @@ def check_system():
 
 def download_data(symbol: str, start: str, end: str, timeframe: str = "1h"):
     """Download market data with progress bar"""
-    from src.data.loader import download_and_save_data
+    # Import in isolated scope to avoid sys.path issues
+    import sys
+    server_path = str(Path(__file__).parent / "server")
+    if server_path not in sys.path:
+        sys.path.insert(0, server_path)
+
+    try:
+        from src.data.loader import download_and_save_data
+    finally:
+        # Clean up sys.path after import
+        if server_path in sys.path:
+            sys.path.remove(server_path)
 
     console.print(f"\n[bold cyan]📥 Downloading {symbol} Data[/bold cyan]\n")
 
@@ -209,38 +218,50 @@ def train(
     console.print(config_table)
     console.print()
 
-    # Import training function
-    from src.training.train_d3qn import main as train_main
+    # Build command to run training as subprocess
+    # This avoids sys.path issues and PyTorch DLL conflicts
+    server_dir = Path(__file__).parent / "server"
 
-    # Prepare arguments
-    args = argparse.Namespace(
-        symbol=symbol,
-        episodes=episodes,
-        timesteps=None,
-        learning_rate=learning_rate,
-        gamma=0.995,
-        batch_size=64,
-        buffer_size=100000,
-        reward_type="sharpe",
-        sample_data=sample_data,
-        save_freq=10
-    )
+    cmd = [
+        sys.executable,  # Use current Python interpreter
+        "-m", "src.training.train_d3qn",
+        "--symbol", symbol,
+        "--episodes", str(episodes),
+        "--learning-rate", str(learning_rate),
+        "--gamma", "0.995",
+        "--batch-size", "64",
+        "--buffer-size", "100000",
+        "--reward-type", "sharpe",
+        "--save-freq", "10"
+    ]
+
+    if sample_data:
+        cmd.append("--sample-data")
 
     try:
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TaskProgressColumn(),
-            console=console
-        ) as progress:
-            train_task = progress.add_task("Training...", total=episodes)
+        with console.status("[cyan]Training in progress...", spinner="dots"):
+            # Run training as subprocess with clean Python environment
+            result = subprocess.run(
+                cmd,
+                cwd=server_dir,
+                capture_output=True,
+                text=True
+            )
 
-            # Run training (you'll need to modify train_d3qn to accept callback)
-            train_main(args, progress_callback=lambda ep: progress.update(train_task, completed=ep))
+        if result.returncode == 0:
+            console.print(f"\n[green]✓ Training completed![/green]")
+            console.print(f"[dim]Model saved to: checkpoints/[/dim]\n")
 
-        console.print(f"\n[green]✓ Training completed![/green]")
-        console.print(f"[dim]Model saved to: checkpoints/[/dim]\n")
+            # Show training output
+            if result.stdout:
+                console.print("[dim]Training output:[/dim]")
+                console.print(result.stdout[-500:] if len(result.stdout) > 500 else result.stdout)
+        else:
+            console.print(f"\n[red]✗ Training failed![/red]\n")
+            if result.stderr:
+                console.print("[red]Error:[/red]")
+                console.print(result.stderr[-500:] if len(result.stderr) > 500 else result.stderr)
+            sys.exit(1)
 
     except Exception as e:
         console.print(f"\n[red]✗ Training failed: {e}[/red]\n")
@@ -256,28 +277,38 @@ def backtest(model_path: str, sample_data: bool = False):
 
     console.print(f"[dim]Model: {model_path}[/dim]\n")
 
-    # Import and run backtest
-    import test_backtest
+    # Build command to run backtest as subprocess
+    cmd = [
+        sys.executable,
+        "test_backtest.py",
+        "--model", model_path
+    ]
+
+    if sample_data:
+        cmd.append("--sample-data")
 
     try:
         with console.status("[cyan]Running backtest...", spinner="dots"):
-            results = test_backtest.run_backtest(model_path, sample_data)
+            # Run backtest as subprocess
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True
+            )
 
-        # Display results
-        console.print("\n[bold green]Backtest Results[/bold green]\n")
+        if result.returncode == 0:
+            # Display results from output
+            console.print("\n[bold green]Backtest Results[/bold green]\n")
 
-        results_table = Table(show_header=False, box=box.ROUNDED)
-        results_table.add_column("Metric", style="cyan")
-        results_table.add_column("Value", style="white", justify="right")
-
-        results_table.add_row("Total Return", f"{results['return']:.2f}%")
-        results_table.add_row("Total Trades", str(results['trades']))
-        results_table.add_row("Win Rate", f"{results['win_rate']:.2f}%")
-        results_table.add_row("Sharpe Ratio", f"{results.get('sharpe', 0):.3f}")
-        results_table.add_row("Max Drawdown", f"{results.get('max_dd', 0):.2f}%")
-
-        console.print(results_table)
-        console.print()
+            # Show backtest output
+            if result.stdout:
+                console.print(result.stdout)
+        else:
+            console.print(f"\n[red]✗ Backtest failed![/red]\n")
+            if result.stderr:
+                console.print("[red]Error:[/red]")
+                console.print(result.stderr[-500:] if len(result.stderr) > 500 else result.stderr)
+            sys.exit(1)
 
     except Exception as e:
         console.print(f"\n[red]✗ Backtest failed: {e}[/red]\n")

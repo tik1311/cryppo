@@ -9,6 +9,29 @@ Full-Stack Application พร้อม FastAPI Backend, Next.js Frontend แล�
 
 ---
 
+## 🔄 Recent Updates (Latest)
+
+### Bug Fixes & Improvements
+- ✅ **Fixed IndexError in backtest**: Properly handle Gymnasium's `terminated` and `truncated` flags
+- ✅ **Added Episodes configuration**: Train by episodes (easier) or timesteps (granular control)
+- ✅ **Lowered minimum training requirements**: Can now test with as few as 2 episodes or 10 timesteps
+- ✅ **Improved boundary checks**: Prevent data access beyond array bounds in trading environment
+- ✅ **Updated to latest WebSocket practices**: Following FastAPI/Uvicorn 2025 best practices
+- ✅ **Minimal test data support**: Quick testing with 2,000 sample candles
+- ✅ **UI clarity**: Clearly marked which models are implemented (D3QN ✅) vs coming soon (SAC, PPO, TD3 🚧)
+
+### What's Working
+- ✅ D3QN model training and backtesting
+- ✅ Web UI for data download, training, backtesting
+- ✅ Trading environment with proper action handling (no conflicts)
+- ✅ Sample data generation for quick testing
+
+### Known Limitations
+- ⚠️ Only D3QN is fully implemented (SAC, PPO, TD3 are placeholders)
+- ⚠️ Real-time training progress in UI is limited (uses polling)
+
+---
+
 ## 📋 Table of Contents
 
 - [Features](#-features)
@@ -231,13 +254,26 @@ All operations are performed through the Web UI at http://localhost:3000
 ### 2. Train Model
 1. Navigate to **Train** page
 2. Select data files to use for training
-3. Configure hyperparameters:
-   - Model type (D3QN)
-   - Learning rate
-   - Training timesteps
-   - Reward function (Sharpe, Sortino, etc.)
+3. Configure training parameters:
+   - **Model type**: D3QN (only fully implemented model)
+   - **Training mode**: Choose between Episodes or Timesteps
+     - **Episodes**: Complete runs from start to finish (recommended for beginners)
+       - Quick test: 2-10 episodes
+       - Normal training: 100 episodes
+       - Full training: 1000+ episodes
+     - **Timesteps**: Individual actions taken (more granular control)
+       - Quick test: 1,000-10,000 timesteps
+       - Normal training: 100,000 timesteps
+       - Full training: 1,000,000+ timesteps
+   - **Learning rate**: 0.00025 (default, works well)
+   - **Gamma**: 0.995 (discount factor)
+   - **Reward function**: Sharpe (recommended), Sortino, Profit, or Return
+   - **Batch size**: 64 (default)
+   - **Buffer size**: 100,000 (replay buffer capacity)
 4. Click **Start Training**
 5. Monitor training progress with real-time metrics
+
+**Note**: SAC, PPO, and TD3 models are listed but not yet fully implemented. Use D3QN for now.
 
 ### 3. Backtest Model
 1. Navigate to **Backtest** page
@@ -248,6 +284,15 @@ All operations are performed through the Web UI at http://localhost:3000
    - Performance metrics (return, Sharpe, win rate)
    - Price chart with indicators
    - Trade history table
+
+**CLI Alternative** (for testing with minimal data):
+```bash
+python test_backtest.py \
+  --model checkpoints/final_agent.pth \
+  --sample-data \
+  --balance 10000 \
+  --leverage 3.0
+```
 
 ### 4. Paper Trading
 1. Navigate to **Paper Trading** page
@@ -310,22 +355,71 @@ FastAPI provides interactive API documentation at http://localhost:8000/docs
 
 ---
 
+## 🐛 Troubleshooting
+
+### Common Issues and Solutions
+
+**1. IndexError when running backtest**
+```
+IndexError: index XXXX is out of bounds for axis 0 with size XXXX
+```
+**Solution**: This has been fixed in the latest version. The issue was due to improper handling of Gymnasium's `terminated` and `truncated` flags. Make sure you're using the updated `test_backtest.py` and `trading_env.py`.
+
+**2. Training takes too long / system hangs**
+- Use **Episodes mode** with 2-10 episodes for quick testing
+- Or use **Timesteps mode** with minimum 1,000 timesteps (lower values now supported)
+- Reduce sample data size to 2,000 candles for testing
+- Close other applications to free up RAM/GPU
+
+**3. WebSocket connection issues**
+- Ensure backend server is running on port 8000
+- Check firewall settings
+- Use latest FastAPI/Uvicorn (WebSocket support improved in 2025)
+
+**4. Model training fails with "Model not found"**
+- Only D3QN is fully implemented - use D3QN model type
+- Check that data files are downloaded first
+- Verify checkpoint directory exists
+
+**5. Action conflicts in trading environment**
+- **HOLD (0)**: Do nothing, maintain current state
+- **OPEN_LONG (1)**: Open long position, or close short and go long
+- **OPEN_SHORT (2)**: Open short position, or close long and go short
+- **CLOSE_POSITION (3)**: Close any open position
+- If already in a position and same action (e.g., OPEN_LONG while long), it acts as HOLD
+
+---
+
 ## 🛠️ Technical Details
 
 ### Backend (FastAPI)
-- **Framework**: FastAPI 0.121+
-- **WebSocket**: Real-time updates
+- **Framework**: FastAPI 0.121+ with Uvicorn
+- **WebSocket**: Real-time bidirectional updates (latest best practices 2025)
+  - Stateful connection management
+  - Proper error handling with WebSocketException
+  - For production: Use Gunicorn + Uvicorn workers
 - **Database**: SQLite (tracking & history)
 - **ML Framework**: PyTorch 2.0+
-- **RL Library**: Custom D3QN implementation
+- **RL Library**: Gymnasium 0.29+ (formerly OpenAI Gym)
+  - Proper handling of `terminated` vs `truncated` flags
+  - Custom D3QN implementation with Dueling architecture
+  - Experience replay buffer with batch sampling
 
 ### Frontend (Next.js)
-- **Framework**: Next.js 14.0.4
+- **Framework**: Next.js 14.0.4 with App Router
 - **Language**: TypeScript 5+
 - **UI**: TailwindCSS 3.3+
 - **Charts**: KLineChart 9.8+ & Lightweight Charts 4.1+
 - **State**: Zustand 4.4+
 - **HTTP**: Axios 1.6+
+
+### RL Training
+- **Episodes vs Timesteps**:
+  - Episodes: Full environment runs (easier to understand)
+  - Timesteps: Individual actions (more granular)
+- **Minimum values**:
+  - Episodes: 1+ (2-10 for quick testing)
+  - Timesteps: 10+ (1000+ recommended for meaningful training)
 
 ---
 

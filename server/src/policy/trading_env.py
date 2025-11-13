@@ -118,13 +118,16 @@ class TradingEnv(gym.Env):
         Returns:
             State tensor [window_size, n_features + position_info]
         """
+        # Ensure we don't go beyond data bounds
+        current_idx = min(self.current_step, self.n_steps - 1)
+
         # Get market data window
-        start_idx = self.current_step - self.window_size
-        end_idx = self.current_step
+        start_idx = current_idx - self.window_size
+        end_idx = current_idx
         market_data = self.data[start_idx:end_idx]
 
         # Current price for normalization
-        current_price = self.data[self.current_step, 3]  # Close price (index 3)
+        current_price = self.data[current_idx, 3]  # Close price (index 3)
 
         # Position information
         is_in_position = 1.0 if self.position is not None else 0.0
@@ -162,6 +165,10 @@ class TradingEnv(gym.Env):
         Returns:
             (observation, reward, terminated, truncated, info)
         """
+        # Initialize episode status flags
+        terminated = False
+        truncated = False
+
         # Get current price
         current_price = self.data[self.current_step, 3]  # Close price
 
@@ -242,13 +249,11 @@ class TradingEnv(gym.Env):
         self.current_step += 1
 
         # Check if episode is done
-        terminated = False
-        truncated = False
-
-        if self.current_step >= self.n_steps - 1:
-            # End of data
+        if self.current_step >= self.n_steps:
+            # End of data - close position if open
             if self.position:
-                self._close_position(current_price)
+                final_price = self.data[self.current_step - 1, 3]  # Use last valid price
+                self._close_position(final_price)
             truncated = True
 
         if self.equity <= self.initial_balance * 0.3:
@@ -257,10 +262,14 @@ class TradingEnv(gym.Env):
 
         # Get new observation (only if not done)
         if truncated or terminated:
-            # Return last valid observation if episode ended
-            observation = self._get_observation() if self.current_step < self.n_steps else np.zeros(self.observation_space.shape, dtype=np.float32)
+            # Return zeros if we've gone past the data
+            if self.current_step >= self.n_steps:
+                observation = np.zeros(self.observation_space.shape, dtype=np.float32)
+            else:
+                observation = self._get_observation()
         else:
             observation = self._get_observation()
+
         info = self._get_info()
 
         return observation, reward, terminated, truncated, info
@@ -374,7 +383,9 @@ class TradingEnv(gym.Env):
         if not self.position:
             return 0.0
 
-        current_price = self.data[self.current_step, 3]
+        # Use current_step - 1 if we're at or beyond the data boundary
+        step_idx = min(self.current_step, self.n_steps - 1)
+        current_price = self.data[step_idx, 3]
 
         if self.position == 'long':
             return (current_price - self.entry_price) * self.position_size

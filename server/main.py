@@ -156,12 +156,26 @@ async def get_config():
 @app.get("/api/system/info")
 async def system_info():
     """Get system information"""
-    import torch
+    # Try to import PyTorch with error handling for Windows DLL issues
+    torch_info = {
+        "cuda_available": False,
+        "cuda_device": None,
+        "num_gpus": 0,
+        "torch_error": None
+    }
+
+    try:
+        import torch
+        torch_info["cuda_available"] = torch.cuda.is_available()
+        torch_info["cuda_device"] = torch.cuda.get_device_name(0) if torch.cuda.is_available() else None
+        torch_info["num_gpus"] = torch.cuda.device_count() if torch.cuda.is_available() else 0
+    except Exception as e:
+        # Common on Windows: Missing Visual C++ Redistributable or CUDA libraries
+        torch_info["torch_error"] = str(e)
+        server_logger.warning(f"[System] PyTorch import failed: {e}")
 
     return {
-        "cuda_available": torch.cuda.is_available(),
-        "cuda_device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
-        "num_gpus": torch.cuda.device_count() if torch.cuda.is_available() else 0,
+        **torch_info,
         "python_version": sys.version,
         "timeframe": config["data"]["timeframe"],
         "supported_symbols": config["data"]["symbols"]

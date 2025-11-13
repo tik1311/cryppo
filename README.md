@@ -57,7 +57,12 @@ CRYPPO is an AI-powered cryptocurrency trading system that uses Deep Reinforceme
 - **Python 3.10-3.12** (Python 3.12.9 recommended for Windows 11)
 - **Node.js 18+** (for frontend)
 - **8GB RAM minimum** (16GB recommended)
+- **Windows Only**: Microsoft Visual C++ Redistributable 2015-2022
+  - Download: https://aka.ms/vs/17/release/vc_redist.x64.exe
+  - Required for PyTorch DLL libraries
 - **Optional**: NVIDIA GPU with CUDA 12.6 for faster training
+  - Requires CUDA Toolkit 12.6 installed
+  - CPU-only version recommended if you get DLL errors
 
 ### Quick Setup
 
@@ -208,14 +213,39 @@ The server will show this warning on startup if websockets is missing:
   WebSocket connections will fail with 400 Bad Request
 ```
 
-**3. PyTorch Installation Issues**
+**3. PyTorch DLL Initialization Error (Windows)**
 
-If PyTorch CUDA installation fails, use CPU version:
-```bash
+**Error:** `OSError: [WinError 1114] A dynamic link library (DLL) initialization routine failed`
+
+**Root Cause:** Missing Microsoft Visual C++ Redistributable or CUDA libraries
+
+**Solution:**
+
+```batch
+REM Option 1: Install Visual C++ Redistributable (Recommended)
+REM Download and install: https://aka.ms/vs/17/release/vc_redist.x64.exe
+REM Then restart your computer
+
+REM Option 2: Switch to CPU-only PyTorch (Easier)
+pip3 uninstall torch torchvision
 pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+REM Verify it works
+python -c "import torch; print(f'PyTorch {torch.__version__} works!')"
 ```
 
-**4. TA-Lib Installation (Optional)**
+**Why this happens:**
+- PyTorch CUDA version requires Visual C++ Runtime libraries
+- If you don't have CUDA Toolkit installed, CUDA version won't work
+- CPU version has fewer dependencies and works on all Windows systems
+
+**4. PyTorch CUDA Not Available**
+
+If CUDA installation succeeds but `torch.cuda.is_available()` returns False:
+- Install NVIDIA CUDA Toolkit 12.6 from https://developer.nvidia.com/cuda-downloads
+- Or use CPU version (training will be slower but works fine)
+
+**5. TA-Lib Installation (Optional)**
 
 TA-Lib is optional and excluded on Windows by default.
 
@@ -574,26 +604,44 @@ pip install websockets>=12.0
 - Verify frontend accessing `ws://localhost:8000/ws`
 - Try restarting both frontend and backend
 
-**4. Training takes too long**
+**4. PyTorch DLL Error (Windows) - System Info 500 Error**
+
+**Error in logs:** `OSError: [WinError 1114] DLL initialization failed` when accessing `/api/system/info`
+
+**Quick Fix:**
+```batch
+REM Uninstall CUDA version and install CPU version
+pip3 uninstall torch torchvision
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+**Complete Fix:**
+1. Download and install Visual C++ Redistributable: https://aka.ms/vs/17/release/vc_redist.x64.exe
+2. Restart your computer
+3. Reinstall PyTorch CUDA version if you have NVIDIA GPU
+
+**Note:** Server will still work with CPU version, just training will be slower.
+
+**5. Training takes too long**
 
 - Use Episodes mode with 2-10 episodes for quick testing
 - Or use Timesteps mode with 1,000 minimum (10,000+ recommended)
 - Enable GPU if available (10-20x faster)
 - Use sample data instead of real data for testing
 
-**5. Model not found error**
+**6. Model not found error**
 
 - Check `checkpoints/` directory exists
 - Verify model file path is correct
 - Only D3QN is fully implemented (SAC, PPO, TD3 are placeholders)
 
-**6. IndexError during backtest**
+**7. IndexError during backtest**
 
 - This was fixed in latest version
 - Make sure you pulled latest changes
 - Error was due to improper `terminated`/`truncated` handling
 
-**7. Frontend build fails**
+**8. Frontend build fails**
 
 ```bash
 cd client

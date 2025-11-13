@@ -89,26 +89,63 @@ python -m pip install --upgrade pip
 echo pip upgraded successfully!
 
 REM ============================================================================
-REM 5. Install PyTorch with CUDA 12.6
+REM 5. Install PyTorch
 REM ============================================================================
 echo.
-echo [5/7] Installing PyTorch with CUDA 12.6...
-echo This may take a few minutes...
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
-if errorlevel 1 (
-    echo WARNING: PyTorch CUDA installation failed!
-    echo Trying CPU-only version...
-    pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+echo [5/7] Installing PyTorch...
+echo.
+echo IMPORTANT: PyTorch CUDA requires Microsoft Visual C++ Redistributable
+echo If you don't have it installed, download from:
+echo https://aka.ms/vs/17/release/vc_redist.x64.exe
+echo.
+echo Choose PyTorch version:
+echo   1. CUDA 12.6 (for NVIDIA GPU - requires CUDA Toolkit)
+echo   2. CPU only (recommended if you don't have CUDA or get DLL errors)
+echo.
+set /p pytorch_choice="Enter your choice (1 or 2, default=2): "
+
+if "%pytorch_choice%"=="" set pytorch_choice=2
+if "%pytorch_choice%"=="1" (
+    echo.
+    echo Installing PyTorch with CUDA 12.6 support...
+    echo This may take a few minutes...
+    pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+    goto verify_torch
 )
 
-REM Verify PyTorch installation
-python -c "import torch; print(f'PyTorch {torch.__version__} installed successfully!')"
-python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
+echo.
+echo Installing PyTorch CPU-only version...
+echo This may take a few minutes...
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+:verify_torch
+echo.
+echo Verifying PyTorch installation...
+python -c "import torch; print(f'✓ PyTorch {torch.__version__} installed successfully!')" 2>nul
 if errorlevel 1 (
-    echo ERROR: PyTorch installation verification failed!
-    pause
-    exit /b 1
+    echo.
+    echo ERROR: PyTorch DLL initialization failed!
+    echo This usually means:
+    echo   1. Missing Visual C++ Redistributable
+    echo   2. Missing CUDA libraries (if using CUDA version)
+    echo.
+    echo SOLUTION: Installing CPU-only version instead...
+    pip3 uninstall -y torch torchvision
+    pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+    echo.
+    echo Verifying CPU version...
+    python -c "import torch; print(f'✓ PyTorch {torch.__version__} (CPU) installed successfully!')"
+    if errorlevel 1 (
+        echo ERROR: PyTorch installation failed completely!
+        echo Please install Visual C++ Redistributable and try again.
+        pause
+        exit /b 1
+    )
+) else (
+    python -c "import torch; print(f'✓ CUDA available: {torch.cuda.is_available()}')"
 )
+
+echo PyTorch installation verified!
 
 REM ============================================================================
 REM 6. Install Python Dependencies

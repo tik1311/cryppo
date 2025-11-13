@@ -207,6 +207,7 @@ def train(
     episodes: int,
     model: str = "d3qn",
     learning_rate: float = 0.00025,
+    reward_type: str = "sharpe",
     sample_data: bool = False
 ):
     """Train model with beautiful progress tracking"""
@@ -221,6 +222,7 @@ def train(
     config_table.add_row("Model", model.upper())
     config_table.add_row("Episodes", str(episodes))
     config_table.add_row("Learning Rate", str(learning_rate))
+    config_table.add_row("Reward Type", reward_type.upper())
     config_table.add_row("Sample Data", "Yes" if sample_data else "No")
 
     console.print(config_table)
@@ -235,11 +237,11 @@ def train(
         "-m", "src.training.train_d3qn",
         "--symbol", symbol,
         "--episodes", str(episodes),
-        "--lr", str(learning_rate),  # Changed from --learning-rate
+        "--lr", str(learning_rate),
         "--gamma", "0.995",
         "--batch-size", "64",
         "--buffer-size", "100000",
-        "--reward", "sharpe",  # Changed from --reward-type
+        "--reward", reward_type,
         "--save-freq", "10"
     ]
 
@@ -391,6 +393,9 @@ def main():
     train_parser.add_argument("--episodes", type=int, default=100, help="Number of episodes")
     train_parser.add_argument("--model", default="d3qn", help="Model type (d3qn)")
     train_parser.add_argument("--lr", type=float, default=0.00025, help="Learning rate")
+    train_parser.add_argument("--reward", default="sharpe",
+                            choices=["profit", "return", "sharpe", "sortino"],
+                            help="Reward type (default: sharpe)")
     train_parser.add_argument("--sample-data", action="store_true", help="Use sample data")
 
     # Backtest command
@@ -419,7 +424,7 @@ def main():
             console.print("[yellow]Use: cryppo data download/list[/yellow]\n")
 
     elif args.command == "train":
-        train(args.symbol, args.episodes, args.model, args.lr, args.sample_data)
+        train(args.symbol, args.episodes, args.model, args.lr, args.reward, args.sample_data)
 
     elif args.command == "backtest":
         backtest(args.model, args.sample_data)

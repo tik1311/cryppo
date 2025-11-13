@@ -176,6 +176,11 @@ class TradingEnv(gym.Env):
         trade_reward = 0.0
         exploration_bonus = 0.0
 
+        # Debug: Log first 3 actions per episode
+        action_names = ['HOLD', 'OPEN_LONG', 'OPEN_SHORT', 'CLOSE']
+        if self.current_step - self.window_size < 3:
+            print(f"  [ACTION] Step {self.current_step}: {action_names[action]} | Pos: {self.position or 'None'}")
+
         if action == 1:  # OPEN_LONG
             if self.position is None:
                 self._open_position('long', current_price)
@@ -294,6 +299,10 @@ class TradingEnv(gym.Env):
         # Deduct fee from balance
         self.balance -= fee
 
+        # Debug logging (only first 5 trades per episode)
+        if self.total_trades < 5:
+            print(f"  [TRADE] Open {position_type.upper()} @ ${price:.2f} | Size: {self.position_size:.4f} | Fee: ${fee:.2f}")
+
         # Calculate liquidation price (simplified)
         # Liquidation happens when loss reaches margin (1/leverage of position)
         margin_ratio = 1.0 / self.current_leverage
@@ -337,6 +346,11 @@ class TradingEnv(gym.Env):
         self.total_pnl += pnl
         if pnl > 0:
             self.winning_trades += 1
+
+        # Debug logging (only first 5 trades per episode)
+        if self.total_trades <= 5:
+            pnl_pct = (pnl / (self.entry_price * self.position_size)) * 100
+            print(f"  [TRADE] Close @ ${price:.2f} | PnL: ${pnl:.2f} ({pnl_pct:+.2f}%) | Balance: ${self.balance:.2f}")
 
         # Reset position
         self.position = None

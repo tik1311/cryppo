@@ -267,6 +267,13 @@ def train_d3qn(
     episode_rewards = []
 
     for episode in range(1, episodes + 1):
+        # Enable detailed logging for last episode
+        if episode == episodes:
+            logger.log("\n" + "=" * 60)
+            logger.log("[DEBUG] FINAL EPISODE - Enabling detailed logging")
+            logger.log("=" * 60)
+            train_env.enable_detailed_logging = True
+
         # Reset environment
         state, info = train_env.reset()
         state = state.flatten()  # Flatten state for agent
@@ -365,6 +372,7 @@ def train_d3qn(
 
     # Final test
     logger.log("\n[TEST] Final evaluation on test set...")
+    logger.log("[DEBUG] Enabling detailed logging for test episodes...")
     test_env = TradingEnv(
         data=test_data,
         initial_balance=initial_balance,
@@ -372,6 +380,7 @@ def train_d3qn(
         window_size=window_size,
         reward_type=reward_type
     )
+    test_env.enable_detailed_logging = True
 
     test_reward, test_info = evaluate_agent(agent, test_env, episodes=10)
     logger.log(
@@ -390,6 +399,9 @@ def train_d3qn(
     logger.save_metrics()
     logger.log(f"[INFO] Metrics saved: {logger.metrics_file}")
     logger.log(f"[INFO] Logs saved: {logger.log_file}")
+    logger.log(f"\n[INFO] Detailed episode logs saved to: {project_root / 'logs'}")
+    logger.log(f"  - episode_XXXX_*.jsonl (step-by-step data in JSON Lines format)")
+    logger.log(f"  - episode_XXXX_summary.txt (human-readable summary)")
 
     logger.log("\n[COMPLETE] Done!")
 

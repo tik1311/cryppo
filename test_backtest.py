@@ -72,6 +72,8 @@ def run_backtest(
         reward_type="sharpe"
     )
     print(f"  Environment created successfully")
+    print(f"  [DEBUG] Enabling detailed logging for backtest...")
+    env.enable_detailed_logging = True
 
     # Load model
     print("[4/5] Loading trained model...")
@@ -165,6 +167,11 @@ def run_backtest(
 
     print("="*60)
     print("[SUCCESS] Backtest completed!")
+    print("="*60)
+    print()
+    print("[INFO] Detailed step-by-step logs saved to:")
+    print(f"  logs/episode_0001_*.jsonl (step-by-step data in JSON Lines format)")
+    print(f"  logs/episode_0001_summary.txt (human-readable summary)")
     print("="*60)
 
 

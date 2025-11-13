@@ -156,23 +156,153 @@ python cryppo.py train --episodes 100 --reward profit --lr 0.0005
 
 ---
 
-## 🔍 Debug Output
+## 📝 Detailed Episode Logging (NEW!)
 
-Training now shows debug information to help diagnose issues:
+CRYPPO now automatically saves **detailed step-by-step logs** for:
+- ✅ **Last training episode** (final episode of training)
+- ✅ **All test episodes** (final evaluation after training)
+- ✅ **All backtest runs** (when you run backtest command)
+
+### What's Logged?
+
+Every single step is recorded with complete details:
+```json
+{
+  "episode": 100,
+  "step": 1234,
+  "action": 1,
+  "action_name": "LONG",
+  "price": 45123.45,
+  "position": "long",
+  "balance": 10234.56,
+  "equity": 10456.78,
+  "unrealized_pnl": 222.22,
+  "trade_reward": 0.0123,
+  "exploration_bonus": 0.0,
+  "position_penalty": 0.0,
+  "total_reward": 0.0145,
+  "total_trades": 12,
+  "win_rate": 0.583,
+  "terminated": false,
+  "truncated": false
+}
+```
+
+### Log Files Created
+
+After training or backtesting, you'll find these files in `logs/`:
+
+**1. JSON Lines Format** (for programmatic analysis)
+```
+logs/episode_0100_20251113_143022.jsonl
+```
+- Each line is a valid JSON object
+- One step per line
+- Easy to parse with scripts
+- Can load into pandas: `pd.read_json('file.jsonl', lines=True)`
+
+**2. Human-Readable Summary** (for quick review)
+```
+logs/episode_0100_summary.txt
+```
+Contains:
+- Episode statistics (total reward, steps, trades, win rate)
+- **First 10 steps** (initial behavior)
+- **Last 10 steps** (final behavior)
+- All rewards, actions, prices, balances
+
+### Example Summary Format
+```
+Episode: 100
+Total Steps: 5432
+Total Reward: 234.56
+Total Trades: 28
+Win Rate: 57.14%
+Final Balance: $11,234.56
+
+========================================
+FIRST 10 STEPS
+========================================
+
+Step 1 | HOLD | Price: $43,200.00 | Pos: None | Balance: $10,000.00
+  Rewards: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0012
+  Trades: 0, Win Rate: 0.00%
+
+Step 2 | LONG | Price: $43,250.00 | Pos: None | Balance: $10,000.00
+  [TRADE] Open LONG @ $43,250.00
+  Rewards: trade=0.0000, explore=0.0010, penalty=0.0000, total=0.0023
+  Trades: 1, Win Rate: 0.00%
+
+...
+
+========================================
+LAST 10 STEPS
+========================================
+...
+```
+
+### How to Use These Logs
+
+**1. Verify Calculations Are Correct**
+```bash
+# Check if balance changes match rewards
+grep "balance" logs/episode_0100_*.jsonl | head -20
+```
+
+**2. Understand Why Agent Isn't Trading**
+```bash
+# Count action distribution
+cat logs/episode_0100_*.jsonl | jq -r '.action_name' | sort | uniq -c
+```
+
+**3. Find Bad Trades**
+```bash
+# Find steps with negative rewards
+cat logs/episode_0100_*.jsonl | jq 'select(.trade_reward < -0.01)'
+```
+
+**4. Track Balance Over Time**
+```python
+import pandas as pd
+df = pd.read_json('logs/episode_0100_20251113_143022.jsonl', lines=True)
+print(df[['step', 'balance', 'equity', 'action_name', 'total_reward']])
+```
+
+**5. Analyze Position Holding Time**
+```python
+# How long does agent hold positions?
+positions = df[df['position'].notna()]
+print(f"Average position duration: {len(positions) / df['total_trades'].iloc[-1]} steps")
+```
+
+---
+
+## 🔍 Real-time Training Output
+
+Training now shows **live progress** for every episode (no more waiting!):
 
 ```
-Episode 1 | Reward: -0.45 | Loss: 0.0234 | Eps: 0.998 | Steps: 1234 | Trades: 0
-  [ACTION] Step 72: OPEN_LONG | Pos: None
-  [TRADE] Open LONG @ $45000.00 | Size: 0.6666 | Fee: $12.00
-  [ACTION] Step 150: CLOSE | Pos: long
-  [TRADE] Close @ $45500.00 | PnL: $333.20 (+1.11%) | Balance: $10321.20
+Episode   1 | Reward:   -12.34 | Avg(10):    -12.34 | Loss: 0.0234 | Eps: 0.998 | Steps: 5432 | Trades: 12 | Win%:  50.0 | Balance: $10,234
+Episode   2 | Reward:    23.45 | Avg(10):      5.56 | Loss: 0.0198 | Eps: 0.996 | Steps: 5431 | Trades: 15 | Win%:  53.3 | Balance: $10,456
+Episode   3 | Reward:    45.67 | Avg(10):     18.93 | Loss: 0.0176 | Eps: 0.994 | Steps: 5430 | Trades: 18 | Win%:  55.6 | Balance: $10,789
+...
 ```
+
+**What each column means:**
+- **Reward**: Total reward for this episode
+- **Avg(10)**: Average reward over last 10 episodes (trend indicator)
+- **Loss**: Neural network training loss
+- **Eps**: Epsilon (exploration rate) - starts at ~1.0, decays to 0.2
+- **Steps**: Number of steps taken in episode
+- **Trades**: Number of trades executed
+- **Win%**: Percentage of profitable trades
+- **Balance**: Final balance after episode
 
 **What to look for:**
-- ✅ **Trades > 0** in episode summary
-- ✅ **[ACTION] logs** show agent is taking actions
-- ✅ **[TRADE] logs** show positions opening/closing
-- ✅ **Balance changes** over time
+- ✅ **Trades > 0** after first few episodes
+- ✅ **Win% gradually increasing** (40% → 50% → 60%)
+- ✅ **Avg(10) trending upward** over time
+- ✅ **Eps gradually decreasing** (1.0 → 0.5 → 0.2)
 - ❌ If Trades = 0 after 10 episodes → problem!
 
 ---

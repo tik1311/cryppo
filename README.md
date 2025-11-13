@@ -117,16 +117,19 @@ python cryppo.py data list
 
 ```batch
 REM Quick test (2 episodes, ~10-20 seconds on GPU)
-python cryppo.py train --symbol BTCUSDT --episodes 2 --sample-data
+python cryppo.py train --symbol BTCUSDT --episodes 2 --sample-data --reward profit
 
 REM Full training (100 episodes, ~5-10 minutes on GPU)
-python cryppo.py train --symbol BTCUSDT --episodes 100
+python cryppo.py train --symbol BTCUSDT --episodes 100 --reward profit
+
+REM Risk-adjusted training (Sharpe ratio reward)
+python cryppo.py train --symbol BTCUSDT --episodes 100 --reward sharpe
 
 REM Custom parameters
-python cryppo.py train --symbol ETHUSDT --episodes 200 --lr 0.0001
+python cryppo.py train --symbol ETHUSDT --episodes 200 --lr 0.0001 --reward sortino
 ```
 
-**Training Progress:**
+**Real-time Training Progress (NEW!):**
 ```
 🚀 Training D3QN Model
 
@@ -135,32 +138,75 @@ Symbol         BTCUSDT
 Model          D3QN
 Episodes       100
 Learning Rate  0.00025
+Reward Type    PROFIT
 
-Training... ━━━━━━━━━━━━━━━━━━ 100% 0:05:32
+Starting training... (Real-time output)
+======================================================================
 
+Episode   1 | Reward:   -12.34 | Avg(10):    -12.34 | Loss: 0.0234 | Eps: 0.998 | Steps: 5432 | Trades: 12 | Win%:  50.0 | Balance: $10,234
+Episode   2 | Reward:    23.45 | Avg(10):      5.56 | Loss: 0.0198 | Eps: 0.996 | Steps: 5431 | Trades: 15 | Win%:  53.3 | Balance: $10,456
+Episode   3 | Reward:    45.67 | Avg(10):     18.93 | Loss: 0.0176 | Eps: 0.994 | Steps: 5430 | Trades: 18 | Win%:  55.6 | Balance: $10,789
+...
+Episode 100 | Reward:   123.45 | Avg(10):    112.34 | Loss: 0.0045 | Eps: 0.200 | Steps: 5429 | Trades: 24 | Win%:  62.5 | Balance: $12,345
+
+======================================================================
 ✓ Training completed!
-Model saved to: checkpoints/
+Model saved to: checkpoints/final_agent.pth
+Detailed logs saved to: logs/
 ```
+
+**NEW: Detailed Episode Logging**
+- Automatically saves step-by-step logs for the last training episode
+- Logs every action, state, reward, balance change
+- Available in two formats:
+  - `logs/episode_0100_*.jsonl` - Machine-readable JSON Lines
+  - `logs/episode_0100_summary.txt` - Human-readable summary
+
+See `TRAINING_GUIDE.md` for detailed documentation on log analysis.
 
 ### 4. Backtest Model
 
 ```batch
-REM Run backtest
+REM Run backtest with sample data
 python cryppo.py backtest --model checkpoints/final_agent.pth --sample-data
+
+REM Run backtest with real data
+python cryppo.py backtest --model checkpoints/final_agent.pth
 
 REM Results displayed:
 ```
 📈 Running Backtest
 
-Backtest Results
+[1/5] Loading market data...
+[2/5] Preparing environment data...
+[3/5] Creating trading environment...
+  [DEBUG] Enabling detailed logging for backtest...
+[4/5] Loading trained model...
+[5/5] Running backtest simulation...
 
-Metric         Value
-Total Return   +24.5%
-Total Trades   127
-Win Rate       58.3%
-Sharpe Ratio   1.85
-Max Drawdown   -12.3%
+============================================================
+BACKTEST RESULTS
+============================================================
+Initial Balance:  $10,000.00
+Final Balance:    $12,450.00
+Total Return:     +24.50%
+Total Trades:     127
+Win Rate:         58.30%
+Sharpe Ratio:     1.8500
+Max Drawdown:     12.30%
+============================================================
+
+[INFO] Detailed step-by-step logs saved to:
+  logs/episode_0001_*.jsonl (step-by-step data in JSON Lines format)
+  logs/episode_0001_summary.txt (human-readable summary)
+============================================================
 ```
+
+**NEW: Backtest Detailed Logging**
+- Every backtest run automatically saves detailed logs
+- Review every action, trade, and balance change
+- Verify calculations are correct
+- Analyze why the agent made specific decisions
 
 ### 5. List Models
 
@@ -195,7 +241,16 @@ Options:
   --episodes       Number of episodes (default: 100)
   --model          Model type: d3qn (default: d3qn)
   --lr             Learning rate (default: 0.00025)
+  --reward         Reward type: profit/return/sharpe/sortino (default: sharpe)
   --sample-data    Use sample data for testing
+
+Reward Types:
+  profit     - Direct PnL reward (aggressive, high volatility)
+  return     - Percentage-based return (balanced)
+  sharpe     - Risk-adjusted return (conservative, smooth equity)
+  sortino    - Downside risk-adjusted (allows upside volatility)
+
+See TRAINING_GUIDE.md for detailed explanation of each reward type.
 ```
 
 ### Backtesting

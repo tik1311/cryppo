@@ -249,32 +249,30 @@ def train(
         cmd.append("--sample-data")
 
     try:
-        with console.status("[cyan]Training in progress...", spinner="dots"):
-            # Run training as subprocess with clean Python environment
-            result = subprocess.run(
-                cmd,
-                cwd=server_dir,
-                capture_output=True,
-                text=True
-            )
+        console.print("\n[cyan]Starting training... (Real-time output)[/cyan]")
+        console.print("[dim]" + "=" * 70 + "[/dim]\n")
 
+        # Run WITHOUT capture_output to show real-time progress
+        result = subprocess.run(
+            cmd,
+            cwd=server_dir
+            # NO capture_output - show everything live!
+        )
+
+        console.print("\n[dim]" + "=" * 70 + "[/dim]")
         if result.returncode == 0:
-            console.print(f"\n[green]✓ Training completed![/green]")
-            console.print(f"[dim]Model saved to: checkpoints/[/dim]\n")
-
-            # Show training output
-            if result.stdout:
-                console.print("[dim]Training output:[/dim]")
-                console.print(result.stdout[-500:] if len(result.stdout) > 500 else result.stdout)
+            console.print(f"[green]✓ Training completed![/green]")
+            console.print(f"[dim]Model saved to: checkpoints/[/dim]")
+            console.print(f"[dim]Detailed logs saved to: logs/training_*.log[/dim]")
+            console.print(f"[dim]Episode details saved to: logs/episode_*.jsonl[/dim]\n")
         else:
-            console.print(f"\n[red]✗ Training failed![/red]\n")
-            if result.stderr:
-                console.print("[red]Error:[/red]")
-                console.print(result.stderr[-500:] if len(result.stderr) > 500 else result.stderr)
+            console.print(f"\n[red]✗ Training failed with exit code {result.returncode}[/red]\n")
             sys.exit(1)
 
     except Exception as e:
         console.print(f"\n[red]✗ Training failed: {e}[/red]\n")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 # ============================================================================

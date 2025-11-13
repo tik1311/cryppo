@@ -7,6 +7,9 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 from typing import Tuple, Dict, Any, Optional
+import json
+from pathlib import Path
+from datetime import datetime
 
 
 class TradingEnv(gym.Env):
@@ -72,12 +75,27 @@ class TradingEnv(gym.Env):
             dtype=np.float32
         )
 
+        # Detailed logging setup
+        self.episode_count = 0
+        self.step_log = []  # Store every step details
+        self.enable_detailed_logging = False  # Enable for last episode
+        self.log_dir = Path("logs")
+        self.log_dir.mkdir(exist_ok=True, parents=True)
+
         # Episode state
         self.reset()
 
     def reset(self, seed: Optional[int] = None, options: Optional[dict] = None) -> Tuple[np.ndarray, dict]:
         """Reset environment to initial state"""
         super().reset(seed=seed)
+
+        # Save detailed log of previous episode (if any)
+        if hasattr(self, 'step_log') and len(self.step_log) > 0:
+            self._save_episode_log()
+
+        # Increment episode counter
+        self.episode_count += 1
+        self.step_log = []  # Reset step log for new episode
 
         self.current_step = self.window_size
         self.balance = self.initial_balance
@@ -339,6 +357,33 @@ class TradingEnv(gym.Env):
 
         info = self._get_info()
 
+        # LOG EVERY STEP (detailed)
+        if self.enable_detailed_logging:
+            step_data = {
+                'episode': self.episode_count,
+                'step': self.current_step - self.window_size,
+                'global_step': self.current_step,
+                'action': int(action),
+                'action_name': ['HOLD', 'LONG', 'SHORT', 'CLOSE'][action],
+                'price': float(current_price),
+                'position': self.position,
+                'position_size': float(self.position_size) if self.position else 0.0,
+                'entry_price': float(self.entry_price) if self.position else 0.0,
+                'balance': float(self.balance),
+                'equity': float(self.equity),
+                'unrealized_pnl': float(self._calculate_position_pnl()) if self.position else 0.0,
+                'trade_reward': float(trade_reward),
+                'exploration_bonus': float(exploration_bonus),
+                'position_penalty': float(position_penalty),
+                'total_reward': float(reward),
+                'total_trades': int(self.total_trades),
+                'win_rate': float(info['win_rate']),
+                'consecutive_holds': int(self.consecutive_holds),
+                'terminated': terminated,
+                'truncated': truncated,
+            }
+            self.step_log.append(step_data)
+
         return observation, reward, terminated, truncated, info
 
     def _open_position(self, position_type: str, price: float):
@@ -542,6 +587,54 @@ class TradingEnv(gym.Env):
     def render(self):
         """Render environment state"""
         print(f"Step: {self.current_step}/{self.n_steps}")
+
+    def _save_episode_log(self):
+        """Save detailed episode log to file"""
+        if not self.step_log:
+            return
+
+        # Create filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = self.log_dir / f"episode_{self.episode_count:04d}_{timestamp}.jsonl"
+
+        # Save as JSON Lines (one JSON object per line)
+        with open(filename, 'w') as f:
+            for step_data in self.step_log:
+                f.write(json.dumps(step_data) + '\n')
+
+        # Also create summary
+        summary_file = self.log_dir / f"episode_{self.episode_count:04d}_summary.txt"
+        with open(summary_file, 'w') as f:
+            f.write(f"Episode {self.episode_count} Summary\n")
+            f.write("=" * 70 + "\n\n")
+            f.write(f"Total Steps: {len(self.step_log)}\n")
+            f.write(f"Total Trades: {self.total_trades}\n")
+            f.write(f"Winning Trades: {self.winning_trades}\n")
+            f.write(f"Win Rate: {self.winning_trades / max(self.total_trades, 1) * 100:.2f}%\n")
+            f.write(f"Initial Balance: ${self.initial_balance:,.2f}\n")
+            f.write(f"Final Balance: ${self.balance:,.2f}\n")
+            f.write(f"Final Equity: ${self.equity:,.2f}\n")
+            f.write(f"Total PnL: ${self.balance - self.initial_balance:,.2f}\n")
+            f.write(f"Return: {(self.balance - self.initial_balance) / self.initial_balance * 100:+.2f}%\n")
+            f.write("\n" + "=" * 70 + "\n\n")
+            f.write("First 10 Steps:\n")
+            f.write("-" * 70 + "\n")
+            for i, step in enumerate(self.step_log[:10]):
+                f.write(f"Step {step['step']:4d} | {step['action_name']:5s} | ")
+                f.write(f"Price: ${step['price']:8.2f} | Balance: ${step['balance']:10.2f} | ")
+                f.write(f"Reward: {step['total_reward']:+8.4f}\n")
+
+            f.write("\n" + "-" * 70 + "\n")
+            f.write("Last 10 Steps:\n")
+            f.write("-" * 70 + "\n")
+            for i, step in enumerate(self.step_log[-10:]):
+                f.write(f"Step {step['step']:4d} | {step['action_name']:5s} | ")
+                f.write(f"Price: ${step['price']:8.2f} | Balance: ${step['balance']:10.2f} | ")
+                f.write(f"Reward: {step['total_reward']:+8.4f}\n")
+
+        print(f"  [LOG] Episode {self.episode_count} detailed log saved:")
+        print(f"        - {filename}")
+        print(f"        - {summary_file}")
         print(f"Balance: ${self.balance:.2f}")
         print(f"Equity: ${self.equity:.2f}")
         print(f"Position: {self.position}")

@@ -54,12 +54,33 @@ CRYPPO is an AI-powered cryptocurrency trading system that uses Deep Reinforceme
 
 ### Prerequisites
 
-- Python 3.10+
-- Node.js 18+ (for frontend)
-- 8GB RAM minimum (16GB recommended)
-- Optional: CUDA-capable GPU
+- **Python 3.10-3.12** (Python 3.12.9 recommended for Windows 11)
+- **Node.js 18+** (for frontend)
+- **8GB RAM minimum** (16GB recommended)
+- **Optional**: NVIDIA GPU with CUDA 12.6 for faster training
 
 ### Quick Setup
+
+#### Windows 11
+
+```batch
+REM 1. Clone repository
+git clone <repository-url>
+cd cryppo
+
+REM 2. Run Windows setup script
+setup_windows.bat
+
+REM This will:
+REM - Remove old virtual environment
+REM - Create fresh Python virtual environment
+REM - Install PyTorch with CUDA 12.6
+REM - Install all dependencies (without conflicts)
+REM - Install frontend packages
+REM - Create necessary directories
+```
+
+#### Linux / macOS
 
 ```bash
 # 1. Clone repository
@@ -71,48 +92,145 @@ chmod +x setup.sh
 ./setup.sh
 
 # This will:
-# - Create Python virtual environment
+# - Remove old virtual environment
+# - Create fresh Python virtual environment
+# - Install PyTorch with CUDA 12.6 (Linux) or CPU (macOS)
 # - Install all dependencies
 # - Install frontend packages
 # - Create necessary directories
 ```
 
-### Manual Installation
+### Manual Installation (All Platforms)
+
+#### Step 1: Create Clean Virtual Environment
+
+**Windows:**
+```batch
+REM Remove old environment
+rmdir /s /q venv
+
+REM Create fresh environment
+python -m venv venv
+venv\Scripts\activate
+python -m pip install --upgrade pip
+```
+
+**Linux/macOS:**
+```bash
+# Remove old environment
+rm -rf venv
+
+# Create fresh environment
+python3 -m venv venv
+source venv/bin/activate
+python -m pip install --upgrade pip
+```
+
+#### Step 2: Install PyTorch
+
+**Windows with CUDA 12.6:**
+```batch
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+```
+
+**Linux with CUDA 12.6:**
+```bash
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+```
+
+**CPU Only (any platform):**
+```bash
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+#### Step 3: Install Dependencies
 
 ```bash
-# 1. Backend dependencies
-cd server
 pip install -r requirements.txt
+```
 
-# 2. Verify critical packages (IMPORTANT!)
-python -c "import websockets; print(f'✓ WebSocket support: {websockets.__version__}')"
-python -c "import torch; print(f'✓ PyTorch: {torch.__version__}')"
-python -c "import fastapi; print(f'✓ FastAPI: {fastapi.__version__}')"
+#### Step 4: Verify Installation
 
-# 3. If websockets package is missing (400 Bad Request errors):
-pip install websockets>=12.0
+```bash
+# Verify critical packages
+python -c "import torch; print(f'✓ PyTorch {torch.__version__} (CUDA: {torch.cuda.is_available()})')"
+python -c "import websockets; print(f'✓ websockets {websockets.__version__}')"
+python -c "import fastapi; print(f'✓ FastAPI {fastapi.__version__}')"
+python -c "import ccxt; print(f'✓ CCXT {ccxt.__version__}')"
+python -c "import gymnasium; print(f'✓ Gymnasium {gymnasium.__version__}')"
+```
 
-# 4. Frontend dependencies
-cd ../client
+#### Step 5: Install Frontend
+
+```bash
+cd client
 npm install
+cd ..
 ```
 
 ### Troubleshooting Installation
 
-**WebSocket 400 Bad Request Error:**
+**1. Dependency Conflicts (alpaca-trade-api, finrl)**
 
-If you see WebSocket connection errors when starting the server:
+If you see errors like:
+```
+alpaca-trade-api requires websockets<11
+finrl requires ccxt<4
+```
+
+**Solution:** These packages are NOT needed for CRYPPO and cause conflicts.
 
 ```bash
-# The server will show this warning:
+# Clean install (recommended):
+# Run setup_windows.bat (Windows) or ./setup.sh (Linux/macOS)
+
+# Or manually:
+# 1. Remove old venv and start fresh
+# 2. Install PyTorch first (see Step 2 above)
+# 3. Install requirements.txt (which excludes conflicting packages)
+```
+
+**2. WebSocket 400 Bad Request Error**
+
+**Root Cause:** Missing `websockets` Python package
+
+```bash
+# Check if websockets is installed
+python -c "import websockets; print(websockets.__version__)"
+
+# If you see ModuleNotFoundError, install it:
+pip install websockets>=12.0
+```
+
+The server will show this warning on startup if websockets is missing:
+```
 ✗ ERROR: websockets package not installed!
   WebSocket connections will fail with 400 Bad Request
+```
 
-# Fix by installing:
-pip install websockets>=12.0
+**3. PyTorch Installation Issues**
 
-# Or reinstall all requirements:
-pip install -r requirements.txt
+If PyTorch CUDA installation fails, use CPU version:
+```bash
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+**4. TA-Lib Installation (Optional)**
+
+TA-Lib is optional and excluded on Windows by default.
+
+**Windows:** Download wheel from https://github.com/cgohlke/talib-build/releases
+
+**Linux:**
+```bash
+sudo apt-get install ta-lib
+pip install TA-Lib
+```
+
+**macOS:**
+```bash
+brew install ta-lib
+pip install TA-Lib
 ```
 
 ---
@@ -396,57 +514,86 @@ grep "Episode" logs/training.log | tail -20
 
 ### Common Issues
 
-**1. Server won't start**
+**1. Dependency Conflicts (alpaca-trade-api, finrl, websockets)**
+
+If you see pip warnings like:
+```
+alpaca-trade-api requires websockets<11, but you have websockets 15.0.1
+finrl requires ccxt<4, but you have ccxt 4.5.12
+```
+
+**Solution:** Clean install with fresh virtual environment
 
 ```bash
-# Check if port 8000 is already in use
-lsof -i :8000
+# Windows:
+setup_windows.bat
 
-# Kill the process if needed
+# Linux/macOS:
+./setup.sh
+```
+
+These packages (alpaca-trade-api, finrl) are NOT used in CRYPPO and have been excluded from requirements.txt to prevent conflicts.
+
+**2. Server won't start (Port in use)**
+
+```bash
+# Windows:
+netstat -ano | findstr :8000
+taskkill /PID <PID> /F
+
+# Linux/macOS:
+lsof -i :8000
 kill -9 <PID>
 
-# Start with different port
+# Or start with different port:
 uvicorn main:app --port 8001
 ```
 
-**2. WebSocket connection failed (400 Bad Request)**
+**3. WebSocket connection failed (400 Bad Request)**
 
 **Root Cause:** Missing `websockets` Python package
 
+The server will show this warning on startup:
+```
+✗ ERROR: websockets package not installed!
+  WebSocket connections will fail with 400 Bad Request
+```
+
+**Solution:**
 ```bash
 # Check if websockets is installed
 python -c "import websockets; print(websockets.__version__)"
 
-# If you see ModuleNotFoundError, install it:
+# If ModuleNotFoundError, install it:
 pip install websockets>=12.0
 ```
 
-**Other Possible Causes:**
-- Make sure backend is running on port 8000
+**Other possible causes:**
+- Backend not running on port 8000
 - Check `logs/server.log` for connection errors
-- Verify frontend is accessing `ws://localhost:8000/ws`
+- Verify frontend accessing `ws://localhost:8000/ws`
 - Try restarting both frontend and backend
 
-**3. Training takes too long**
+**4. Training takes too long**
 
 - Use Episodes mode with 2-10 episodes for quick testing
 - Or use Timesteps mode with 1,000 minimum (10,000+ recommended)
 - Enable GPU if available (10-20x faster)
 - Use sample data instead of real data for testing
 
-**4. Model not found error**
+**5. Model not found error**
 
 - Check `checkpoints/` directory exists
 - Verify model file path is correct
 - Only D3QN is fully implemented (SAC, PPO, TD3 are placeholders)
 
-**5. IndexError during backtest**
+**6. IndexError during backtest**
 
 - This was fixed in latest version
 - Make sure you pulled latest changes
 - Error was due to improper `terminated`/`truncated` handling
 
-**6. Frontend build fails**
+**7. Frontend build fails**
 
 ```bash
 cd client

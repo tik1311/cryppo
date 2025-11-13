@@ -3,491 +3,287 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 
-**CRYPPO** - Advanced Deep Reinforcement Learning Cryptocurrency Trading Platform
+**CRYPPO** - GPU-Accelerated Deep Reinforcement Learning for Cryptocurrency Trading
 
-Full-Stack Application with FastAPI Backend + Next.js Frontend + D3QN RL Model
+Beautiful CLI interface powered by Rich library | PyTorch CUDA 12.6 | Python 3.12
 
 ---
 
 ## What is CRYPPO?
 
-CRYPPO is an AI-powered cryptocurrency trading system that uses Deep Reinforcement Learning to learn optimal trading strategies. Train intelligent agents to trade crypto futures with leverage, backtest their performance, and run paper trading simulations.
+CRYPPO is a command-line cryptocurrency trading system that uses Deep Reinforcement Learning (D3QN) to learn optimal trading strategies. Train AI agents on GPU, backtest performance, and run paper trading simulations - all through an elegant CLI.
 
-### Core Capabilities
+### Core Features
 
-- **Data Management** - Download and prepare historical crypto market data
-- **Model Training** - Train D3QN (Deep Dueling DQN) agents with custom parameters
-- **Backtesting** - Test trained models on historical data with detailed metrics
-- **Paper Trading** - Simulate live trading with real-time market updates
-- **Web Interface** - Full-featured UI for all operations
-- **CLI Tools** - Command-line tools for training and testing
-
----
-
-## Features
-
-### Trading
-
-- **Futures Trading Simulation** - LONG, SHORT, and CLOSE positions with leverage
-- **Realistic Market Conditions** - Fees (0.02-0.04%), slippage, liquidation
-- **Risk Management** - Stop loss, take profit, max drawdown limits
-- **Multiple Assets** - BTC, ETH, SOL, XRP, ADA support
-- **Flexible Training** - Train by episodes or timesteps
-
-### AI & ML
-
-- **D3QN Agent** - Deep Dueling Double DQN with experience replay
-- **Custom Rewards** - Sharpe ratio, Sortino ratio, Profit, or Return
-- **Technical Indicators** - 20+ indicators (RSI, MACD, Bollinger, etc.)
-- **GPU Acceleration** - CUDA support for faster training
-
-### Monitoring & Analysis
-
-- **Real-time Charts** - Candlestick charts with indicators
-- **Performance Metrics** - Returns, Sharpe ratio, win rate, drawdown
-- **Trade History** - Detailed log of all trades and P/L
-- **Live Updates** - WebSocket-based real-time progress monitoring
+- 🎨 **Beautiful CLI** - Inspired by Claude Code, with progress bars, tables, and panels
+- ⚡ **GPU-Accelerated** - CUDA 12.6 support for 10-20x faster training
+- 🤖 **D3QN Agent** - Deep Dueling Double DQN with experience replay
+- 📊 **Real-time Data** - Download from Binance, backtest, paper trade
+- 🎯 **Simple Commands** - `cryppo train`, `cryppo backtest`, `cryppo data download`
 
 ---
 
-## Installation
+## Installation (Windows 11 + NVIDIA GPU)
 
-### ⚠️ Quick Fix for PyTorch DLL Error (Windows 11)
+### Step 1: Fix PyTorch DLL Error (Required for GPU)
 
-**If you're seeing this error:**
+**The Issue:**
 ```
 OSError: [WinError 1114] DLL initialization failed
-Training failed: Error loading "torch\lib\c10.dll"
+Error loading "torch\lib\c10.dll"
 ```
 
-**Run this quick fix script:**
+**The Solution:** Install Visual C++ Redistributable
+
 ```batch
-REM Make sure venv is activated first
+REM Method 1: Automated (Recommended)
+REM Right-click and "Run as Administrator"
+install_vcredist.bat
+
+REM Method 2: Manual Download
+REM Download: https://aka.ms/vs/17/release/vc_redist.x64.exe
+REM Install and restart computer
+```
+
+**After installing Visual C++ Redistributable, RESTART YOUR COMPUTER!**
+
+### Step 2: Install PyTorch with CUDA 12.6
+
+```batch
+REM Activate virtual environment
 venv\Scripts\activate
 
-REM Run the fix script
-fix_pytorch_windows.bat
+REM Install PyTorch GPU version
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+
+REM Verify GPU is detected
+python -c "import torch; print(f'CUDA Available: {torch.cuda.is_available()}')"
+python -c "import torch; print(f'GPU: {torch.cuda.get_device_name(0)}')"
 ```
 
-This will automatically switch to CPU-only PyTorch (works perfectly, just slower).
+You should see:
+```
+CUDA Available: True
+GPU: NVIDIA GeForce RTX 3060 (or your GPU model)
+```
+
+### Step 3: Install Dependencies
+
+```batch
+REM Install all Python packages
+pip install -r requirements.txt
+
+REM Verify everything works
+python cryppo.py check
+```
 
 ---
 
-### Prerequisites
+## Quick Start (CLI)
 
-- **Python 3.10-3.12** (Python 3.12.9 recommended for Windows 11)
-- **Node.js 18+** (for frontend)
-- **8GB RAM minimum** (16GB recommended)
-- **Windows Only**: Microsoft Visual C++ Redistributable 2015-2022
-  - Download: https://aka.ms/vs/17/release/vc_redist.x64.exe
-  - Required for PyTorch DLL libraries
-- **Optional**: NVIDIA GPU with CUDA 12.6 for faster training
-  - Requires CUDA Toolkit 12.6 installed
-  - CPU-only version recommended if you get DLL errors
-
-### Quick Setup
-
-#### Windows 11
+### 1. System Check
 
 ```batch
-REM 1. Clone repository
-git clone <repository-url>
-cd cryppo
-
-REM 2. Run Windows setup script
-setup_windows.bat
-
-REM This will:
-REM - Remove old virtual environment
-REM - Create fresh Python virtual environment
-REM - Install PyTorch with CUDA 12.6
-REM - Install all dependencies (without conflicts)
-REM - Install frontend packages
-REM - Create necessary directories
+python cryppo.py check
 ```
 
-#### Linux / macOS
+Displays:
+```
+  ██████╗██████╗ ██╗   ██╗██████╗ ██████╗  ██████╗
+ ██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██╔═══██╗
+ ...
 
-```bash
-# 1. Clone repository
-git clone <repository-url>
-cd cryppo
+🔍 System Check
 
-# 2. Run setup script
-chmod +x setup.sh
-./setup.sh
-
-# This will:
-# - Remove old virtual environment
-# - Create fresh Python virtual environment
-# - Install PyTorch with CUDA 12.6 (Linux) or CPU (macOS)
-# - Install all dependencies
-# - Install frontend packages
-# - Create necessary directories
+Component       Version/Status              Status
+Python          3.12.9                      ✓
+PyTorch         2.x.x+cu126                 ✓
+CUDA            Available                   ✓
+GPU             NVIDIA GeForce RTX 3060     ✓
+...
 ```
 
-### Manual Installation (All Platforms)
+### 2. Download Data
 
-#### Step 1: Create Clean Virtual Environment
-
-**Windows:**
 ```batch
-REM Remove old environment
-rmdir /s /q venv
+REM Download Bitcoin 1H data
+python cryppo.py data download --symbol BTCUSDT --start 2023-01-01 --end 2024-12-31
 
-REM Create fresh environment
-python -m venv venv
-venv\Scripts\activate
-python -m pip install --upgrade pip
+REM List available data
+python cryppo.py data list
 ```
 
-**Linux/macOS:**
-```bash
-# Remove old environment
-rm -rf venv
+### 3. Train Model (GPU Accelerated)
 
-# Create fresh environment
-python3 -m venv venv
-source venv/bin/activate
-python -m pip install --upgrade pip
-```
-
-#### Step 2: Install PyTorch
-
-**Windows with CUDA 12.6:**
 ```batch
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+REM Quick test (2 episodes, ~10-20 seconds on GPU)
+python cryppo.py train --symbol BTCUSDT --episodes 2 --sample-data
+
+REM Full training (100 episodes, ~5-10 minutes on GPU)
+python cryppo.py train --symbol BTCUSDT --episodes 100
+
+REM Custom parameters
+python cryppo.py train --symbol ETHUSDT --episodes 200 --lr 0.0001
 ```
 
-**Linux with CUDA 12.6:**
-```bash
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+**Training Progress:**
+```
+🚀 Training D3QN Model
+
+Parameter      Value
+Symbol         BTCUSDT
+Model          D3QN
+Episodes       100
+Learning Rate  0.00025
+
+Training... ━━━━━━━━━━━━━━━━━━ 100% 0:05:32
+
+✓ Training completed!
+Model saved to: checkpoints/
 ```
 
-**CPU Only (any platform):**
-```bash
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+### 4. Backtest Model
+
+```batch
+REM Run backtest
+python cryppo.py backtest --model checkpoints/final_agent.pth --sample-data
+
+REM Results displayed:
+```
+📈 Running Backtest
+
+Backtest Results
+
+Metric         Value
+Total Return   +24.5%
+Total Trades   127
+Win Rate       58.3%
+Sharpe Ratio   1.85
+Max Drawdown   -12.3%
 ```
 
-#### Step 3: Install Dependencies
+### 5. List Models
 
-```bash
-pip install -r requirements.txt
+```batch
+python cryppo.py models
 ```
 
-#### Step 4: Verify Installation
+---
 
-```bash
-# Verify critical packages
-python -c "import torch; print(f'✓ PyTorch {torch.__version__} (CUDA: {torch.cuda.is_available()})')"
-python -c "import websockets; print(f'✓ websockets {websockets.__version__}')"
-python -c "import fastapi; print(f'✓ FastAPI {fastapi.__version__}')"
-python -c "import ccxt; print(f'✓ CCXT {ccxt.__version__}')"
-python -c "import gymnasium; print(f'✓ Gymnasium {gymnasium.__version__}')"
+## CLI Commands Reference
+
+### System
+
+```batch
+python cryppo.py check              # Check system requirements and GPU
 ```
 
-#### Step 5: Install Frontend
+### Data Management
 
-```bash
-cd client
-npm install
-cd ..
+```batch
+python cryppo.py data download --symbol BTCUSDT --start 2023-01-01 --end 2024-01-01
+python cryppo.py data list          # List downloaded data files
 ```
 
-### Troubleshooting Installation
+### Training
 
-**1. Dependency Conflicts (alpaca-trade-api, finrl)**
+```batch
+python cryppo.py train --symbol BTCUSDT --episodes 100 [options]
 
-If you see errors like:
-```
-alpaca-trade-api requires websockets<11
-finrl requires ccxt<4
-```
-
-**Solution:** These packages are NOT needed for CRYPPO and cause conflicts.
-
-```bash
-# Clean install (recommended):
-# Run setup_windows.bat (Windows) or ./setup.sh (Linux/macOS)
-
-# Or manually:
-# 1. Remove old venv and start fresh
-# 2. Install PyTorch first (see Step 2 above)
-# 3. Install requirements.txt (which excludes conflicting packages)
+Options:
+  --symbol         Trading symbol (default: BTCUSDT)
+  --episodes       Number of episodes (default: 100)
+  --model          Model type: d3qn (default: d3qn)
+  --lr             Learning rate (default: 0.00025)
+  --sample-data    Use sample data for testing
 ```
 
-**2. WebSocket 400 Bad Request Error**
+### Backtesting
 
-**Root Cause:** Missing `websockets` Python package
+```batch
+python cryppo.py backtest --model checkpoints/final_agent.pth [options]
 
-```bash
-# Check if websockets is installed
-python -c "import websockets; print(websockets.__version__)"
-
-# If you see ModuleNotFoundError, install it:
-pip install websockets>=12.0
+Options:
+  --model          Path to trained model (required)
+  --sample-data    Use sample data for testing
 ```
 
-The server will show this warning on startup if websockets is missing:
+### Models
+
+```batch
+python cryppo.py models             # List all trained models
 ```
-✗ ERROR: websockets package not installed!
-  WebSocket connections will fail with 400 Bad Request
-```
 
-**3. PyTorch DLL Initialization Error (Windows)**
+---
 
-**Error:** `OSError: [WinError 1114] A dynamic link library (DLL) initialization routine failed`
+## GPU Training Performance
 
-**Root Cause:** Missing Microsoft Visual C++ Redistributable or CUDA libraries
+**Training Speed Comparison (100 episodes):**
+
+| Hardware | Time | Speed |
+|----------|------|-------|
+| NVIDIA RTX 3060 | ~5-8 minutes | ⚡⚡⚡⚡⚡ |
+| NVIDIA GTX 1660 Ti | ~8-12 minutes | ⚡⚡⚡⚡ |
+| CPU (Ryzen 7 5800X) | ~60-90 minutes | ⚡ |
+
+**GPU is 10-20x faster!** That's why we fix the DLL error instead of using CPU.
+
+---
+
+## Troubleshooting
+
+### ❌ "DLL initialization failed" Error
+
+**Cause:** Missing Visual C++ Redistributable
 
 **Solution:**
-
 ```batch
-REM Option 1: Install Visual C++ Redistributable (Recommended)
-REM Download and install: https://aka.ms/vs/17/release/vc_redist.x64.exe
-REM Then restart your computer
+REM Run as Administrator
+install_vcredist.bat
 
-REM Option 2: Switch to CPU-only PyTorch (Easier)
+REM Then restart computer
+REM Then reinstall PyTorch:
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+```
+
+### ❌ "CUDA Available: False" After Installing PyTorch
+
+**Causes:**
+1. CUDA Toolkit not installed
+2. Wrong PyTorch version (CPU instead of GPU)
+3. NVIDIA drivers outdated
+
+**Solutions:**
+```batch
+REM 1. Install CUDA Toolkit 12.6
+REM Download: https://developer.nvidia.com/cuda-downloads
+
+REM 2. Update NVIDIA drivers
+REM Download: https://www.nvidia.com/Download/index.aspx
+
+REM 3. Reinstall PyTorch GPU version
 pip3 uninstall torch torchvision
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
 
-REM Verify it works
-python -c "import torch; print(f'PyTorch {torch.__version__} works!')"
+REM 4. Verify
+python -c "import torch; print(torch.cuda.is_available())"
 ```
 
-**Why this happens:**
-- PyTorch CUDA version requires Visual C++ Runtime libraries
-- If you don't have CUDA Toolkit installed, CUDA version won't work
-- CPU version has fewer dependencies and works on all Windows systems
+### ❌ "ModuleNotFoundError: No module named 'rich'"
 
-**4. PyTorch CUDA Not Available**
-
-If CUDA installation succeeds but `torch.cuda.is_available()` returns False:
-- Install NVIDIA CUDA Toolkit 12.6 from https://developer.nvidia.com/cuda-downloads
-- Or use CPU version (training will be slower but works fine)
-
-**5. TA-Lib Installation (Optional)**
-
-TA-Lib is optional and excluded on Windows by default.
-
-**Windows:** Download wheel from https://github.com/cgohlke/talib-build/releases
-
-**Linux:**
-```bash
-sudo apt-get install ta-lib
-pip install TA-Lib
+**Solution:**
+```batch
+pip install rich
 ```
 
-**macOS:**
-```bash
-brew install ta-lib
-pip install TA-Lib
+### ✅ Everything Works But Training is Slow
+
+**Check if GPU is actually being used:**
+```batch
+python -c "import torch; print(f'Using device: {torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")}')"
 ```
 
----
-
-## Usage
-
-### Option 1: Full UI (Recommended)
-
-**Start Backend Server:**
-
-```bash
-cd server
-python main.py
-```
-
-Or using uvicorn directly:
-
-```bash
-# Development (with auto-reload)
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-
-# Production
-uvicorn main:app --host 0.0.0.0 --port 8000
-```
-
-**Start Frontend:**
-
-```bash
-cd client
-npm run dev
-```
-
-**Access Web UI:**
-
-- Frontend: http://localhost:3000
-- API Docs: http://localhost:8000/docs
-- WebSocket: ws://localhost:8000/ws
-
-### Option 2: CLI Only (For Testing)
-
-**Train Model (CLI):**
-
-```bash
-cd server
-python -m src.training.train_d3qn \
-  --symbol BTCUSDT \
-  --episodes 10 \
-  --sample-data
-```
-
-**Backtest Model (CLI):**
-
-```bash
-python test_backtest.py \
-  --model checkpoints/final_agent.pth \
-  --sample-data \
-  --balance 10000 \
-  --leverage 3.0
-```
-
----
-
-## How to Use
-
-### 1. Download Market Data
-
-**Via Web UI:**
-
-1. Go to http://localhost:3000/data
-2. Enter symbols: BTCUSDT, ETHUSDT, etc.
-3. Select date range
-4. Click "Download Data"
-
-**Via CLI:**
-
-```python
-from server.src.data.loader import download_and_save_data
-
-download_and_save_data(
-    symbol="BTCUSDT",
-    timeframe="1h",
-    start="2023-01-01",
-    end="2024-12-31",
-    exchange="binance"
-)
-```
-
-### 2. Train a Model
-
-**Via Web UI (Recommended):**
-
-1. Go to http://localhost:3000/train
-2. Select data file
-3. Choose training mode:
-   - **Episodes**: Complete runs (easier to understand)
-     - Quick test: 2-10 episodes
-     - Normal: 100 episodes
-     - Full training: 1000+ episodes
-   - **Timesteps**: Individual actions (granular control)
-     - Quick test: 1,000-10,000 timesteps
-     - Normal: 100,000 timesteps
-     - Full training: 1,000,000+ timesteps
-4. Configure parameters:
-   - Model: D3QN (only fully implemented)
-   - Learning rate: 0.00025 (default)
-   - Gamma: 0.995 (discount factor)
-   - Reward: Sharpe (recommended)
-   - Batch size: 64
-   - Buffer size: 100,000
-5. Click "Start Training"
-6. Monitor progress in real-time
-
-**Via CLI:**
-
-```bash
-cd server
-
-# Train with episodes (quick test)
-python -m src.training.train_d3qn \
-  --symbol BTCUSDT \
-  --episodes 10 \
-  --sample-data \
-  --reward-type sharpe
-
-# Train with timesteps (granular control)
-python -m src.training.train_d3qn \
-  --symbol BTCUSDT \
-  --episodes 100 \
-  --learning-rate 0.00025 \
-  --gamma 0.995
-```
-
-### 3. Backtest a Model
-
-**Via Web UI:**
-
-1. Go to http://localhost:3000/backtest
-2. Select trained model
-3. Choose test period
-4. Click "Run Backtest"
-5. View results:
-   - Performance metrics
-   - Price chart with trades
-   - Trade history table
-
-**Via CLI:**
-
-```bash
-# Backtest with sample data (quick)
-python test_backtest.py \
-  --model checkpoints/final_agent.pth \
-  --sample-data \
-  --balance 10000 \
-  --leverage 3.0
-
-# Backtest with real data
-python test_backtest.py \
-  --model checkpoints/final_agent.pth \
-  --symbol BTCUSDT \
-  --balance 10000 \
-  --leverage 3.0
-```
-
-### 4. Paper Trading
-
-**Via Web UI:**
-
-1. Go to http://localhost:3000/paper-trading
-2. Select trained model
-3. Configure:
-   - Initial balance: $10,000
-   - Max leverage: 3x
-   - Update interval: 5 seconds
-4. Click "Start Paper Trading"
-5. Monitor live:
-   - Real-time price chart
-   - Current position & P/L
-   - Trade execution log
-
----
-
-## Configuration
-
-Edit `server/src/configs/config.yaml`:
-
-```yaml
-data:
-  symbols: ["BTCUSDT", "ETHUSDT"]
-  timeframe: "1h"
-  window_size: 72  # 3 days of 1H candles
-
-trading:
-  initial_balance: 10000.0
-  max_leverage: 3.0
-  fee_maker: 0.0002  # 0.02%
-  fee_taker: 0.0004  # 0.04%
-  max_drawdown: 0.20  # 20%
-
-model:
-  type: "d3qn"
-  network:
-    hidden_layers: [256, 256, 128]
-  training:
-    learning_rate: 0.00025
-    gamma: 0.995
-```
+If it says `cpu`, follow the "CUDA Available: False" troubleshooting above.
 
 ---
 
@@ -495,325 +291,110 @@ model:
 
 ```
 cryppo/
-├── server/                 # FastAPI Backend
-│   ├── main.py            # API server entry point
-│   └── src/
-│       ├── agent/         # D3QN agent implementation
-│       ├── data/          # Data loading & processing
-│       ├── policy/        # Trading environment (Gymnasium)
-│       ├── eval/          # Backtesting engine
-│       ├── training/      # Training scripts
-│       ├── utils/         # Helper functions
-│       └── configs/       # Configuration files
+├── cryppo.py                 # Main CLI entry point ⭐
+├── install_vcredist.bat      # Visual C++ installer ⭐
+├── requirements.txt          # Python dependencies
+├── setup_windows.bat         # Full setup script
 │
-├── client/                # Next.js Frontend
-│   └── src/
-│       ├── app/           # Pages (data, train, backtest, etc.)
-│       ├── components/    # React components
-│       └── lib/           # API & WebSocket clients
+├── server/                   # Backend code
+│   ├── src/
+│   │   ├── agent/           # D3QN implementation
+│   │   ├── policy/          # Trading environment
+│   │   ├── training/        # Training scripts
+│   │   ├── eval/            # Backtesting
+│   │   └── data/            # Data loading
+│   └── main.py              # FastAPI server (optional)
 │
-├── data/                  # Market data storage
-├── checkpoints/           # Trained models
-├── logs/                  # Log files
-│   ├── server.log        # API server logs
-│   ├── training.log      # Training logs
-│   └── combined.log      # All logs combined
-│
-├── test_backtest.py      # CLI backtest script
-├── setup.sh              # Setup script
-└── README.md             # This file
-```
-
----
-
-## Logs & Debugging
-
-CRYPPO uses separate log files for different operations:
-
-### Log Files
-
-- **`logs/server.log`** - API server operations, requests, WebSocket connections, errors
-- **`logs/training.log`** - Model training progress, metrics, episode results, checkpoints
-- **`logs/combined.log`** - All logs combined (for debugging)
-
-### Viewing Logs
-
-```bash
-# View server logs (real-time)
-tail -f logs/server.log
-
-# View training logs (real-time)
-tail -f logs/training.log
-
-# Search for errors
-grep ERROR logs/combined.log
-
-# View recent training metrics
-grep "Episode" logs/training.log | tail -20
-```
-
-### Log Rotation
-
-- Logs rotate automatically when they reach size limits
-- Server logs: 10MB max, keeps 5 backups
-- Training logs: 20MB max, keeps 10 backups
-- Combined logs: 50MB max, keeps 3 backups
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-**1. Dependency Conflicts (alpaca-trade-api, finrl, websockets)**
-
-If you see pip warnings like:
-```
-alpaca-trade-api requires websockets<11, but you have websockets 15.0.1
-finrl requires ccxt<4, but you have ccxt 4.5.12
-```
-
-**Solution:** Clean install with fresh virtual environment
-
-```bash
-# Windows:
-setup_windows.bat
-
-# Linux/macOS:
-./setup.sh
-```
-
-These packages (alpaca-trade-api, finrl) are NOT used in CRYPPO and have been excluded from requirements.txt to prevent conflicts.
-
-**2. Server won't start (Port in use)**
-
-```bash
-# Windows:
-netstat -ano | findstr :8000
-taskkill /PID <PID> /F
-
-# Linux/macOS:
-lsof -i :8000
-kill -9 <PID>
-
-# Or start with different port:
-uvicorn main:app --port 8001
-```
-
-**3. WebSocket connection failed (400 Bad Request)**
-
-**Root Cause:** Missing `websockets` Python package
-
-The server will show this warning on startup:
-```
-✗ ERROR: websockets package not installed!
-  WebSocket connections will fail with 400 Bad Request
-```
-
-**Solution:**
-```bash
-# Check if websockets is installed
-python -c "import websockets; print(websockets.__version__)"
-
-# If ModuleNotFoundError, install it:
-pip install websockets>=12.0
-```
-
-**Other possible causes:**
-- Backend not running on port 8000
-- Check `logs/server.log` for connection errors
-- Verify frontend accessing `ws://localhost:8000/ws`
-- Try restarting both frontend and backend
-
-**4. PyTorch DLL Error - Training Won't Start (Windows)**
-
-**Symptoms:**
-- Error in logs: `OSError: [WinError 1114] DLL initialization failed`
-- Training fails immediately when you click "Start Training"
-- UI doesn't show progress updates
-- Server log shows: `Training error: Training failed: [WinError 1114]`
-
-**Root Cause:** PyTorch CUDA requires Visual C++ Redistributable which you don't have installed.
-
-**🚀 QUICK FIX (Recommended):**
-
-```batch
-REM 1. Activate venv
-venv\Scripts\activate
-
-REM 2. Run the automated fix script
-fix_pytorch_windows.bat
-
-REM 3. Restart server
-cd server
-python main.py
-```
-
-The script will automatically switch to CPU-only PyTorch (works perfectly, just slower).
-
-**Manual Fix:**
-```batch
-venv\Scripts\activate
-pip3 uninstall -y torch torchvision
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-python -c "import torch; print('✓ PyTorch works!')"
-```
-
-**Complete Fix (for GPU support):**
-1. Download and install Visual C++ Redistributable: https://aka.ms/vs/17/release/vc_redist.x64.exe
-2. Restart your computer
-3. Reinstall PyTorch CUDA: `pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126`
-
-**Note:** CPU version works perfectly for training, it's just slower (5-10 min vs 30-60 sec for 10 episodes).
-
-**5. Training takes too long**
-
-- Use Episodes mode with 2-10 episodes for quick testing
-- Or use Timesteps mode with 1,000 minimum (10,000+ recommended)
-- Enable GPU if available (10-20x faster)
-- Use sample data instead of real data for testing
-
-**6. Model not found error**
-
-- Check `checkpoints/` directory exists
-- Verify model file path is correct
-- Only D3QN is fully implemented (SAC, PPO, TD3 are placeholders)
-
-**7. IndexError during backtest**
-
-- This was fixed in latest version
-- Make sure you pulled latest changes
-- Error was due to improper `terminated`/`truncated` handling
-
-**8. Frontend build fails**
-
-```bash
-cd client
-rm -rf node_modules package-lock.json
-npm install
-npm run dev
-```
-
----
-
-## API Documentation
-
-FastAPI provides interactive documentation:
-
-**Swagger UI:** http://localhost:8000/docs
-
-**ReDoc:** http://localhost:8000/redoc
-
-### Key Endpoints
-
-```
-POST   /api/data/download        Download market data
-GET    /api/data/available        List downloaded data files
-
-POST   /api/train/start           Start model training
-GET    /api/train/status/{id}     Check training status
-GET    /api/models/available      List trained models
-
-POST   /api/backtest/run          Run backtest
-GET    /api/backtest/results/{id} Get backtest results
-
-POST   /api/paper-trading/start   Start paper trading
-POST   /api/paper-trading/stop    Stop paper trading
-GET    /api/paper-trading/status  Get current status
-
-GET    /api/system/info           System information
-WS     /ws                        WebSocket connection
+├── data/                     # Downloaded market data
+├── checkpoints/              # Trained models
+└── logs/                     # Training logs
 ```
 
 ---
 
 ## Technical Stack
 
-### Backend
-- **FastAPI 0.121+** - Modern Python web framework
-- **Uvicorn** - ASGI server with WebSocket support
-- **PyTorch 2.0+** - Deep learning framework
-- **Gymnasium 0.29+** - RL environment (OpenAI Gym successor)
-- **CCXT 4.0+** - Cryptocurrency exchange API
-- **Pandas/NumPy** - Data processing
-
-### Frontend
-- **Next.js 14** - React framework with App Router
-- **TypeScript 5+** - Type-safe JavaScript
-- **TailwindCSS 3.3+** - Utility-first CSS
-- **KLineChart 9.8+** - Candlestick charts
-- **Axios 1.6+** - HTTP client
-- **Zustand 4.4+** - State management
-
-### AI/ML
-- **D3QN Architecture** - Deep Dueling Double DQN
-  - Dueling network: Separates value and advantage streams
-  - Double DQN: Prevents Q-value overestimation
-  - Experience replay: Improves sample efficiency
-  - Target network: Stabilizes training
+- **PyTorch 2.x** - Deep learning with CUDA 12.6
+- **Gymnasium 0.29+** - RL environment
+- **Rich** - Beautiful CLI interface
+- **CCXT 4.x** - Cryptocurrency exchange API
+- **NumPy, Pandas** - Data processing
 
 ---
 
-## Performance Tips
+## Why CLI Instead of Web UI?
 
-### For Training
+1. **Faster Iteration** - No need to start frontend server
+2. **GPU Focus** - Direct access to training, no overhead
+3. **Scriptable** - Easy to automate and batch process
+4. **Beautiful** - Rich library makes CLI as pretty as GUI
+5. **Terminal Native** - Works over SSH, in tmux, anywhere
 
-1. **Use GPU** - 10-20x faster than CPU
-2. **Start Small** - Test with 2-10 episodes first
-3. **Use Sample Data** - For quick iterations during development
-4. **Monitor Logs** - Check `logs/training.log` for progress
-5. **Adjust Batch Size** - Larger batches (128-256) if you have enough RAM
+---
 
-### For Production
+## Advanced Usage
 
-```bash
-# Use Gunicorn with Uvicorn workers (recommended)
-cd server
-gunicorn main:app \
-  -k uvicorn.workers.UvicornWorker \
-  -w 4 \
-  -b 0.0.0.0:8000 \
-  --access-logfile logs/access.log \
-  --error-logfile logs/error.log
+### Batch Training Multiple Symbols
+
+```batch
+REM Create training script
+@echo off
+python cryppo.py train --symbol BTCUSDT --episodes 100
+python cryppo.py train --symbol ETHUSDT --episodes 100
+python cryppo.py train --symbol SOLUSDT --episodes 100
 ```
 
-### For Development
+### Automated Daily Training
 
-```bash
-# Backend with auto-reload
-cd server
-uvicorn main:app --reload
+```batch
+REM Schedule with Windows Task Scheduler
+python cryppo.py data download --symbol BTCUSDT --start 2024-01-01 --end 2024-12-31
+python cryppo.py train --symbol BTCUSDT --episodes 50
+python cryppo.py backtest --model checkpoints/latest.pth
+```
 
-# Frontend with hot-reload
-cd client
-npm run dev
+### Monitor Training with Logs
+
+```batch
+REM Real-time log monitoring
+tail -f logs/training.log   # Linux/macOS
+Get-Content logs\training.log -Wait   # PowerShell
 ```
 
 ---
 
-## Security Notes
+## Contributing
+
+This is a personal trading system. Not accepting contributions at this time.
+
+---
+
+## License
+
+MIT License - see LICENSE file
+
+---
+
+## Disclaimer
 
 ⚠️ **IMPORTANT**
 
 - This software is for **educational and research purposes only**
 - **DO NOT use for live trading** without extensive testing
 - Cryptocurrency trading involves **substantial risk of loss**
-- Always test thoroughly with paper trading first
-- Keep your API keys secure (never commit to git)
-
----
-
-## License
-
-MIT License - see LICENSE file for details
+- Past performance does not guarantee future results
+- Always test with paper trading first
 
 ---
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/tik1311/cryppo/issues)
-- **Logs**: Check `logs/` directory for detailed error messages
+- **Issues**: Check `logs/` directory for detailed error messages
+- **GPU Problems**: Run `python cryppo.py check` to diagnose
+- **Training Issues**: Enable sample data mode first (`--sample-data`)
 
 ---
 
-**Built with ❤️ using PyTorch, FastAPI, and Next.js**
+**Built with ❤️ using PyTorch, Rich, and CUDA**
+
+*GPU-accelerated AI trading at your fingertips*

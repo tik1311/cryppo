@@ -5,287 +5,128 @@
 
 **CRYPPO** - Advanced Deep Reinforcement Learning Cryptocurrency Trading Platform
 
-Full-Stack Application พร้อม FastAPI Backend, Next.js Frontend และ Multiple RL Models (D3QN, SAC, PPO, TD3)
+Full-Stack Application with FastAPI Backend + Next.js Frontend + D3QN RL Model
 
 ---
 
-## 🔄 Recent Updates (Latest)
+## What is CRYPPO?
 
-### Bug Fixes & Improvements
-- ✅ **Fixed IndexError in backtest**: Properly handle Gymnasium's `terminated` and `truncated` flags
-- ✅ **Added Episodes configuration**: Train by episodes (easier) or timesteps (granular control)
-- ✅ **Lowered minimum training requirements**: Can now test with as few as 2 episodes or 10 timesteps
-- ✅ **Improved boundary checks**: Prevent data access beyond array bounds in trading environment
-- ✅ **Updated to latest WebSocket practices**: Following FastAPI/Uvicorn 2025 best practices
-- ✅ **Minimal test data support**: Quick testing with 2,000 sample candles
-- ✅ **UI clarity**: Clearly marked which models are implemented (D3QN ✅) vs coming soon (SAC, PPO, TD3 🚧)
+CRYPPO is an AI-powered cryptocurrency trading system that uses Deep Reinforcement Learning to learn optimal trading strategies. Train intelligent agents to trade crypto futures with leverage, backtest their performance, and run paper trading simulations.
 
-### What's Working
-- ✅ D3QN model training and backtesting
-- ✅ Web UI for data download, training, backtesting
-- ✅ Trading environment with proper action handling (no conflicts)
-- ✅ Sample data generation for quick testing
+### Core Capabilities
 
-### Known Limitations
-- ⚠️ Only D3QN is fully implemented (SAC, PPO, TD3 are placeholders)
-- ⚠️ Real-time training progress in UI is limited (uses polling)
+- **Data Management** - Download and prepare historical crypto market data
+- **Model Training** - Train D3QN (Deep Dueling DQN) agents with custom parameters
+- **Backtesting** - Test trained models on historical data with detailed metrics
+- **Paper Trading** - Simulate live trading with real-time market updates
+- **Web Interface** - Full-featured UI for all operations
+- **CLI Tools** - Command-line tools for training and testing
 
 ---
 
-## 📋 Table of Contents
+## Features
 
-- [Features](#-features)
-- [Architecture](#-architecture)
-- [Requirements](#-requirements)
-- [Quick Start](#-quick-start)
-- [Project Structure](#-project-structure)
-- [Configuration](#-configuration)
-- [Usage](#-usage)
-- [API Documentation](#-api-documentation)
-- [Development Roadmap](#-development-roadmap)
-- [License](#-license)
+### Trading
 
----
+- **Futures Trading Simulation** - LONG, SHORT, and CLOSE positions with leverage
+- **Realistic Market Conditions** - Fees (0.02-0.04%), slippage, liquidation
+- **Risk Management** - Stop loss, take profit, max drawdown limits
+- **Multiple Assets** - BTC, ETH, SOL, XRP, ADA support
+- **Flexible Training** - Train by episodes or timesteps
 
-## ✨ Features
+### AI & ML
 
-### Phase 1 (Current - Backend)
-- **FastAPI Backend** - RESTful API with WebSocket support
-- **Multiple Timeframes** - Flexible timeframe support (1h, 4h, 1d)
-- **Data Management** - Download and prepare data from Binance/OKX
-- **Model Training** - Deep Dueling DQN (D3QN) with PER
-- **Backtesting** - Comprehensive backtesting engine
-- **Real-time Updates** - WebSocket for progress monitoring
+- **D3QN Agent** - Deep Dueling Double DQN with experience replay
+- **Custom Rewards** - Sharpe ratio, Sortino ratio, Profit, or Return
+- **Technical Indicators** - 20+ indicators (RSI, MACD, Bollinger, etc.)
+- **GPU Acceleration** - CUDA support for faster training
 
-### Phase 2 (Completed - Frontend)
-- **Next.js 14 Frontend** - Modern React-based web interface
-- **Live Charts** - Real-time candlestick charts with KLineChart & Lightweight Charts
-- **Trading Dashboard** - Monitor training, backtesting, and paper trading
-- **System Monitoring** - GPU status, data inventory, model management
-- **Paper Trading** - Live paper trading simulation with real-time updates
-- **Performance Metrics** - Real-time metrics, trades history, and visualizations
+### Monitoring & Analysis
 
-### Trading Features
-- **Multi-Asset Support** - BTC, ETH, SOL, XRP, ADA
-- **Realistic Simulation** - Fees (0.02-0.04%), slippage (2 bps), liquidation
-- **Risk Management** - Stop loss (2%), take profit (4%), max drawdown (20%)
-- **Position Limits** - Max 10-day holding, 12-hour cooldown after SL
+- **Real-time Charts** - Candlestick charts with indicators
+- **Performance Metrics** - Returns, Sharpe ratio, win rate, drawdown
+- **Trade History** - Detailed log of all trades and P/L
+- **Live Updates** - WebSocket-based real-time progress monitoring
 
 ---
 
-## 🏗️ Architecture
+## Installation
 
-```
-┌─────────────────────────────────────────────────┐
-│              Frontend (Phase 2)                 │
-│         Next.js 14 + React + TailwindCSS        │
-│              Port 3000                          │
-└────────────────────┬────────────────────────────┘
-                     │ REST API / WebSocket
-┌────────────────────▼────────────────────────────┐
-│              Backend (Phase 1)                  │
-│         FastAPI + Uvicorn + WebSockets          │
-│              Port 8000                          │
-├─────────────────────────────────────────────────┤
-│  • Data Download & Preparation                  │
-│  • Model Training (D3QN with PER)               │
-│  • Backtesting Engine                           │
-│  • Paper Trading Simulator                      │
-└────────────────────┬────────────────────────────┘
-                     │
-┌────────────────────▼────────────────────────────┐
-│           Core Trading Engine                   │
-│      PyTorch + Gymnasium + NumPy/Pandas         │
-└─────────────────────────────────────────────────┘
-```
+### Prerequisites
 
----
+- Python 3.10+
+- Node.js 18+ (for frontend)
+- 8GB RAM minimum (16GB recommended)
+- Optional: CUDA-capable GPU
 
-## 💻 Requirements
+### Quick Setup
 
-### System Requirements
-- **Python**: 3.10 or higher
-- **RAM**: 8GB minimum (16GB recommended)
-- **GPU**: CUDA-capable GPU recommended (optional)
-- **Storage**: 10GB for data and models
-
-### Dependencies
-See `requirements.txt` for full list. Key dependencies:
-- `torch>=2.0.0` - Deep learning framework
-- `fastapi>=0.104.0` - Web framework
-- `ccxt>=4.0.0` - Cryptocurrency exchange connector
-- `gymnasium>=0.29.0` - RL environment
-- `pandas>=2.0.0` - Data processing
-
----
-
-## 🚀 Quick Start
-
-### 1. Clone Repository
 ```bash
+# 1. Clone repository
 git clone <repository-url>
 cd cryppo
-```
 
-### 2. Run Setup Script
-
-```bash
+# 2. Run setup script
 chmod +x setup.sh
 ./setup.sh
+
+# This will:
+# - Create Python virtual environment
+# - Install all dependencies
+# - Install frontend packages
+# - Create necessary directories
 ```
 
-### 3. Start Backend Server
+---
+
+## Usage
+
+### Option 1: Full UI (Recommended)
+
+**Start Backend Server:**
+
 ```bash
 cd server
 python main.py
 ```
 
-### 4. Start Frontend (in another terminal)
+Or using uvicorn directly:
+
+```bash
+# Development (with auto-reload)
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Production
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+**Start Frontend:**
+
 ```bash
 cd client
-npm install
 npm run dev
 ```
 
-### 5. Access Web UI
+**Access Web UI:**
 
-- **Frontend**: http://localhost:3000
-- **API Docs**: http://localhost:8000/docs
+- Frontend: http://localhost:3000
+- API Docs: http://localhost:8000/docs
+- WebSocket: ws://localhost:8000/ws
 
-**Note**: All operations (data download, training, backtesting, paper trading) are performed through the Web UI. No command-line scripts are required.
+### Option 2: CLI Only (For Testing)
 
----
+**Train Model (CLI):**
 
-## 📂 Project Structure
-
-```
-cryppo/
-├── server/                     # Backend (FastAPI)
-│   ├── main.py                # Main API server (Web UI only)
-│   └── src/                   # Core modules
-│       ├── agent/             # RL agents (D3QN)
-│       ├── data/              # Data processing & features
-│       ├── policy/            # Trading environment
-│       ├── eval/              # Backtesting engine
-│       ├── execution/         # Paper trading
-│       ├── training/          # Training utilities
-│       ├── utils/             # Helper functions
-│       ├── database/          # Database schema (SQLite)
-│       ├── configs/           # Configuration files
-│       │   └── config.yaml    # Main config (flexible timeframe)
-│       └── legacy/            # Legacy code (for reference)
-│
-├── client/                    # Frontend (Next.js 14 + TypeScript)
-│   ├── package.json           # Node dependencies
-│   └── src/
-│       ├── app/               # Next.js pages
-│       │   ├── page.tsx       # Home dashboard
-│       │   ├── data/          # Data management
-│       │   ├── train/         # Training interface
-│       │   ├── backtest/      # Backtesting interface
-│       │   ├── paper-trading/ # Paper trading interface
-│       │   └── system/        # System settings
-│       ├── components/        # React components
-│       │   ├── CandlestickChart.tsx  # KLineChart integration
-│       │   ├── TradingChart.tsx      # Lightweight Charts
-│       │   ├── MetricsDisplay.tsx    # Live metrics
-│       │   └── TradesList.tsx        # Trade history
-│       └── lib/               # API & WebSocket clients
-│
-├── data/                      # Data storage
-│   └── npz/                   # Model files & datasets
-│
-├── requirements.txt           # Python dependencies
-├── setup.sh                   # Setup script
-└── README.md                  # This file
+```bash
+cd server
+python -m src.training.train_d3qn \
+  --symbol BTCUSDT \
+  --episodes 10 \
+  --sample-data
 ```
 
----
+**Backtest Model (CLI):**
 
-## ⚙️ Configuration
-
-Edit `server/src/configs/config.yaml` to customize:
-
-### Data Configuration
-```yaml
-data:
-  symbols: ["BTCUSDT", "ETHUSDT"]
-  timeframe: "1h"              # Only 1H supported
-  train_start: "2019-01-01"
-  train_end: "2024-12-31"
-  window_size: 72              # 3 days of 1H candles
-```
-
-### Trading Parameters
-```yaml
-trading:
-  initial_balance: 10000.0
-  max_leverage: 3.0
-  fee_maker: 0.0002           # 0.02%
-  fee_taker: 0.0004           # 0.04%
-  max_drawdown: 0.20          # 20% termination
-```
-
-### Model Configuration
-```yaml
-model:
-  type: "d3qn"                # Dueling Double DQN
-  network:
-    hidden_layers: [256, 256, 128]
-  training:
-    learning_rate: 0.00025
-    gamma: 0.995
-    total_timesteps: 2000000
-```
-
----
-
-## 📖 Web UI Usage
-
-All operations are performed through the Web UI at http://localhost:3000
-
-### 1. Download Data
-1. Navigate to **Data** page
-2. Enter symbols (e.g., BTCUSDT, ETHUSDT)
-3. Select date range (start and end dates)
-4. Click **Download Data**
-5. View downloaded files in the data table
-
-### 2. Train Model
-1. Navigate to **Train** page
-2. Select data files to use for training
-3. Configure training parameters:
-   - **Model type**: D3QN (only fully implemented model)
-   - **Training mode**: Choose between Episodes or Timesteps
-     - **Episodes**: Complete runs from start to finish (recommended for beginners)
-       - Quick test: 2-10 episodes
-       - Normal training: 100 episodes
-       - Full training: 1000+ episodes
-     - **Timesteps**: Individual actions taken (more granular control)
-       - Quick test: 1,000-10,000 timesteps
-       - Normal training: 100,000 timesteps
-       - Full training: 1,000,000+ timesteps
-   - **Learning rate**: 0.00025 (default, works well)
-   - **Gamma**: 0.995 (discount factor)
-   - **Reward function**: Sharpe (recommended), Sortino, Profit, or Return
-   - **Batch size**: 64 (default)
-   - **Buffer size**: 100,000 (replay buffer capacity)
-4. Click **Start Training**
-5. Monitor training progress with real-time metrics
-
-**Note**: SAC, PPO, and TD3 models are listed but not yet fully implemented. Use D3QN for now.
-
-### 3. Backtest Model
-1. Navigate to **Backtest** page
-2. Select trained model from dropdown
-3. Choose symbol and date range for testing
-4. Click **Run Backtest**
-5. View results:
-   - Performance metrics (return, Sharpe, win rate)
-   - Price chart with indicators
-   - Trade history table
-
-**CLI Alternative** (for testing with minimal data):
 ```bash
 python test_backtest.py \
   --model checkpoints/final_agent.pth \
@@ -294,200 +135,396 @@ python test_backtest.py \
   --leverage 3.0
 ```
 
+---
+
+## How to Use
+
+### 1. Download Market Data
+
+**Via Web UI:**
+
+1. Go to http://localhost:3000/data
+2. Enter symbols: BTCUSDT, ETHUSDT, etc.
+3. Select date range
+4. Click "Download Data"
+
+**Via CLI:**
+
+```python
+from server.src.data.loader import download_and_save_data
+
+download_and_save_data(
+    symbol="BTCUSDT",
+    timeframe="1h",
+    start="2023-01-01",
+    end="2024-12-31",
+    exchange="binance"
+)
+```
+
+### 2. Train a Model
+
+**Via Web UI (Recommended):**
+
+1. Go to http://localhost:3000/train
+2. Select data file
+3. Choose training mode:
+   - **Episodes**: Complete runs (easier to understand)
+     - Quick test: 2-10 episodes
+     - Normal: 100 episodes
+     - Full training: 1000+ episodes
+   - **Timesteps**: Individual actions (granular control)
+     - Quick test: 1,000-10,000 timesteps
+     - Normal: 100,000 timesteps
+     - Full training: 1,000,000+ timesteps
+4. Configure parameters:
+   - Model: D3QN (only fully implemented)
+   - Learning rate: 0.00025 (default)
+   - Gamma: 0.995 (discount factor)
+   - Reward: Sharpe (recommended)
+   - Batch size: 64
+   - Buffer size: 100,000
+5. Click "Start Training"
+6. Monitor progress in real-time
+
+**Via CLI:**
+
+```bash
+cd server
+
+# Train with episodes (quick test)
+python -m src.training.train_d3qn \
+  --symbol BTCUSDT \
+  --episodes 10 \
+  --sample-data \
+  --reward-type sharpe
+
+# Train with timesteps (granular control)
+python -m src.training.train_d3qn \
+  --symbol BTCUSDT \
+  --episodes 100 \
+  --learning-rate 0.00025 \
+  --gamma 0.995
+```
+
+### 3. Backtest a Model
+
+**Via Web UI:**
+
+1. Go to http://localhost:3000/backtest
+2. Select trained model
+3. Choose test period
+4. Click "Run Backtest"
+5. View results:
+   - Performance metrics
+   - Price chart with trades
+   - Trade history table
+
+**Via CLI:**
+
+```bash
+# Backtest with sample data (quick)
+python test_backtest.py \
+  --model checkpoints/final_agent.pth \
+  --sample-data \
+  --balance 10000 \
+  --leverage 3.0
+
+# Backtest with real data
+python test_backtest.py \
+  --model checkpoints/final_agent.pth \
+  --symbol BTCUSDT \
+  --balance 10000 \
+  --leverage 3.0
+```
+
 ### 4. Paper Trading
-1. Navigate to **Paper Trading** page
+
+**Via Web UI:**
+
+1. Go to http://localhost:3000/paper-trading
 2. Select trained model
 3. Configure:
-   - Initial balance
-   - Max leverage
-   - Fee rates
-   - Update interval
-4. Click **Start Paper Trading**
+   - Initial balance: $10,000
+   - Max leverage: 3x
+   - Update interval: 5 seconds
+4. Click "Start Paper Trading"
 5. Monitor live:
    - Real-time price chart
-   - Current position and P/L
-   - Trade execution history
-   - Performance metrics
+   - Current position & P/L
+   - Trade execution log
 
 ---
 
-## 🔌 API Documentation
+## Configuration
 
-FastAPI provides interactive API documentation at http://localhost:8000/docs
+Edit `server/src/configs/config.yaml`:
 
-### Key Endpoints:
-- `POST /api/data/download` - Download market data
-- `POST /api/train/start` - Start training
-- `POST /api/backtest/run` - Run backtest
-- `POST /api/paper-trading/start` - Start paper trading
-- `GET /api/system/info` - System information
-- `WS /ws` - WebSocket for real-time updates
+```yaml
+data:
+  symbols: ["BTCUSDT", "ETHUSDT"]
+  timeframe: "1h"
+  window_size: 72  # 3 days of 1H candles
 
----
+trading:
+  initial_balance: 10000.0
+  max_leverage: 3.0
+  fee_maker: 0.0002  # 0.02%
+  fee_taker: 0.0004  # 0.04%
+  max_drawdown: 0.20  # 20%
 
-## 📊 Features Overview
-
-### Data Management
-- Download historical data from exchanges (Binance, etc.)
-- Support for multiple symbols (BTC, ETH, SOL, XRP, ADA)
-- flexible timeframe only
-- View and manage downloaded data files
-
-### Training
-- D3QN (Dueling Double DQN) agent
-- Customizable hyperparameters
-- Multiple reward functions (Sharpe, Sortino, Profit)
-- Real-time training progress monitoring (Future)
-- Automatic checkpoint saving
-
-### Backtesting
-- Comprehensive performance metrics
-- Visual chart with indicators
-- Trade-by-trade analysis
-- Export results to CSV/JSON (Future)
-
-### Paper Trading
-- Real-time simulation with live market data
-- Position tracking (LONG/SHORT/NEUTRAL)
-- Unrealized P/L monitoring
-- Live performance metrics
-- Trade execution history
-
----
-
-## 🐛 Troubleshooting
-
-### Common Issues and Solutions
-
-**1. IndexError when running backtest**
+model:
+  type: "d3qn"
+  network:
+    hidden_layers: [256, 256, 128]
+  training:
+    learning_rate: 0.00025
+    gamma: 0.995
 ```
-IndexError: index XXXX is out of bounds for axis 0 with size XXXX
+
+---
+
+## Project Structure
+
 ```
-**Solution**: This has been fixed in the latest version. The issue was due to improper handling of Gymnasium's `terminated` and `truncated` flags. Make sure you're using the updated `test_backtest.py` and `trading_env.py`.
-
-**2. Training takes too long / system hangs**
-- Use **Episodes mode** with 2-10 episodes for quick testing
-- Or use **Timesteps mode** with minimum 1,000 timesteps (lower values now supported)
-- Reduce sample data size to 2,000 candles for testing
-- Close other applications to free up RAM/GPU
-
-**3. WebSocket connection issues**
-- Ensure backend server is running on port 8000
-- Check firewall settings
-- Use latest FastAPI/Uvicorn (WebSocket support improved in 2025)
-
-**4. Model training fails with "Model not found"**
-- Only D3QN is fully implemented - use D3QN model type
-- Check that data files are downloaded first
-- Verify checkpoint directory exists
-
-**5. Action conflicts in trading environment**
-- **HOLD (0)**: Do nothing, maintain current state
-- **OPEN_LONG (1)**: Open long position, or close short and go long
-- **OPEN_SHORT (2)**: Open short position, or close long and go short
-- **CLOSE_POSITION (3)**: Close any open position
-- If already in a position and same action (e.g., OPEN_LONG while long), it acts as HOLD
-
----
-
-## 🛠️ Technical Details
-
-### Backend (FastAPI)
-- **Framework**: FastAPI 0.121+ with Uvicorn
-- **WebSocket**: Real-time bidirectional updates (latest best practices 2025)
-  - Stateful connection management
-  - Proper error handling with WebSocketException
-  - For production: Use Gunicorn + Uvicorn workers
-- **Database**: SQLite (tracking & history)
-- **ML Framework**: PyTorch 2.0+
-- **RL Library**: Gymnasium 0.29+ (formerly OpenAI Gym)
-  - Proper handling of `terminated` vs `truncated` flags
-  - Custom D3QN implementation with Dueling architecture
-  - Experience replay buffer with batch sampling
-
-### Frontend (Next.js)
-- **Framework**: Next.js 14.0.4 with App Router
-- **Language**: TypeScript 5+
-- **UI**: TailwindCSS 3.3+
-- **Charts**: KLineChart 9.8+ & Lightweight Charts 4.1+
-- **State**: Zustand 4.4+
-- **HTTP**: Axios 1.6+
-
-### RL Training
-- **Episodes vs Timesteps**:
-  - Episodes: Full environment runs (easier to understand)
-  - Timesteps: Individual actions (more granular)
-- **Minimum values**:
-  - Episodes: 1+ (2-10 for quick testing)
-  - Timesteps: 10+ (1000+ recommended for meaningful training)
+cryppo/
+├── server/                 # FastAPI Backend
+│   ├── main.py            # API server entry point
+│   └── src/
+│       ├── agent/         # D3QN agent implementation
+│       ├── data/          # Data loading & processing
+│       ├── policy/        # Trading environment (Gymnasium)
+│       ├── eval/          # Backtesting engine
+│       ├── training/      # Training scripts
+│       ├── utils/         # Helper functions
+│       └── configs/       # Configuration files
+│
+├── client/                # Next.js Frontend
+│   └── src/
+│       ├── app/           # Pages (data, train, backtest, etc.)
+│       ├── components/    # React components
+│       └── lib/           # API & WebSocket clients
+│
+├── data/                  # Market data storage
+├── checkpoints/           # Trained models
+├── logs/                  # Log files
+│   ├── server.log        # API server logs
+│   ├── training.log      # Training logs
+│   └── combined.log      # All logs combined
+│
+├── test_backtest.py      # CLI backtest script
+├── setup.sh              # Setup script
+└── README.md             # This file
+```
 
 ---
 
-## 🗺️ Development Roadmap
+## Logs & Debugging
 
-### Phase 1: Backend (✅ Completed)
-- [x] FastAPI server structure
-- [x] Configuration system (YAML)
-- [x] Data download script (Binance)
-- [x] API endpoints structure
-- [x] WebSocket support
-- [x] **D3QN Agent implementation**
-- [x] **Feature engineering & data processing**
-- [x] **Trading Environment (Gymnasium)**
-- [x] **Training script (train_agent.py)**
-- [x] **Backtesting engine**
-- [x] **Database schema (SQLite)**
-- [x] **Complete documentation (README + USAGE)**
+CRYPPO uses separate log files for different operations:
 
-### Phase 2: Frontend (✅ Completed)
-- [x] Next.js 14 setup with TypeScript
-- [x] Dashboard layout & navigation
-- [x] **Data Management UI** - Download & view data files
-- [x] **Training Interface** - Start training with configuration
-- [x] **Backtest Interface** - Run backtests & view results with charts
-- [x] **System Settings** - View configuration & system info
-- [x] **Paper Trading Interface** - Real-time paper trading with live updates
-- [x] History page (placeholder for future)
-- [x] API Client integration (Axios)
-- [x] WebSocket Client (real-time updates ready)
-- [x] Responsive design with TailwindCSS
-- [x] **Real-time chart integration** - KLineChart & Lightweight Charts
-- [x] **Trading metrics display** - Live metrics, trades list, and performance stats
+### Log Files
 
-### Phase 3: Enhancement (📋 Future)
-- [ ] Multiple timeframe support
-- [ ] Advanced RL algorithms (PPO, SAC)
-- [ ] Live trading integration
-- [ ] Multi-exchange support
-- [ ] Portfolio management
-- [ ] Advanced risk management
+- **`logs/server.log`** - API server operations, requests, WebSocket connections, errors
+- **`logs/training.log`** - Model training progress, metrics, episode results, checkpoints
+- **`logs/combined.log`** - All logs combined (for debugging)
+
+### Viewing Logs
+
+```bash
+# View server logs (real-time)
+tail -f logs/server.log
+
+# View training logs (real-time)
+tail -f logs/training.log
+
+# Search for errors
+grep ERROR logs/combined.log
+
+# View recent training metrics
+grep "Episode" logs/training.log | tail -20
+```
+
+### Log Rotation
+
+- Logs rotate automatically when they reach size limits
+- Server logs: 10MB max, keeps 5 backups
+- Training logs: 20MB max, keeps 10 backups
+- Combined logs: 50MB max, keeps 3 backups
 
 ---
 
-## 🤝 Contributing
+## Troubleshooting
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+### Common Issues
+
+**1. Server won't start**
+
+```bash
+# Check if port 8000 is already in use
+lsof -i :8000
+
+# Kill the process if needed
+kill -9 <PID>
+
+# Start with different port
+uvicorn main:app --port 8001
+```
+
+**2. WebSocket connection failed**
+
+- Make sure backend is running on port 8000
+- Check `logs/server.log` for connection errors
+- Verify frontend is accessing `ws://localhost:8000/ws`
+- Try restarting both frontend and backend
+
+**3. Training takes too long**
+
+- Use Episodes mode with 2-10 episodes for quick testing
+- Or use Timesteps mode with 1,000 minimum (10,000+ recommended)
+- Enable GPU if available (10-20x faster)
+- Use sample data instead of real data for testing
+
+**4. Model not found error**
+
+- Check `checkpoints/` directory exists
+- Verify model file path is correct
+- Only D3QN is fully implemented (SAC, PPO, TD3 are placeholders)
+
+**5. IndexError during backtest**
+
+- This was fixed in latest version
+- Make sure you pulled latest changes
+- Error was due to improper `terminated`/`truncated` handling
+
+**6. Frontend build fails**
+
+```bash
+cd client
+rm -rf node_modules package-lock.json
+npm install
+npm run dev
+```
 
 ---
 
-## 📄 License
+## API Documentation
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+FastAPI provides interactive documentation:
+
+**Swagger UI:** http://localhost:8000/docs
+
+**ReDoc:** http://localhost:8000/redoc
+
+### Key Endpoints
+
+```
+POST   /api/data/download        Download market data
+GET    /api/data/available        List downloaded data files
+
+POST   /api/train/start           Start model training
+GET    /api/train/status/{id}     Check training status
+GET    /api/models/available      List trained models
+
+POST   /api/backtest/run          Run backtest
+GET    /api/backtest/results/{id} Get backtest results
+
+POST   /api/paper-trading/start   Start paper trading
+POST   /api/paper-trading/stop    Stop paper trading
+GET    /api/paper-trading/status  Get current status
+
+GET    /api/system/info           System information
+WS     /ws                        WebSocket connection
+```
 
 ---
 
-## ⚠️ Disclaimer
+## Technical Stack
 
-This software is for educational and research purposes only. Cryptocurrency trading involves substantial risk of loss. The authors are not responsible for any financial losses incurred while using this software.
+### Backend
+- **FastAPI 0.121+** - Modern Python web framework
+- **Uvicorn** - ASGI server with WebSocket support
+- **PyTorch 2.0+** - Deep learning framework
+- **Gymnasium 0.29+** - RL environment (OpenAI Gym successor)
+- **CCXT 4.0+** - Cryptocurrency exchange API
+- **Pandas/NumPy** - Data processing
 
-**DO NOT USE THIS FOR LIVE TRADING WITHOUT THOROUGH TESTING AND UNDERSTANDING OF THE RISKS INVOLVED.**
+### Frontend
+- **Next.js 14** - React framework with App Router
+- **TypeScript 5+** - Type-safe JavaScript
+- **TailwindCSS 3.3+** - Utility-first CSS
+- **KLineChart 9.8+** - Candlestick charts
+- **Axios 1.6+** - HTTP client
+- **Zustand 4.4+** - State management
+
+### AI/ML
+- **D3QN Architecture** - Deep Dueling Double DQN
+  - Dueling network: Separates value and advantage streams
+  - Double DQN: Prevents Q-value overestimation
+  - Experience replay: Improves sample efficiency
+  - Target network: Stabilizes training
 
 ---
 
-## 📞 Contact
+## Performance Tips
 
-- **GitHub**: [@GodEyeTee](https://github.com/GodEyeTee)
-- **Issues**: [GitHub Issues](https://github.com/GodEyeTee/cryppo/issues)
+### For Training
+
+1. **Use GPU** - 10-20x faster than CPU
+2. **Start Small** - Test with 2-10 episodes first
+3. **Use Sample Data** - For quick iterations during development
+4. **Monitor Logs** - Check `logs/training.log` for progress
+5. **Adjust Batch Size** - Larger batches (128-256) if you have enough RAM
+
+### For Production
+
+```bash
+# Use Gunicorn with Uvicorn workers (recommended)
+cd server
+gunicorn main:app \
+  -k uvicorn.workers.UvicornWorker \
+  -w 4 \
+  -b 0.0.0.0:8000 \
+  --access-logfile logs/access.log \
+  --error-logfile logs/error.log
+```
+
+### For Development
+
+```bash
+# Backend with auto-reload
+cd server
+uvicorn main:app --reload
+
+# Frontend with hot-reload
+cd client
+npm run dev
+```
+
+---
+
+## Security Notes
+
+⚠️ **IMPORTANT**
+
+- This software is for **educational and research purposes only**
+- **DO NOT use for live trading** without extensive testing
+- Cryptocurrency trading involves **substantial risk of loss**
+- Always test thoroughly with paper trading first
+- Keep your API keys secure (never commit to git)
+
+---
+
+## License
+
+MIT License - see LICENSE file for details
+
+---
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/tik1311/cryppo/issues)
+- **Logs**: Check `logs/` directory for detailed error messages
 
 ---
 

@@ -21,6 +21,10 @@ import numpy as np
 # Add server/src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
+# Setup logging
+from utils.logging_config import get_server_logger, get_training_logger
+server_logger = get_server_logger()
+
 # Initialize FastAPI app
 app = FastAPI(
     title="CRYPPO API",

@@ -152,10 +152,12 @@ def download_data(symbol: str, start: str, end: str, timeframe: str = "1h"):
             # Show summary
             console.print(f"\n[green]✓[/green] Downloaded {len(df)} candles")
             console.print(f"[dim]Period: {df.index[0]} to {df.index[-1]}[/dim]")
-            console.print(f"[dim]Saved to: data/{symbol}_{timeframe}.pkl[/dim]\n")
+            console.print(f"[dim]Saved to: data/{symbol}_{timeframe}_{start}_{end}.parquet[/dim]\n")
 
         except Exception as e:
             console.print(f"\n[red]✗ Error: {e}[/red]\n")
+            import traceback
+            console.print(f"[red]{traceback.format_exc()}[/red]\n")
             sys.exit(1)
 
 def list_data():
@@ -165,12 +167,18 @@ def list_data():
     data_dir = Path("data")
     if not data_dir.exists():
         console.print("[yellow]No data directory found[/yellow]\n")
+        console.print(f"[dim]Path checked: {data_dir.absolute()}[/dim]\n")
         return
 
-    files = list(data_dir.glob("*.pkl"))
+    # Search for both parquet and pickle files
+    files = list(data_dir.glob("*.parquet")) + list(data_dir.glob("*.pkl")) + list(data_dir.glob("*.csv"))
+
+    console.print(f"[dim]Searching in: {data_dir.absolute()}[/dim]")
+    console.print(f"[dim]Files found: {len(files)}[/dim]\n")
 
     if not files:
         console.print("[yellow]No data files found[/yellow]\n")
+        console.print("[dim]Supported formats: .parquet, .pkl, .csv[/dim]\n")
         return
 
     table = Table(show_header=True, header_style="bold magenta", box=box.ROUNDED)

@@ -970,8 +970,15 @@ async def backtest_task(task_id: str, request: BacktestRequest):
         obs_shape = env.observation_space.shape
         n_actions = env.action_space.n
 
+        # Calculate flattened state dimension (window_size * features)
+        # obs_shape = (72, 21) -> state_dim = 72 * 21 = 1512
+        state_dim = obs_shape[0] * obs_shape[1] if len(obs_shape) > 1 else obs_shape[0]
+
+        logger.info(f"[Backtest] Observation shape: {obs_shape}, State dim: {state_dim}, Actions: {n_actions}")
+        print(f"[Backtest] Observation shape: {obs_shape}, State dim: {state_dim}, Actions: {n_actions}")
+
         agent = D3QNAgent(
-            state_dim=obs_shape[0],
+            state_dim=state_dim,
             action_dim=n_actions,
             learning_rate=0.00025,  # Default, not used in evaluation
             gamma=0.995,
@@ -1026,12 +1033,15 @@ async def backtest_task(task_id: str, request: BacktestRequest):
 
             # Select action using the trained agent (no exploration)
             with torch.no_grad():
-                state_tensor = torch.FloatTensor(state).unsqueeze(0).to(device)
+                # Flatten state if it's 2D (window_size, features) -> (window_size * features,)
+                state_flat = state.flatten() if len(state.shape) > 1 else state
+                state_tensor = torch.FloatTensor(state_flat).unsqueeze(0).to(device)
                 q_values = agent.policy_net(state_tensor)
                 action = q_values.argmax(dim=1).item()
 
-            # Take action
-            next_state, reward, done, truncated, info = env.step(action)
+            # Take action (Gymnasium API returns: observation, reward, terminated, truncated, info)
+            next_state, reward, terminated, truncated, info = env.step(action)
+            done = terminated or truncated  # Episode ends if either is True
             episode_reward += reward
 
             # Get current price (close price at index 3 in OHLCV data)

@@ -59,6 +59,29 @@ class DuelingQNetwork(nn.Module):
             nn.Linear(128, action_dim)
         )
 
+        # Initialize advantage layer to favor trading actions over HOLD
+        self._init_advantage_bias()
+
+    def _init_advantage_bias(self):
+        """
+        Initialize advantage output layer with bias towards trading actions
+        Research shows: initializing Q-values to favor exploration helps!
+        """
+        with torch.no_grad():
+            # Get the final linear layer of advantage stream
+            final_layer = self.advantage_stream[-1]
+
+            # Set bias: HOLD=0.0, LONG=+0.5, SHORT=+0.5, CLOSE=+0.3
+            # This gives trading actions initial advantage
+            if hasattr(final_layer, 'bias') and final_layer.bias is not None:
+                final_layer.bias[0] = 0.0   # HOLD - neutral
+                if final_layer.bias.shape[0] > 1:
+                    final_layer.bias[1] = 0.5   # OPEN_LONG - favored
+                if final_layer.bias.shape[0] > 2:
+                    final_layer.bias[2] = 0.5   # OPEN_SHORT - favored
+                if final_layer.bias.shape[0] > 3:
+                    final_layer.bias[3] = 0.3   # CLOSE - slightly favored
+
     def forward(self, state: torch.Tensor) -> torch.Tensor:
         """
         Forward pass
@@ -123,13 +146,13 @@ class D3QNAgent:
         state_dim: int,
         action_dim: int,
         learning_rate: float = 0.00025,
-        gamma: float = 0.995,
+        gamma: float = 0.99,  # Reduced from 0.995 to prevent Q-value spiral
         epsilon_start: float = 1.0,
         epsilon_end: float = 0.2,  # Keep high exploration (was 0.1)
         epsilon_decay: float = 0.9999,  # Very slow decay (was 0.9998)
         buffer_size: int = 100000,
         batch_size: int = 64,
-        target_update_freq: int = 1000,
+        target_update_freq: int = 500,  # More frequent updates (was 1000) to prevent Q-spiral
         device: str = "cuda" if torch.cuda.is_available() else "cpu"
     ):
         """

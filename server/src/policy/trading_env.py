@@ -109,6 +109,11 @@ class TradingEnv(gym.Env):
         self.winning_trades = 0
         self.total_pnl = 0.0
 
+        # Action diversity tracking (for exploration bonus)
+        self.action_counts = {0: 0, 1: 0, 2: 0, 3: 0}
+        self.consecutive_holds = 0
+        self.last_action = -1
+
         return self._get_observation(), self._get_info()
 
     def _get_observation(self) -> np.ndarray:
@@ -176,15 +181,39 @@ class TradingEnv(gym.Env):
         trade_reward = 0.0
         exploration_bonus = 0.0
 
+        # Track action for diversity bonus
+        self.action_counts[action] = self.action_counts.get(action, 0) + 1
+
         # Debug: Log first 3 actions per episode
         action_names = ['HOLD', 'OPEN_LONG', 'OPEN_SHORT', 'CLOSE']
         if self.current_step - self.window_size < 3:
             print(f"  [ACTION] Step {self.current_step}: {action_names[action]} | Pos: {self.position or 'None'}")
 
+        # RAMPING PUNISHMENT for consecutive HOLD actions (from research)
+        if action == 0:  # HOLD
+            self.consecutive_holds += 1
+            # Ramping punishment: -0.01, -0.02, -0.04, -0.08, -0.16... (exponential)
+            if self.consecutive_holds > 5:
+                hold_penalty = -0.001 * (2 ** (self.consecutive_holds - 5))
+                exploration_bonus += hold_penalty
+        else:
+            # Reward for breaking HOLD streak
+            if self.consecutive_holds > 10:
+                exploration_bonus += 0.01  # Reward for finally taking action!
+            self.consecutive_holds = 0
+
+        # Action diversity bonus (intrinsic curiosity)
+        # Reward less-used actions
+        total_actions = sum(self.action_counts.values())
+        if total_actions > 50:  # Start after some experience
+            action_freq = self.action_counts[action] / total_actions
+            if action_freq < 0.15:  # If action used < 15% of time
+                exploration_bonus += 0.001  # Bonus for exploring rare actions
+
         if action == 1:  # OPEN_LONG
             if self.position is None:
                 self._open_position('long', current_price)
-                exploration_bonus = 0.0001  # Small reward for taking action
+                exploration_bonus += 0.005  # Significant reward for opening position
             elif self.position == 'short':
                 trade_reward = self._close_position(current_price)
                 self._open_position('long', current_price)
@@ -192,7 +221,7 @@ class TradingEnv(gym.Env):
         elif action == 2:  # OPEN_SHORT
             if self.position is None:
                 self._open_position('short', current_price)
-                exploration_bonus = 0.0001  # Small reward for taking action
+                exploration_bonus += 0.005  # Significant reward for opening position
             elif self.position == 'long':
                 trade_reward = self._close_position(current_price)
                 self._open_position('short', current_price)
@@ -200,6 +229,7 @@ class TradingEnv(gym.Env):
         elif action == 3:  # CLOSE_POSITION
             if self.position is not None:
                 trade_reward = self._close_position(current_price)
+                exploration_bonus += 0.002  # Reward for closing (completing trade cycle)
 
         # Apply funding rate every 8 hours (simulated)
         if self.position and self.current_step % 8 == 0:

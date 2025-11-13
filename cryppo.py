@@ -238,7 +238,7 @@ def train(
         "--symbol", symbol,
         "--episodes", str(episodes),
         "--lr", str(learning_rate),
-        "--gamma", "0.995",
+        "--gamma", "0.99",  # Reduced to prevent Q-value spiral (research-based)
         "--batch-size", "64",
         "--buffer-size", "100000",
         "--reward", reward_type,

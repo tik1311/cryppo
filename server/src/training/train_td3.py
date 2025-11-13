@@ -79,8 +79,26 @@ class TradingCallback(BaseCallback):
                     self._save_metrics()
 
     def _save_metrics(self):
+        import numpy as np
+
+        # Convert numpy types to Python native types
+        def convert_to_native(obj):
+            if isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, dict):
+                return {key: convert_to_native(value) for key, value in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_to_native(item) for item in obj]
+            return obj
+
+        metrics_native = convert_to_native(self.metrics)
+
         with open(self.metrics_file, 'w') as f:
-            json.dump(self.metrics, f, indent=2)
+            json.dump(metrics_native, f, indent=2)
 
 
 def train_td3(
@@ -124,24 +142,24 @@ def train_td3(
     log_path = Path(log_dir)
     log_path.mkdir(exist_ok=True, parents=True)
 
-    print("\n📊 Loading market data...")
+    print("\n[DATA] Loading market data...")
     try:
         if use_sample_data:
-            print("⚠️  Using synthetic data")
+            print("[WARN]  Using synthetic data")
             df = create_sample_data(symbol=symbol, n_samples=10000, save_dir="data")
         else:
             df = load_market_data(symbol=symbol, timeframe=timeframe)
-        print(f"✓ Loaded {len(df):,} candles")
+        print(f"[OK] Loaded {len(df):,} candles")
     except FileNotFoundError as e:
-        print(f"❌ Error: {e}")
+        print(f"[ERROR] Error: {e}")
         return
 
-    print("\n🔧 Preparing data...")
+    print("\n[PREP] Preparing data...")
     data = prepare_env_data(df, add_indicators=True, normalize=True)
     train_data, val_data, test_data = split_train_test(data, train_ratio=0.7, val_ratio=0.15)
-    print(f"✓ Train: {len(train_data):,} | Val: {len(val_data):,}")
+    print(f"[OK] Train: {len(train_data):,} | Val: {len(val_data):,}")
 
-    print("\n🌍 Creating environments...")
+    print("\n[ENV] Creating environments...")
 
     def make_env(data):
         env = TradingEnv(
@@ -155,9 +173,9 @@ def train_td3(
 
     train_env = DummyVecEnv([lambda: make_env(train_data)])
     eval_env = DummyVecEnv([lambda: make_env(val_data)])
-    print(f"✓ Environments created")
+    print(f"[OK] Environments created")
 
-    print("\n🤖 Initializing TD3 agent...")
+    print("\n[AGENT] Initializing TD3 agent...")
 
     # Add action noise for exploration
     n_actions = train_env.action_space.shape[-1]
@@ -180,11 +198,11 @@ def train_td3(
         target_noise_clip=target_noise_clip,
         action_noise=action_noise,
         verbose=verbose,
-        tensorboard_log=str(log_path / "tensorboard")
+        tensorboard_log=None  # Disable tensorboard to avoid dependency issues
     )
-    print(f"✓ TD3 agent initialized")
+    print(f"[OK] TD3 agent initialized")
 
-    print("\n📊 Setting up callbacks...")
+    print("\n[DATA] Setting up callbacks...")
     callbacks = []
     callbacks.append(TradingCallback(log_dir=log_dir, verbose=verbose))
     callbacks.append(CheckpointCallback(
@@ -202,9 +220,9 @@ def train_td3(
         deterministic=True,
         verbose=1
     ))
-    print(f"✓ Callbacks ready")
+    print(f"[OK] Callbacks ready")
 
-    print("\n🚀 Starting training...")
+    print("\n[TRAIN] Starting training...")
     print("=" * 60)
 
     try:
@@ -212,17 +230,17 @@ def train_td3(
             total_timesteps=timesteps,
             callback=callbacks,
             log_interval=10,
-            progress_bar=True
+            progress_bar=False  # Disable to avoid tqdm dependency
         )
-        print("\n🎉 Training complete!")
+        print("\n[DONE] Training complete!")
     except KeyboardInterrupt:
-        print("\n⚠️  Training interrupted")
+        print("\n[WARN]  Training interrupted")
 
     final_model_path = checkpoint_path / "final_td3_model.zip"
     model.save(str(final_model_path))
-    print(f"\n💾 Final model saved: {final_model_path}")
+    print(f"\n[SAVE] Final model saved: {final_model_path}")
 
-    print("\n✅ Done!")
+    print("\n[COMPLETE] Done!")
     return model
 
 

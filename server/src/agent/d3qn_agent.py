@@ -100,11 +100,12 @@ class ReplayBuffer:
         """Sample random batch from buffer"""
         experiences = random.sample(self.buffer, batch_size)
 
-        states = torch.FloatTensor([e.state for e in experiences])
-        actions = torch.LongTensor([e.action for e in experiences])
-        rewards = torch.FloatTensor([e.reward for e in experiences])
-        next_states = torch.FloatTensor([e.next_state for e in experiences])
-        dones = torch.FloatTensor([e.done for e in experiences])
+        # Convert to numpy arrays first for much faster tensor creation
+        states = torch.FloatTensor(np.array([e.state for e in experiences]))
+        actions = torch.LongTensor(np.array([e.action for e in experiences]))
+        rewards = torch.FloatTensor(np.array([e.reward for e in experiences]))
+        next_states = torch.FloatTensor(np.array([e.next_state for e in experiences]))
+        dones = torch.FloatTensor(np.array([e.done for e in experiences]))
 
         return states, actions, rewards, next_states, dones
 

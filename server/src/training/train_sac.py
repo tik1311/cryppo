@@ -95,8 +95,26 @@ class TradingCallback(BaseCallback):
 
     def _save_metrics(self):
         """Save metrics to JSON file"""
+        import numpy as np
+
+        # Convert numpy types to Python native types
+        def convert_to_native(obj):
+            if isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, dict):
+                return {key: convert_to_native(value) for key, value in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_to_native(item) for item in obj]
+            return obj
+
+        metrics_native = convert_to_native(self.metrics)
+
         with open(self.metrics_file, 'w') as f:
-            json.dump(self.metrics, f, indent=2)
+            json.dump(metrics_native, f, indent=2)
 
 
 def train_sac(
@@ -165,33 +183,33 @@ def train_sac(
     log_path.mkdir(exist_ok=True, parents=True)
 
     # Load market data
-    print("\n📊 Loading market data...")
+    print("\n[DATA] Loading market data...")
     try:
         if use_sample_data:
-            print("⚠️  Using synthetic data for testing")
+            print("[WARN]  Using synthetic data for testing")
             df = create_sample_data(symbol=symbol, n_samples=10000, save_dir="data")
         else:
             df = load_market_data(symbol=symbol, timeframe=timeframe)
 
-        print(f"✓ Loaded {len(df):,} candles")
+        print(f"[OK] Loaded {len(df):,} candles")
         print(f"  Date range: {df['timestamp'].min()} to {df['timestamp'].max()}")
 
     except FileNotFoundError as e:
-        print(f"❌ Error: {e}")
-        print("\n💡 Use --sample-data flag to train with synthetic data")
+        print(f"[ERROR] Error: {e}")
+        print("\n[INFO] Use --sample-data flag to train with synthetic data")
         return
 
     # Prepare data
-    print("\n🔧 Preparing data...")
+    print("\n[PREP] Preparing data...")
     data = prepare_env_data(df, add_indicators=True, normalize=True)
-    print(f"✓ Data shape: {data.shape}")
+    print(f"[OK] Data shape: {data.shape}")
 
     # Split into train/val/test
     train_data, val_data, test_data = split_train_test(data, train_ratio=0.7, val_ratio=0.15)
-    print(f"✓ Train: {len(train_data):,} | Val: {len(val_data):,} | Test: {len(test_data):,}")
+    print(f"[OK] Train: {len(train_data):,} | Val: {len(val_data):,} | Test: {len(test_data):,}")
 
     # Create environments
-    print("\n🌍 Creating environments...")
+    print("\n[ENV] Creating environments...")
 
     def make_env(data):
         """Create environment"""
@@ -211,10 +229,10 @@ def train_sac(
     # Evaluation environment
     eval_env = DummyVecEnv([lambda: make_env(val_data)])
 
-    print(f"✓ Environments created")
+    print(f"[OK] Environments created")
 
     # Initialize SAC agent
-    print("\n🤖 Initializing SAC agent...")
+    print("\n[AGENT] Initializing SAC agent...")
 
     model = SAC(
         policy="MlpPolicy",
@@ -228,17 +246,17 @@ def train_sac(
         train_freq=1,
         gradient_steps=1,
         verbose=verbose,
-        tensorboard_log=str(log_path / "tensorboard")
+        tensorboard_log=None  # Disable tensorboard to avoid dependency issues
     )
 
-    print(f"✓ SAC agent initialized")
+    print(f"[OK] SAC agent initialized")
     print(f"  Policy: MlpPolicy")
     print(f"  Buffer size: {buffer_size:,}")
     print(f"  Batch size: {batch_size}")
     print(f"  Learning starts: {learning_starts:,}")
 
     # Setup callbacks
-    print("\n📊 Setting up callbacks...")
+    print("\n[DATA] Setting up callbacks...")
 
     callbacks = []
 
@@ -268,10 +286,10 @@ def train_sac(
     )
     callbacks.append(eval_callback)
 
-    print(f"✓ Callbacks ready")
+    print(f"[OK] Callbacks ready")
 
     # Training
-    print("\n🚀 Starting training...")
+    print("\n[TRAIN] Starting training...")
     print("=" * 60)
 
     try:
@@ -279,27 +297,27 @@ def train_sac(
             total_timesteps=timesteps,
             callback=callbacks,
             log_interval=10,
-            progress_bar=True
+            progress_bar=False  # Disable to avoid tqdm dependency
         )
 
         print("\n" + "=" * 60)
-        print("🎉 Training complete!")
+        print("[DONE] Training complete!")
         print("=" * 60)
 
     except KeyboardInterrupt:
-        print("\n⚠️  Training interrupted by user")
+        print("\n[WARN]  Training interrupted by user")
 
     # Save final model
     final_model_path = checkpoint_path / "final_sac_model.zip"
     model.save(str(final_model_path))
-    print(f"\n💾 Final model saved: {final_model_path}")
+    print(f"\n[SAVE] Final model saved: {final_model_path}")
 
     # Save training metrics
     trading_callback._save_metrics()
-    print(f"📊 Metrics saved: {trading_callback.metrics_file}")
+    print(f"[DATA] Metrics saved: {trading_callback.metrics_file}")
 
     # Evaluate on test set
-    print("\n🧪 Final evaluation on test set...")
+    print("\n[TEST] Final evaluation on test set...")
     test_env = DummyVecEnv([lambda: make_env(test_data)])
 
     obs = test_env.reset()
@@ -328,7 +346,7 @@ def train_sac(
     print(f"Average Reward: {avg_reward:.2f}")
     print(f"Std Reward: {np.std(episode_rewards):.2f}")
 
-    print("\n✅ Done!")
+    print("\n[COMPLETE] Done!")
 
     return model
 

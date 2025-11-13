@@ -336,19 +336,43 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
 
         # Prepare training arguments
         symbol = request.symbols[0] if request.symbols else "BTCUSDT"
+        timeframe = "1h"  # Only 1h timeframe is supported
 
-        # Check if data exists
+        # Check if data exists (use same pattern as loader.py)
         data_dir = Path("data")
-        data_files = list(data_dir.rglob(f"{symbol}*.parquet"))
+        print(f"[DEBUG] Checking for data in: {data_dir.absolute()}")
+        print(f"[DEBUG] Data directory exists: {data_dir.exists()}")
+
+        data_files = []
+        if data_dir.exists():
+            # Use same pattern as loader.py: {symbol}_{timeframe}*.parquet
+            pattern = f"{symbol}_{timeframe}*.parquet"
+            data_files = list(data_dir.rglob(pattern))
+            print(f"[DEBUG] Search pattern: {pattern}")
+            print(f"[DEBUG] Found {len(data_files)} parquet files for {symbol} {timeframe}")
+            if data_files:
+                print(f"[DEBUG] Files: {[str(f) for f in data_files]}")
+
+            # Also check for synthetic data files if no timeframe-specific files found
+            if not data_files:
+                synthetic_pattern = f"{symbol}*synthetic.parquet"
+                synthetic_files = list(data_dir.rglob(synthetic_pattern))
+                print(f"[DEBUG] Checking synthetic pattern: {synthetic_pattern}")
+                print(f"[DEBUG] Found {len(synthetic_files)} synthetic files")
+                # Don't use synthetic files here - let train script generate new ones
+        else:
+            print(f"[DEBUG] Data directory does not exist")
 
         use_sample_data = len(data_files) == 0
+        print(f"[DEBUG] use_sample_data = {use_sample_data}")
+
         if use_sample_data:
             background_tasks_status[task_id]["message"] = "No data found, using synthetic data..."
             await ws_manager.broadcast({
                 "type": "training_progress",
                 "task_id": task_id,
                 "progress": 15,
-                "message": "⚠️ No data found, using synthetic data for training"
+                "message": "[WARN] No data found, using synthetic data for training"
             })
 
         # Select training script
@@ -379,7 +403,16 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
         ]
 
         if use_sample_data:
+            print(f"[DEBUG] Appending --sample-data flag")
             cmd.append("--sample-data")
+        else:
+            print(f"[DEBUG] NOT appending --sample-data flag (data files found)")
+
+        # Log the command that will be executed
+        print(f"\n[TRAINING] Executing command:")
+        print(f"  Command: {' '.join(cmd)}")
+        print(f"  Working directory: {os.getcwd()}")
+        print(f"  Python path: {sys.path[:3]}")
 
         # Run training process
         background_tasks_status[task_id]["message"] = f"Starting {model_name} training for {request.timesteps:,} timesteps..."
@@ -391,13 +424,23 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
             "message": f"Starting {model_name} training..."
         })
 
+        # Prepare environment variables
+        env = os.environ.copy()
+        env['PYTHONPATH'] = os.getcwd()
+        env['PYTHONIOENCODING'] = 'utf-8'  # Ensure UTF-8 encoding
+        env['PYTHONUNBUFFERED'] = '1'  # Disable output buffering for real-time logs
+
         # Start subprocess
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            bufsize=1
+            encoding='utf-8',  # Force UTF-8 encoding for stdout/stderr
+            errors='replace',  # Replace invalid characters instead of crashing
+            bufsize=1,
+            cwd=os.getcwd(),  # Set working directory
+            env=env  # Pass environment variables
         )
 
         # Parse output and send progress updates
@@ -454,12 +497,20 @@ async def train_sb3_task(task_id: str, request: TrainModelRequest):
                         await ws_manager.broadcast({
                             "type": "training_progress",
                             "task_id": task_id,
-                            "message": "💾 Checkpoint saved",
+                            "message": "[SAVE] Checkpoint saved",
                             "details": line
                         })
 
             # Small sleep to prevent busy loop
             await asyncio.sleep(0.1)
+
+        # Read any remaining output before checking return code
+        if process.stdout:
+            remaining_output = process.stdout.read()
+            if remaining_output:
+                for line in remaining_output.split('\n'):
+                    if line.strip():
+                        print(f"[Training] {line.strip()}")
 
         # Final return code check
         return_code = process.wait()
@@ -558,19 +609,43 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
 
         # Prepare training arguments
         symbol = request.symbols[0] if request.symbols else "BTCUSDT"
+        timeframe = "1h"  # Only 1h timeframe is supported
 
-        # Check if data exists
+        # Check if data exists (use same pattern as loader.py)
         data_dir = Path("data")
-        data_files = list(data_dir.rglob(f"{symbol}*.parquet"))
+        print(f"[DEBUG] Checking for data in: {data_dir.absolute()}")
+        print(f"[DEBUG] Data directory exists: {data_dir.exists()}")
+
+        data_files = []
+        if data_dir.exists():
+            # Use same pattern as loader.py: {symbol}_{timeframe}*.parquet
+            pattern = f"{symbol}_{timeframe}*.parquet"
+            data_files = list(data_dir.rglob(pattern))
+            print(f"[DEBUG] Search pattern: {pattern}")
+            print(f"[DEBUG] Found {len(data_files)} parquet files for {symbol} {timeframe}")
+            if data_files:
+                print(f"[DEBUG] Files: {[str(f) for f in data_files]}")
+
+            # Also check for synthetic data files if no timeframe-specific files found
+            if not data_files:
+                synthetic_pattern = f"{symbol}*synthetic.parquet"
+                synthetic_files = list(data_dir.rglob(synthetic_pattern))
+                print(f"[DEBUG] Checking synthetic pattern: {synthetic_pattern}")
+                print(f"[DEBUG] Found {len(synthetic_files)} synthetic files")
+                # Don't use synthetic files here - let train script generate new ones
+        else:
+            print(f"[DEBUG] Data directory does not exist")
 
         use_sample_data = len(data_files) == 0
+        print(f"[DEBUG] use_sample_data = {use_sample_data}")
+
         if use_sample_data:
             background_tasks_status[task_id]["message"] = "No data found, using synthetic data..."
             await ws_manager.broadcast({
                 "type": "training_progress",
                 "task_id": task_id,
                 "progress": 15,
-                "message": "⚠️ No data found, using synthetic data for training"
+                "message": "[WARN] No data found, using synthetic data for training"
             })
 
         # Build command
@@ -588,12 +663,21 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
             "--reward", request.reward_type,
             "--eval-freq", str(request.eval_freq),
             "--save-freq", str(request.save_freq),
-            "--checkpoint-dir", config["paths"]["checkpoints"],
+            "--checkpoint-dir", os.path.abspath(config["paths"]["checkpoints"]),  # Use absolute path
             "--log-dir", "logs"
         ]
 
         if use_sample_data:
+            print(f"[DEBUG] Appending --sample-data flag")
             cmd.append("--sample-data")
+        else:
+            print(f"[DEBUG] NOT appending --sample-data flag (data files found)")
+
+        # Log the command that will be executed
+        print(f"\n[TRAINING] Executing command:")
+        print(f"  Command: {' '.join(cmd)}")
+        print(f"  Working directory: {os.getcwd()}")
+        print(f"  Python path: {sys.path[:3]}")
 
         # Run training process
         background_tasks_status[task_id]["message"] = f"Starting training for {episodes} episodes..."
@@ -605,13 +689,23 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
             "message": f"Starting training for {episodes} episodes..."
         })
 
+        # Prepare environment variables
+        env = os.environ.copy()
+        env['PYTHONPATH'] = os.getcwd()
+        env['PYTHONIOENCODING'] = 'utf-8'  # Ensure UTF-8 encoding
+        env['PYTHONUNBUFFERED'] = '1'  # Disable output buffering for real-time logs
+
         # Start subprocess
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            bufsize=1
+            encoding='utf-8',  # Force UTF-8 encoding for stdout/stderr
+            errors='replace',  # Replace invalid characters instead of crashing
+            bufsize=1,
+            cwd=os.getcwd(),  # Set working directory
+            env=env  # Pass environment variables
         )
 
         # Parse output and send progress updates
@@ -674,6 +768,14 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
 
             # Small sleep to prevent busy loop
             await asyncio.sleep(0.1)
+
+        # Read any remaining output before checking return code
+        if process.stdout:
+            remaining_output = process.stdout.read()
+            if remaining_output:
+                for line in remaining_output.split('\n'):
+                    if line.strip():
+                        print(f"[Training] {line.strip()}")
 
         # Final return code check
         return_code = process.wait()
@@ -745,7 +847,11 @@ async def backtest_task(task_id: str, request: BacktestRequest):
     """Background task to run backtest on trained model"""
     try:
         import torch
-        import random
+        import numpy as np
+        from pathlib import Path
+        from src.agent.d3qn_agent import D3QNAgent
+        from src.policy.trading_env import TradingEnv
+        from src.data.loader import load_market_data, prepare_env_data, create_sample_data
 
         # Initialize
         background_tasks_status[task_id]["status"] = "running"
@@ -763,6 +869,7 @@ async def backtest_task(task_id: str, request: BacktestRequest):
 
         # GPU Detection
         device = "cuda" if (torch.cuda.is_available() and request.use_gpu) else "cpu"
+        print(f"[Backtest] Using device: {device}")
         background_tasks_status[task_id]["message"] = f"Using device: {device}"
         background_tasks_status[task_id]["progress"] = 5
         await ws_manager.broadcast({
@@ -774,33 +881,122 @@ async def backtest_task(task_id: str, request: BacktestRequest):
 
         await asyncio.sleep(0.5)
 
-        # Load model
-        background_tasks_status[task_id]["message"] = "Loading model..."
+        # Verify model file exists
+        model_path = Path(request.model_path)
+        if not model_path.exists():
+            raise FileNotFoundError(f"Model file not found: {request.model_path}")
+
+        print(f"[Backtest] Loading model from: {model_path}")
+        print(f"[Backtest] Model file size: {model_path.stat().st_size / (1024*1024):.2f} MB")
+
+        # Load market data
+        background_tasks_status[task_id]["message"] = "Loading market data..."
         background_tasks_status[task_id]["progress"] = 10
         await ws_manager.broadcast({
             "type": "backtest_progress",
             "task_id": task_id,
             "progress": 10,
-            "message": "Loading model..."
+            "message": "Loading market data..."
         })
 
-        await asyncio.sleep(1)
+        # Use first symbol from request
+        symbol = request.symbols[0] if request.symbols else "BTCUSDT"
+        timeframe = "1h"  # Fixed for now
+        window_size = 72  # Default window size
 
-        # Load data
-        background_tasks_status[task_id]["message"] = "Loading market data..."
+        print(f"[Backtest] Loading data for {symbol} {timeframe}, window_size={window_size}")
+
+        # Load data (will use synthetic if no real data available)
+        try:
+            df = load_market_data(symbol=symbol, timeframe=timeframe)
+            print(f"[Backtest] Loaded real market data: {len(df)} candles")
+        except:
+            print(f"[Backtest] No real data found, using synthetic data")
+            df = create_sample_data(symbol=symbol, n_samples=10000, save_dir="data")
+
+        # Prepare data for environment
+        env_data = prepare_env_data(df, add_indicators=True, normalize=False)
+
+        print(f"[Backtest] Data prepared: {env_data.shape[0]} timesteps, {env_data.shape[1]} features")
+
+        # Create trading environment
+        background_tasks_status[task_id]["message"] = "Creating trading environment..."
         background_tasks_status[task_id]["progress"] = 20
         await ws_manager.broadcast({
             "type": "backtest_progress",
             "task_id": task_id,
             "progress": 20,
-            "message": "Loading market data..."
+            "message": "Creating trading environment..."
         })
 
-        await asyncio.sleep(1)
+        env = TradingEnv(
+            data=env_data,
+            initial_balance=request.initial_balance,
+            max_leverage=request.max_leverage,
+            fee_rate=request.fee_rate,
+            window_size=window_size,
+            reward_type="sharpe"
+        )
 
-        # Run backtest simulation
-        total_steps = 100
-        for step in range(0, total_steps, 5):
+        print(f"[Backtest] Environment created")
+
+        # Load model
+        background_tasks_status[task_id]["message"] = "Loading trained model..."
+        background_tasks_status[task_id]["progress"] = 30
+        await ws_manager.broadcast({
+            "type": "backtest_progress",
+            "task_id": task_id,
+            "progress": 30,
+            "message": "Loading trained model..."
+        })
+
+        # Create agent and load checkpoint
+        obs_shape = env.observation_space.shape
+        n_actions = env.action_space.n
+
+        agent = D3QNAgent(
+            state_dim=obs_shape[0],
+            action_dim=n_actions,
+            learning_rate=0.00025,  # Default, not used in evaluation
+            gamma=0.995,
+            device=device
+        )
+
+        # Load the trained model
+        agent.load(str(model_path))
+        agent.policy_net.eval()  # Set to evaluation mode
+
+        print(f"[Backtest] Model loaded successfully")
+
+        # Run backtest
+        background_tasks_status[task_id]["message"] = "Running backtest simulation..."
+        background_tasks_status[task_id]["progress"] = 40
+        await ws_manager.broadcast({
+            "type": "backtest_progress",
+            "task_id": task_id,
+            "progress": 40,
+            "message": "Running backtest simulation..."
+        })
+
+        # Reset environment
+        state, _ = env.reset()
+        done = False
+        step = 0
+        episode_reward = 0
+
+        # Track equity curve
+        equity_curve = [request.initial_balance]
+        price_history = []
+
+        # Track position changes for trade history
+        prev_position = None
+        prev_balance = request.initial_balance
+
+        print(f"[Backtest] Starting simulation...")
+
+        total_steps = len(env_data) - window_size
+
+        while not done:
             # Check if cancelled
             if backtest_controls.get(task_id, {}).get("cancelled", False):
                 background_tasks_status[task_id]["status"] = "cancelled"
@@ -812,177 +1008,118 @@ async def backtest_task(task_id: str, request: BacktestRequest):
                 })
                 return
 
-            progress = 20 + int((step / total_steps) * 70)  # 20-90%
-            background_tasks_status[task_id]["progress"] = progress
-            background_tasks_status[task_id]["message"] = f"Running backtest... {step}/{total_steps} steps"
+            # Select action using the trained agent (no exploration)
+            with torch.no_grad():
+                state_tensor = torch.FloatTensor(state).unsqueeze(0).to(device)
+                q_values = agent.policy_net(state_tensor)
+                action = q_values.argmax(dim=1).item()
 
-            await ws_manager.broadcast({
-                "type": "backtest_progress",
-                "task_id": task_id,
-                "progress": progress,
-                "message": f"Running backtest... {step}/{total_steps} steps"
-            })
+            # Take action
+            next_state, reward, done, truncated, info = env.step(action)
+            episode_reward += reward
 
-            await asyncio.sleep(0.1)
+            # Get current price (close price at index 3 in OHLCV data)
+            current_step_idx = info.get('step', window_size)
+            if current_step_idx < len(env_data):
+                current_price = env_data[current_step_idx, 3]  # Close price
+            else:
+                current_price = env_data[-1, 3]
 
-        # Generate results
-        background_tasks_status[task_id]["message"] = "Generating results..."
+            # Record equity and price
+            equity_curve.append(info['balance'])
+            price_history.append(current_price)
+
+            state = next_state
+            step += 1
+
+            # Update progress every 100 steps
+            if step % 100 == 0:
+                progress = 40 + int((step / total_steps) * 50)  # 40-90%
+                background_tasks_status[task_id]["progress"] = progress
+                background_tasks_status[task_id]["message"] = f"Running backtest... {step}/{total_steps} steps"
+
+                await ws_manager.broadcast({
+                    "type": "backtest_progress",
+                    "task_id": task_id,
+                    "progress": progress,
+                    "message": f"Running backtest... {step}/{total_steps} steps"
+                })
+
+        print(f"[Backtest] Simulation completed: {step} steps")
+
+        # Calculate performance metrics
+        background_tasks_status[task_id]["message"] = "Calculating performance metrics..."
         background_tasks_status[task_id]["progress"] = 95
         await ws_manager.broadcast({
             "type": "backtest_progress",
             "task_id": task_id,
             "progress": 95,
-            "message": "Generating results..."
+            "message": "Calculating performance metrics..."
         })
 
-        # Create mock backtest results
-        total_trades = random.randint(50, 150)
-        winning_trades = int(total_trades * random.uniform(0.45, 0.65))
-        win_rate = (winning_trades / total_trades) * 100
+        # Get final info from environment
+        final_info = info
+        final_balance = final_info['balance']
+        total_return_pct = ((final_balance - request.initial_balance) / request.initial_balance) * 100
 
-        total_return_pct = random.uniform(-20, 80)
-        final_balance = request.initial_balance * (1 + total_return_pct / 100)
+        # Get trade statistics from environment
+        total_trades = final_info.get('total_trades', 0)
+        win_rate = final_info.get('win_rate', 0) * 100
 
-        sharpe_ratio = random.uniform(0.5, 3.0)
-        sortino_ratio = random.uniform(0.6, 3.5)
-        max_drawdown_pct = random.uniform(-5, -30)
-        profit_factor = random.uniform(0.8, 2.5)
+        # Calculate equity-based metrics
+        equity_array = np.array(equity_curve)
+        returns = np.diff(equity_array) / equity_array[:-1]
 
-        # Generate mock chart data
+        # Sharpe ratio
+        if len(returns) > 0 and np.std(returns) > 0:
+            sharpe_ratio = np.mean(returns) / np.std(returns) * np.sqrt(252 * 24)  # Annualized for 1H
+        else:
+            sharpe_ratio = 0
+
+        # Sortino ratio
+        downside_returns = returns[returns < 0]
+        if len(downside_returns) > 0:
+            downside_std = np.std(downside_returns)
+            sortino_ratio = np.mean(returns) / downside_std * np.sqrt(252 * 24) if downside_std > 0 else 0
+        else:
+            sortino_ratio = sharpe_ratio
+
+        # Max drawdown
+        running_max = np.maximum.accumulate(equity_array)
+        drawdown = (equity_array - running_max) / running_max
+        max_drawdown_pct = abs(drawdown.min()) * 100 if len(drawdown) > 0 else 0
+
+        # Profit factor (simplified calculation from returns)
+        positive_returns = returns[returns > 0]
+        negative_returns = returns[returns < 0]
+        total_gains = np.sum(positive_returns) if len(positive_returns) > 0 else 0
+        total_losses = abs(np.sum(negative_returns)) if len(negative_returns) > 0 else 0
+        profit_factor = (total_gains / total_losses) if total_losses > 0 else 0
+
+        # Generate chart data from actual price history
         chart_data = []
-        base_price = 40000 if "BTC" in request.symbols[0] else 2500
-        for i in range(100):
-            time_val = 1704067200 + (i * 3600)  # 2024-01-01 start
-            price_change = random.uniform(-0.02, 0.02)
-            base_price *= (1 + price_change)
-
+        for i in range(0, len(price_history), max(1, len(price_history) // 100)):  # Sample ~100 points
             chart_data.append({
-                "time": time_val,
-                "open": base_price * random.uniform(0.998, 1.002),
-                "high": base_price * random.uniform(1.001, 1.015),
-                "low": base_price * random.uniform(0.985, 0.999),
-                "close": base_price,
-                "volume": random.uniform(1000, 10000)
+                "time": int(1704067200 + i * 3600),  # Approximate timestamps
+                "close": round(float(price_history[i]), 2),
+                "equity": round(float(equity_curve[i]), 2)
             })
 
-        # Generate mock trade history (Futures Trading)
-        trade_history = []
-        current_time = 1704067200
-        balance = request.initial_balance
-        current_position = None  # Track current position state
-
-        for i in range(min(total_trades, 30)):  # Limit to 30 trades for display
-            # Determine action based on position state
-            if current_position is None:
-                # No position - open new position
-                action = random.choice(["OPEN_LONG", "OPEN_SHORT"])
-                current_position = "LONG" if action == "OPEN_LONG" else "SHORT"
-                entry_price = base_price * random.uniform(0.95, 1.05)
-
-                # Calculate position details
-                leverage = random.uniform(1.0, request.max_leverage)
-                position_value = balance * random.uniform(0.3, 0.8) * leverage
-                quantity = position_value / entry_price
-                fee = position_value * (request.fee_rate / 100)
-
-                # Calculate liquidation price
-                margin_ratio = 1.0 / leverage
-                if current_position == "LONG":
-                    liquidation_price = entry_price * (1 - margin_ratio * 0.9)
-                    take_profit = entry_price * random.uniform(1.01, 1.05)
-                    stop_loss = entry_price * random.uniform(0.97, 0.99)
-                    break_even = entry_price * (1 + request.fee_rate / 50)
-                else:
-                    liquidation_price = entry_price * (1 + margin_ratio * 0.9)
-                    take_profit = entry_price * random.uniform(0.95, 0.99)
-                    stop_loss = entry_price * random.uniform(1.01, 1.03)
-                    break_even = entry_price * (1 - request.fee_rate / 50)
-
-                balance -= fee  # Deduct opening fee
-
-                # Funding rate (simulated, usually between -0.01% to 0.01%)
-                funding_rate = random.uniform(-0.0001, 0.0001)
-
-                trade_history.append({
-                    "id": str(i + 1),
-                    "timestamp": current_time + (i * 3600 * random.randint(1, 24)),
-                    "action": action,
-                    "position": current_position,
-                    "entry_price": round(entry_price, 2),
-                    "exit_price": None,
-                    "current_price": round(entry_price, 2),
-                    "quantity": round(quantity, 4),
-                    "leverage": round(leverage, 2),
-                    "liquidation_price": round(liquidation_price, 2),
-                    "take_profit": round(take_profit, 2),
-                    "stop_loss": round(stop_loss, 2),
-                    "break_even": round(break_even, 2),
-                    "funding_rate": round(funding_rate * 100, 4),  # As percentage
-                    "pnl": round(-fee, 2),
-                    "pnl_pct": round(-fee / balance * 100, 2),
-                    "balance": round(balance, 2),
-                    "status": "OPEN"
-                })
-
-            else:
-                # Has position - close it
-                action = f"CLOSE_{current_position}"
-                exit_price = base_price * random.uniform(0.95, 1.05)
-
-                # Get last trade (the open position)
-                last_trade = trade_history[-1]
-                entry_price = last_trade["entry_price"]
-                quantity = last_trade["quantity"]
-                leverage = last_trade["leverage"]
-
-                # Calculate P&L
-                if current_position == "LONG":
-                    pnl = (exit_price - entry_price) * quantity
-                else:
-                    pnl = (entry_price - exit_price) * quantity
-
-                # Deduct closing fee
-                position_value = exit_price * quantity
-                fee = position_value * (request.fee_rate / 100)
-                pnl -= fee
-
-                balance += pnl
-                pnl_pct = (pnl / (entry_price * quantity / leverage)) * 100
-
-                trade_history.append({
-                    "id": str(i + 1),
-                    "timestamp": current_time + (i * 3600 * random.randint(1, 48)),
-                    "action": action,
-                    "position": current_position,
-                    "entry_price": round(entry_price, 2),
-                    "exit_price": round(exit_price, 2),
-                    "current_price": round(exit_price, 2),
-                    "quantity": round(quantity, 4),
-                    "leverage": round(leverage, 2),
-                    "liquidation_price": round(last_trade["liquidation_price"], 2),
-                    "take_profit": round(last_trade["take_profit"], 2),
-                    "stop_loss": round(last_trade["stop_loss"], 2),
-                    "break_even": round(last_trade["break_even"], 2),
-                    "funding_rate": last_trade.get("funding_rate", 0.0),
-                    "pnl": round(pnl, 2),
-                    "pnl_pct": round(pnl_pct, 2),
-                    "balance": round(balance, 2),
-                    "status": "CLOSED"
-                })
-
-                current_position = None  # Reset position
+        # Estimate winning/losing trades from win rate
+        winning_trades = int(total_trades * (win_rate / 100)) if total_trades > 0 else 0
+        losing_trades = total_trades - winning_trades
 
         results = {
             "summary": {
                 "total_return_pct": round(total_return_pct, 2),
                 "initial_balance": request.initial_balance,
                 "final_balance": round(final_balance, 2),
-                "max_leverage_used": round(random.uniform(1.0, request.max_leverage), 2)
+                "max_leverage_used": request.max_leverage
             },
             "trades": {
                 "total_trades": total_trades,
                 "winning_trades": winning_trades,
-                "losing_trades": total_trades - winning_trades,
+                "losing_trades": losing_trades,
                 "win_rate": round(win_rate, 2)
             },
             "performance": {
@@ -992,8 +1129,10 @@ async def backtest_task(task_id: str, request: BacktestRequest):
                 "profit_factor": round(profit_factor, 2)
             },
             "chart_data": chart_data,
-            "trade_history": trade_history
+            "trade_history": []  # Simplified: no detailed trade history for now
         }
+
+        print(f"[Backtest] Results: Return={total_return_pct:.2f}%, Trades={total_trades}, Win Rate={win_rate:.2f}%")
 
         # Store results
         background_tasks_status[task_id]["results"] = results
@@ -1014,12 +1153,17 @@ async def backtest_task(task_id: str, request: BacktestRequest):
         })
 
     except Exception as e:
+        import traceback
+        error_msg = f"Backtest failed: {str(e)}"
+        print(f"[Backtest] Error: {e}")
+        traceback.print_exc()
+
         background_tasks_status[task_id]["status"] = "failed"
-        background_tasks_status[task_id]["message"] = f"Backtest failed: {str(e)}"
+        background_tasks_status[task_id]["message"] = error_msg
         await ws_manager.broadcast({
             "type": "backtest_error",
             "task_id": task_id,
-            "message": f"Backtest failed: {str(e)}"
+            "message": error_msg
         })
         print(f"Backtest error: {e}")
 
@@ -1175,7 +1319,7 @@ async def download_data_task(task_id: str, request: DataDownloadRequest):
 
                 # Warn if we got significantly fewer candles than expected
                 if len(all_candles) < expected_candles * 0.8:
-                    print(f"  ⚠️  Warning: Got {len(all_candles)} candles but expected ~{expected_candles}")
+                    print(f"  [WARN]  Warning: Got {len(all_candles)} candles but expected ~{expected_candles}")
                     background_tasks_status[task_id]["message"] = f"Downloaded {symbol} - {len(all_candles)}/{expected_candles} candles (some data may be missing)"
 
 
@@ -1342,9 +1486,13 @@ async def cancel_training(task_id: str):
 async def get_available_models():
     """List available trained models"""
     # Check both checkpoints and models directories
-    checkpoints_dir = config["paths"]["checkpoints"]
-    models_dir = config["paths"]["models"]
+    checkpoints_dir = os.path.abspath(config["paths"]["checkpoints"])
+    models_dir = os.path.abspath(config["paths"]["models"])
     available_models = []
+
+    print(f"[API] Checking for models in:")
+    print(f"  Checkpoints: {checkpoints_dir}")
+    print(f"  Models: {models_dir}")
 
     # Check checkpoints directory (where trained models are saved)
     if os.path.exists(checkpoints_dir):
@@ -1358,6 +1506,7 @@ async def get_available_models():
                     "size_mb": round(stat.st_size / (1024 * 1024), 2),
                     "created": datetime.fromtimestamp(stat.st_mtime).isoformat()
                 })
+                print(f"  Found: {file} ({stat.st_size / (1024 * 1024):.2f} MB)")
 
     # Also check models directory
     if os.path.exists(models_dir):
@@ -1371,7 +1520,9 @@ async def get_available_models():
                     "size_mb": round(stat.st_size / (1024 * 1024), 2),
                     "created": datetime.fromtimestamp(stat.st_mtime).isoformat()
                 })
+                print(f"  Found: {file} ({stat.st_size / (1024 * 1024):.2f} MB)")
 
+    print(f"[API] Total models found: {len(available_models)}")
     return {"models": available_models, "count": len(available_models)}
 
 # ============================================================================
@@ -1883,15 +2034,38 @@ async def list_tasks():
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket for real-time updates"""
-    await ws_manager.connect(websocket)
+    client_host = websocket.client.host if websocket.client else "unknown"
+    client_port = websocket.client.port if websocket.client else "unknown"
+    print(f"[WebSocket] Connection attempt from {client_host}:{client_port}")
+
     try:
-        while True:
-            # Keep connection alive
-            data = await websocket.receive_text()
-            # Echo back for testing
-            await websocket.send_json({"type": "echo", "data": data})
-    except WebSocketDisconnect:
-        ws_manager.disconnect(websocket)
+        print(f"[WebSocket] Accepting connection...")
+        await ws_manager.connect(websocket)
+        print(f"[WebSocket] Client connected: {client_host}:{client_port}")
+
+        try:
+            while True:
+                # Keep connection alive
+                data = await websocket.receive_text()
+                print(f"[WebSocket] Received from {client_host}: {data[:50]}...")
+                # Echo back for testing
+                await websocket.send_json({"type": "echo", "data": data})
+        except WebSocketDisconnect:
+            print(f"[WebSocket] Client disconnected: {client_host}:{client_port}")
+            ws_manager.disconnect(websocket)
+        except Exception as e:
+            print(f"[WebSocket] Error in message loop: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+            ws_manager.disconnect(websocket)
+    except Exception as e:
+        print(f"[WebSocket] Failed to accept connection: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        try:
+            await websocket.close(code=1008, reason=str(e)[:100])
+        except:
+            pass
 
 # ============================================================================
 # Main Entry Point

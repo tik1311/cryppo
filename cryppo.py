@@ -227,11 +227,11 @@ def train(
         "-m", "src.training.train_d3qn",
         "--symbol", symbol,
         "--episodes", str(episodes),
-        "--learning-rate", str(learning_rate),
+        "--lr", str(learning_rate),  # Changed from --learning-rate
         "--gamma", "0.995",
         "--batch-size", "64",
         "--buffer-size", "100000",
-        "--reward-type", "sharpe",
+        "--reward", "sharpe",  # Changed from --reward-type
         "--save-freq", "10"
     ]
 

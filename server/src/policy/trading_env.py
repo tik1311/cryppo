@@ -32,7 +32,7 @@ class TradingEnv(gym.Env):
         data: np.ndarray,
         initial_balance: float = 10000.0,
         fee_rate: float = 0.0004,
-        max_leverage: float = 3.0,
+        max_leverage: float = 1.5,  # REDUCED from 3.0 - lower risk, prevent -78% losses
         window_size: int = 72,
         reward_type: str = 'sharpe'
     ):
@@ -189,31 +189,31 @@ class TradingEnv(gym.Env):
         if self.current_step - self.window_size < 3:
             print(f"  [ACTION] Step {self.current_step}: {action_names[action]} | Pos: {self.position or 'None'}")
 
-        # RAMPING PUNISHMENT for consecutive HOLD actions (from research)
+        # REDUCED ramping punishment (prevent over-trading)
+        # Agent was trading too much (51 trades), need quality > quantity
         if action == 0:  # HOLD
             self.consecutive_holds += 1
-            # Ramping punishment: -0.01, -0.02, -0.04, -0.08, -0.16... (exponential)
-            if self.consecutive_holds > 5:
-                hold_penalty = -0.001 * (2 ** (self.consecutive_holds - 5))
+            # Gentler ramping: start penalty after 20 holds (not 5)
+            if self.consecutive_holds > 20:
+                hold_penalty = -0.0005 * (self.consecutive_holds - 20)
                 exploration_bonus += hold_penalty
         else:
-            # Reward for breaking HOLD streak
-            if self.consecutive_holds > 10:
-                exploration_bonus += 0.01  # Reward for finally taking action!
+            # Smaller reward for breaking hold
+            if self.consecutive_holds > 30:
+                exploration_bonus += 0.002  # Reduced from 0.01
             self.consecutive_holds = 0
 
-        # Action diversity bonus (intrinsic curiosity)
-        # Reward less-used actions
+        # REDUCED action diversity bonus (quality > quantity)
         total_actions = sum(self.action_counts.values())
-        if total_actions > 50:  # Start after some experience
+        if total_actions > 100:  # Start later (was 50)
             action_freq = self.action_counts[action] / total_actions
-            if action_freq < 0.15:  # If action used < 15% of time
-                exploration_bonus += 0.001  # Bonus for exploring rare actions
+            if action_freq < 0.10:  # More strict (was 0.15)
+                exploration_bonus += 0.0002  # Much smaller (was 0.001)
 
         if action == 1:  # OPEN_LONG
             if self.position is None:
                 self._open_position('long', current_price)
-                exploration_bonus += 0.005  # Significant reward for opening position
+                exploration_bonus += 0.001  # REDUCED from 0.005 - focus on profit not exploration
             elif self.position == 'short':
                 trade_reward = self._close_position(current_price)
                 self._open_position('long', current_price)
@@ -221,7 +221,7 @@ class TradingEnv(gym.Env):
         elif action == 2:  # OPEN_SHORT
             if self.position is None:
                 self._open_position('short', current_price)
-                exploration_bonus += 0.005  # Significant reward for opening position
+                exploration_bonus += 0.001  # REDUCED from 0.005
             elif self.position == 'long':
                 trade_reward = self._close_position(current_price)
                 self._open_position('short', current_price)
@@ -229,7 +229,7 @@ class TradingEnv(gym.Env):
         elif action == 3:  # CLOSE_POSITION
             if self.position is not None:
                 trade_reward = self._close_position(current_price)
-                exploration_bonus += 0.002  # Reward for closing (completing trade cycle)
+                exploration_bonus += 0.0005  # REDUCED from 0.002
 
         # Apply funding rate every 8 hours (simulated)
         if self.position and self.current_step % 8 == 0:
@@ -259,6 +259,33 @@ class TradingEnv(gym.Env):
         if self.position and self.steps_in_position >= self.max_position_duration * 1.2:  # 20% grace period
             trade_reward = self._close_position(current_price)
             trade_reward -= 0.1  # Extra penalty for forced close
+
+        # AUTO STOP LOSS - Critical for risk management!
+        if self.position:
+            hit_sl = False
+            hit_tp = False
+
+            if self.position == 'long':
+                if current_price <= self.stop_loss:
+                    hit_sl = True
+                elif current_price >= self.take_profit:
+                    hit_tp = True
+            else:  # short
+                if current_price >= self.stop_loss:
+                    hit_sl = True
+                elif current_price <= self.take_profit:
+                    hit_tp = True
+
+            if hit_sl:
+                trade_reward = self._close_position(current_price)
+                trade_reward -= 0.02  # Extra penalty for hitting SL (learn to avoid)
+                if self.total_trades <= 5:
+                    print(f"  [RISK] Stop Loss HIT @ ${current_price:.2f}")
+            elif hit_tp:
+                trade_reward = self._close_position(current_price)
+                trade_reward += 0.01  # Small bonus for hitting TP
+                if self.total_trades <= 5:
+                    print(f"  [WIN] Take Profit HIT @ ${current_price:.2f}")
 
         # Check liquidation BEFORE updating equity
         if self.position and self._check_liquidation(current_price):
@@ -343,14 +370,15 @@ class TradingEnv(gym.Env):
             # Short: liquidated if price rises too much
             self.liquidation_price = price * (1 + margin_ratio * 0.9)
 
-        # Set TP/SL/BE (example: 2% TP, 1% SL)
+        # STRICT Stop Loss & Take Profit (prevent -78% losses!)
+        # Use tighter SL with leverage reduction
         if position_type == 'long':
-            self.take_profit = price * 1.02  # 2% profit
-            self.stop_loss = price * 0.99    # 1% loss
-            self.break_even = price * (1 + self.fee_rate * 2)  # 2x fee to break even
+            self.take_profit = price * 1.015  # 1.5% profit (tighter)
+            self.stop_loss = price * 0.995    # 0.5% loss (MUCH tighter - was 1%)
+            self.break_even = price * (1 + self.fee_rate * 2)
         else:
-            self.take_profit = price * 0.98
-            self.stop_loss = price * 1.01
+            self.take_profit = price * 0.985  # 1.5% profit
+            self.stop_loss = price * 1.005    # 0.5% loss (STRICT)
             self.break_even = price * (1 - self.fee_rate * 2)
 
     def _close_position(self, price: float) -> float:
@@ -451,30 +479,30 @@ class TradingEnv(gym.Env):
         Returns:
             Reward value
         """
-        # Base reward from trading activity
+        # Base reward from trading activity - AMPLIFIED for clear signal
         base_reward = 0.0
         if trade_reward != 0:
-            # Give normalized reward for trade execution (positive or negative)
-            base_reward = trade_reward / self.initial_balance
+            # Amplify trade reward so agent learns profit/loss clearly
+            base_reward = (trade_reward / self.initial_balance) * 5.0  # 5x amplification
 
         if self.reward_type == 'profit':
             # Direct profit reward + small step reward
             step_reward = (self.equity - self.equity_history[-2]) / self.initial_balance if len(self.equity_history) > 1 else 0.0
-            return base_reward + step_reward
+            return base_reward + step_reward * 2.0  # Amplify step reward
 
         elif self.reward_type == 'return':
             # Percentage return
             if len(self.equity_history) < 2:
                 return base_reward
             step_return = (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
-            return base_reward + step_return
+            return base_reward + step_return * 5.0  # Amplify for clear signal
 
         elif self.reward_type == 'sharpe':
             # Sharpe ratio (risk-adjusted return) + step reward
             step_reward = 0.0
             if len(self.equity_history) >= 2:
                 step_return = (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
-                step_reward = step_return * 10  # Scale up for learning
+                step_reward = step_return * 5.0  # Reduced from 10 for stability
 
             # Calculate Sharpe only if we have enough data
             sharpe_reward = 0.0

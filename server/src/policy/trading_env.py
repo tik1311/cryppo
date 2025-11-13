@@ -211,9 +211,10 @@ class TradingEnv(gym.Env):
             self.steps_without_position += 1
             self.steps_in_position = 0
 
-            # Penalty for not trading too long (> 3 days) - prevent lazy trading
+            # REDUCED penalty for not trading (was -0.005, now -0.0001)
+            # Too strong penalty causes agent to never learn to trade
             if self.steps_without_position > self.max_no_position_duration:
-                position_penalty -= 0.005 * (self.steps_without_position - self.max_no_position_duration)
+                position_penalty -= 0.0001 * (self.steps_without_position - self.max_no_position_duration)
 
         # Auto-close if position held too long
         if self.position and self.steps_in_position >= self.max_position_duration * 1.2:  # 20% grace period
@@ -402,48 +403,65 @@ class TradingEnv(gym.Env):
         Returns:
             Reward value
         """
+        # Base reward from trading activity
+        base_reward = 0.0
+        if trade_reward != 0:
+            # Give normalized reward for trade execution (positive or negative)
+            base_reward = trade_reward / self.initial_balance
+
         if self.reward_type == 'profit':
-            # Direct profit reward
-            if trade_reward != 0:
-                return trade_reward / self.initial_balance
-            return 0.0
+            # Direct profit reward + small step reward
+            step_reward = (self.equity - self.equity_history[-2]) / self.initial_balance if len(self.equity_history) > 1 else 0.0
+            return base_reward + step_reward
 
         elif self.reward_type == 'return':
             # Percentage return
             if len(self.equity_history) < 2:
-                return 0.0
-            return (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
+                return base_reward
+            step_return = (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
+            return base_reward + step_return
 
         elif self.reward_type == 'sharpe':
-            # Sharpe ratio (risk-adjusted return)
-            if len(self.equity_history) < 10:
-                return 0.0
+            # Sharpe ratio (risk-adjusted return) + step reward
+            step_reward = 0.0
+            if len(self.equity_history) >= 2:
+                step_return = (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
+                step_reward = step_return * 10  # Scale up for learning
 
-            equity_window = np.array(self.equity_history[-30:])
-            returns = np.diff(equity_window) / equity_window[:-1]
-            if len(returns) == 0 or np.std(returns) == 0:
-                return 0.0
+            # Calculate Sharpe only if we have enough data
+            sharpe_reward = 0.0
+            if len(self.equity_history) >= 10:
+                equity_window = np.array(self.equity_history[-30:])
+                returns = np.diff(equity_window) / equity_window[:-1]
+                if len(returns) > 0 and np.std(returns) > 0:
+                    sharpe = np.mean(returns) / (np.std(returns) + 1e-6)
+                    sharpe_reward = sharpe * 0.1  # Small sharpe component
 
-            sharpe = np.mean(returns) / (np.std(returns) + 1e-6)
-            return sharpe
+            return base_reward + step_reward + sharpe_reward
 
         elif self.reward_type == 'sortino':
-            # Sortino ratio (downside risk-adjusted return)
-            if len(self.equity_history) < 10:
-                return 0.0
+            # Sortino ratio (downside risk-adjusted return) + step reward
+            step_reward = 0.0
+            if len(self.equity_history) >= 2:
+                step_return = (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
+                step_reward = step_return * 10  # Scale up for learning
 
-            equity_window = np.array(self.equity_history[-30:])
-            returns = np.diff(equity_window) / equity_window[:-1]
-            downside_returns = returns[returns < 0]
+            sortino_reward = 0.0
+            if len(self.equity_history) >= 10:
+                equity_window = np.array(self.equity_history[-30:])
+                returns = np.diff(equity_window) / equity_window[:-1]
+                downside_returns = returns[returns < 0]
 
-            if len(downside_returns) == 0:
-                return np.mean(returns)
+                if len(returns) > 0 and len(downside_returns) > 0:
+                    sortino = np.mean(returns) / (np.std(downside_returns) + 1e-6)
+                    sortino_reward = sortino * 0.1
+                elif len(returns) > 0:
+                    sortino_reward = np.mean(returns) * 0.1
 
-            sortino = np.mean(returns) / (np.std(downside_returns) + 1e-6)
-            return sortino
+            return base_reward + step_reward + sortino_reward
 
         else:
-            return 0.0
+            return base_reward
 
     def render(self):
         """Render environment state"""

@@ -125,8 +125,8 @@ class D3QNAgent:
         learning_rate: float = 0.00025,
         gamma: float = 0.995,
         epsilon_start: float = 1.0,
-        epsilon_end: float = 0.05,
-        epsilon_decay: float = 0.9995,
+        epsilon_end: float = 0.1,  # Increased from 0.05 to 0.1 for more exploration
+        epsilon_decay: float = 0.9998,  # Slower decay (was 0.9995)
         buffer_size: int = 100000,
         batch_size: int = 64,
         target_update_freq: int = 1000,
@@ -177,7 +177,7 @@ class D3QNAgent:
 
     def select_action(self, state: np.ndarray, training: bool = True) -> int:
         """
-        Select action using epsilon-greedy policy
+        Select action using epsilon-greedy policy with exploration bias
 
         Args:
             state: Current state
@@ -187,8 +187,11 @@ class D3QNAgent:
             Selected action index
         """
         if training and random.random() < self.epsilon:
-            # Random action (exploration)
-            return random.randrange(self.action_dim)
+            # Random action with bias towards trading (not just holding)
+            # Action 0 = HOLD, 1 = LONG, 2 = SHORT, 3 = CLOSE
+            # Bias: 20% HOLD, 35% LONG, 35% SHORT, 10% CLOSE
+            action_probs = [0.2, 0.35, 0.35, 0.1]
+            return random.choices(range(self.action_dim), weights=action_probs)[0]
 
         # Greedy action (exploitation)
         with torch.no_grad():

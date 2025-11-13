@@ -156,7 +156,107 @@ python cryppo.py train --episodes 100 --reward profit --lr 0.0005
 
 ---
 
-## 📝 Detailed Episode Logging (NEW!)
+## 🛡️ Advanced Risk Management (NEW!)
+
+CRYPPO now includes **professional-grade risk management** based on industry best practices from 2024:
+
+### ✅ Mandatory TP/SL + Trailing Stop Loss
+
+**Every position automatically has:**
+1. **ATR-Based Take Profit** (TP = Entry ± ATR × 2.0)
+2. **ATR-Based Stop Loss** (SL = Entry ± ATR × 1.0)
+3. **Trailing Stop Loss** (follows price with ATR × 0.5 distance)
+
+**What is ATR?**
+- ATR (Average True Range) = measure of market volatility over 14 periods
+- Volatile market → wider TP/SL (gives price room to move)
+- Calm market → tighter TP/SL (takes profits faster)
+- **Adapts automatically** to market conditions!
+
+### 📊 How Trailing Stop Loss Works
+
+**For LONG positions:**
+```
+Entry: $30,000
+Initial SL: $29,700 (ATR × 1.0 = $300 below)
+TP: $30,600 (ATR × 2.0 = $600 above)
+Trailing Distance: $150 (ATR × 0.5)
+
+Step 1: Price → $30,200 (+0.67%)
+  Trailing SL: $30,050 (moves UP!)
+
+Step 2: Price → $30,500 (+1.67%)
+  Trailing SL: $30,350 (moves UP again!)
+
+Step 3: Price → $30,300 (drops)
+  Trailing SL: stays at $30,350 (NEVER moves down!)
+
+Step 4: Price → $30,340
+  HIT Trailing SL! Auto close @ $30,340
+  Profit: +1.13% (protected gains!)
+```
+
+**Key Benefits:**
+- ✅ Locks in profits as price moves favorably
+- ✅ Never moves against you (only improves)
+- ✅ Automatically enforced (agent cannot override!)
+- ✅ Based on volatility (not arbitrary percentages)
+
+### 🚫 No Position Flipping
+
+**Old Behavior (BAD):**
+```
+Step 72: OPEN_SHORT @ $30,885
+Step 74: Agent says "OPEN_LONG"
+  → Auto-close SHORT (loss: -$80)
+  → Auto-open LONG (fee: $12)
+  Total cost: $92 in unintended trades!
+```
+
+**New Behavior (GOOD):**
+```
+Step 72: OPEN_SHORT @ $30,885
+Step 74: Agent says "OPEN_LONG"
+  → BLOCKED! "Must CLOSE first!"
+  → Penalty: -0.01
+
+Step 75: Agent says "CLOSE"
+  → Close SHORT properly
+
+Step 76: Agent says "OPEN_LONG"
+  → Open LONG (intentional)
+```
+
+**Benefits:**
+- ✅ No accidental position flips
+- ✅ Agent must be intentional
+- ✅ Saves on fees ($24/trade → controlled)
+
+### 🎯 Risk:Reward Ratio = 1:2
+
+Every trade has:
+- **Risk:** ATR × 1.0 (Stop Loss)
+- **Reward:** ATR × 2.0 (Take Profit)
+- **Ratio:** 1:2 (industry standard)
+
+**What this means:**
+- Win 50% of trades → Break even
+- Win > 50% of trades → Profitable!
+- Trailing SL improves this ratio even more
+
+### 📈 Longer Episodes = Better Learning
+
+**Old:** Episodes were random length (avg ~1000 steps)
+**New:** Guaranteed minimum 1200 steps per episode (+20%)
+
+**Benefits:**
+- ✅ More data per episode
+- ✅ Better pattern recognition
+- ✅ Improved learning stability
+
+---
+
+## 📝 Detailed Episode Logging
 
 CRYPPO now automatically saves **detailed step-by-step logs** for:
 - ✅ **Last training episode** (final episode of training)

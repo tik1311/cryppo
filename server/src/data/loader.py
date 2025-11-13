@@ -196,8 +196,8 @@ def create_sample_data(
         DataFrame with synthetic OHLCV data
     """
     print(f"Creating {n_samples} samples of synthetic data...")
-    print("⚠️  WARNING: This is synthetic data for testing only!")
-    print("   Use real market data for actual training.\n")
+    print("! WARNING: This is synthetic data for testing only!")
+    print("  Use real market data for actual training.\n")
 
     # Generate timestamps (1 hour intervals)
     start_time = pd.Timestamp('2023-01-01')
@@ -237,6 +237,6 @@ def create_sample_data(
     os.makedirs(save_dir, exist_ok=True)
     filepath = f"{save_dir}/{symbol}_{n_samples}_synthetic.parquet"
     df.to_parquet(filepath, index=False)
-    print(f"✓ Saved synthetic data to: {filepath}")
+    print(f"[OK] Saved synthetic data to: {filepath}")
 
     return df

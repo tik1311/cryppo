@@ -1365,7 +1365,7 @@ async def download_data_task(task_id: str, request: DataDownloadRequest):
                         else:
                             await asyncio.sleep(2 ** retry_count)  # Exponential backoff
 
-                print(f"  ✓ Downloaded {len(all_candles)} total candles for {symbol} (expected ~{expected_candles})")
+                print(f"  [OK] Downloaded {len(all_candles)} total candles for {symbol} (expected ~{expected_candles})")
 
                 # Warn if we got significantly fewer candles than expected
                 if len(all_candles) < expected_candles * 0.8:
@@ -2160,10 +2160,10 @@ if __name__ == "__main__":
     websockets_available = False
     try:
         import websockets
-        print(f"\n✓ WebSocket support: websockets {websockets.__version__}")
+        print(f"\n[OK] WebSocket support: websockets {websockets.__version__}")
         websockets_available = True
     except ImportError:
-        print("\n✗ ERROR: websockets package not installed!")
+        print("\n[ERROR] websockets package not installed!")
         print("  WebSocket connections will fail with 400 Bad Request")
         print("\n  To fix, run:")
         print("    pip install websockets>=12.0")

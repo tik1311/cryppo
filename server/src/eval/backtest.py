@@ -235,19 +235,19 @@ class BacktestEngine:
         print("Backtest Results")
         print("=" * 60)
 
-        print("\n📊 Summary:")
+        print("\n[SUMMARY]")
         print(f"  Initial Balance: ${results['summary']['initial_balance']:,.2f}")
         print(f"  Final Balance:   ${results['summary']['final_balance']:,.2f}")
         print(f"  Total PnL:       ${results['summary']['total_pnl']:,.2f}")
         print(f"  Total Return:    {results['summary']['total_return_pct']:.2f}%")
 
-        print("\n📈 Trades:")
+        print("\n[TRADES]")
         print(f"  Total Trades:    {results['trades']['total_trades']}")
         print(f"  Winning Trades:  {results['trades']['winning_trades']}")
         print(f"  Losing Trades:   {results['trades']['losing_trades']}")
         print(f"  Win Rate:        {results['trades']['win_rate']:.2f}%")
 
-        print("\n💹 Performance:")
+        print("\n[PERFORMANCE]")
         print(f"  Avg Win:         ${results['performance']['avg_win']:.2f}")
         print(f"  Avg Loss:        ${results['performance']['avg_loss']:.2f}")
         print(f"  Profit Factor:   {results['performance']['profit_factor']:.2f}")

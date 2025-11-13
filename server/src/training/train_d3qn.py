@@ -71,7 +71,9 @@ class TrainingLogger:
     """Simple logger for training metrics"""
 
     def __init__(self, log_dir: str = "logs"):
-        self.log_dir = Path(log_dir)
+        # Get project root (parent of server/)
+        project_root = Path(__file__).resolve().parent.parent.parent.parent
+        self.log_dir = project_root / log_dir
         self.log_dir.mkdir(exist_ok=True, parents=True)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -181,9 +183,12 @@ def train_d3qn(
     logger.log(f"Reward Type: {reward_type}")
     logger.log("=" * 60)
 
-    # Create checkpoint directory
-    checkpoint_path = Path(checkpoint_dir)
+    # Create checkpoint directory (relative to project root, not cwd)
+    # Get project root (parent of server/)
+    project_root = Path(__file__).resolve().parent.parent.parent.parent
+    checkpoint_path = project_root / checkpoint_dir
     checkpoint_path.mkdir(exist_ok=True, parents=True)
+    logger.log(f"[INFO] Checkpoints will be saved to: {checkpoint_path}")
 
     # Load market data
     logger.log("\n[DATA] Loading market data...")

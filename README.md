@@ -77,6 +77,44 @@ chmod +x setup.sh
 # - Create necessary directories
 ```
 
+### Manual Installation
+
+```bash
+# 1. Backend dependencies
+cd server
+pip install -r requirements.txt
+
+# 2. Verify critical packages (IMPORTANT!)
+python -c "import websockets; print(f'✓ WebSocket support: {websockets.__version__}')"
+python -c "import torch; print(f'✓ PyTorch: {torch.__version__}')"
+python -c "import fastapi; print(f'✓ FastAPI: {fastapi.__version__}')"
+
+# 3. If websockets package is missing (400 Bad Request errors):
+pip install websockets>=12.0
+
+# 4. Frontend dependencies
+cd ../client
+npm install
+```
+
+### Troubleshooting Installation
+
+**WebSocket 400 Bad Request Error:**
+
+If you see WebSocket connection errors when starting the server:
+
+```bash
+# The server will show this warning:
+✗ ERROR: websockets package not installed!
+  WebSocket connections will fail with 400 Bad Request
+
+# Fix by installing:
+pip install websockets>=12.0
+
+# Or reinstall all requirements:
+pip install -r requirements.txt
+```
+
 ---
 
 ## Usage
@@ -371,8 +409,19 @@ kill -9 <PID>
 uvicorn main:app --port 8001
 ```
 
-**2. WebSocket connection failed**
+**2. WebSocket connection failed (400 Bad Request)**
 
+**Root Cause:** Missing `websockets` Python package
+
+```bash
+# Check if websockets is installed
+python -c "import websockets; print(websockets.__version__)"
+
+# If you see ModuleNotFoundError, install it:
+pip install websockets>=12.0
+```
+
+**Other Possible Causes:**
 - Make sure backend is running on port 8000
 - Check `logs/server.log` for connection errors
 - Verify frontend is accessing `ws://localhost:8000/ws`

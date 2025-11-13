@@ -2141,14 +2141,36 @@ if __name__ == "__main__":
     print("CRYPPO System - Backend Server")
     print("Version: 2.0.0 | Timeframe: 1H Only")
     print("=" * 60)
+
+    # Check for websockets package
+    websockets_available = False
+    try:
+        import websockets
+        print(f"\n✓ WebSocket support: websockets {websockets.__version__}")
+        websockets_available = True
+    except ImportError:
+        print("\n✗ ERROR: websockets package not installed!")
+        print("  WebSocket connections will fail with 400 Bad Request")
+        print("\n  To fix, run:")
+        print("    pip install websockets>=12.0")
+        print("    OR")
+        print("    pip install -r requirements.txt")
+        print("\n  Starting server anyway (REST API will work, WebSocket won't)...")
+
     print("\nStarting server...")
     print("API Docs: http://localhost:8000/docs")
     print("WebSocket: ws://localhost:8000/ws")
     print("=" * 60)
 
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000,
-        log_level="info"
-    )
+    # Use websockets protocol explicitly if available
+    uvicorn_config = {
+        "app": app,
+        "host": "0.0.0.0",
+        "port": 8000,
+        "log_level": "info"
+    }
+
+    if websockets_available:
+        uvicorn_config["ws"] = "websockets"
+
+    uvicorn.run(**uvicorn_config)

@@ -125,8 +125,8 @@ class D3QNAgent:
         learning_rate: float = 0.00025,
         gamma: float = 0.995,
         epsilon_start: float = 1.0,
-        epsilon_end: float = 0.1,  # Increased from 0.05 to 0.1 for more exploration
-        epsilon_decay: float = 0.9998,  # Slower decay (was 0.9995)
+        epsilon_end: float = 0.2,  # Keep high exploration (was 0.1)
+        epsilon_decay: float = 0.9999,  # Very slow decay (was 0.9998)
         buffer_size: int = 100000,
         batch_size: int = 64,
         target_update_freq: int = 1000,
@@ -187,10 +187,11 @@ class D3QNAgent:
             Selected action index
         """
         if training and random.random() < self.epsilon:
-            # Random action with bias towards trading (not just holding)
+            # Random action with STRONG bias towards trading (not holding)
             # Action 0 = HOLD, 1 = LONG, 2 = SHORT, 3 = CLOSE
-            # Bias: 20% HOLD, 35% LONG, 35% SHORT, 10% CLOSE
-            action_probs = [0.2, 0.35, 0.35, 0.1]
+            # Bias: 5% HOLD, 42% LONG, 42% SHORT, 11% CLOSE
+            # Force agent to explore trading actions
+            action_probs = [0.05, 0.42, 0.42, 0.11]
             return random.choices(range(self.action_dim), weights=action_probs)[0]
 
         # Greedy action (exploitation)

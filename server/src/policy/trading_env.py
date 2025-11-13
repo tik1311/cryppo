@@ -174,10 +174,12 @@ class TradingEnv(gym.Env):
 
         # Execute action
         trade_reward = 0.0
+        exploration_bonus = 0.0
 
         if action == 1:  # OPEN_LONG
             if self.position is None:
                 self._open_position('long', current_price)
+                exploration_bonus = 0.0001  # Small reward for taking action
             elif self.position == 'short':
                 trade_reward = self._close_position(current_price)
                 self._open_position('long', current_price)
@@ -185,6 +187,7 @@ class TradingEnv(gym.Env):
         elif action == 2:  # OPEN_SHORT
             if self.position is None:
                 self._open_position('short', current_price)
+                exploration_bonus = 0.0001  # Small reward for taking action
             elif self.position == 'long':
                 trade_reward = self._close_position(current_price)
                 self._open_position('short', current_price)
@@ -204,17 +207,18 @@ class TradingEnv(gym.Env):
             self.steps_in_position += 1
             self.steps_without_position = 0
 
-            # Penalty for holding position too long (> 3 days)
+            # FIXED penalty for holding position too long (> 3 days)
+            # Constant penalty, not growing with time
             if self.steps_in_position > self.max_position_duration:
-                position_penalty -= 0.01 * (self.steps_in_position - self.max_position_duration)
+                position_penalty = -0.001  # Small fixed penalty per step
         else:
             self.steps_without_position += 1
             self.steps_in_position = 0
 
-            # REDUCED penalty for not trading (was -0.005, now -0.0001)
-            # Too strong penalty causes agent to never learn to trade
-            if self.steps_without_position > self.max_no_position_duration:
-                position_penalty -= 0.0001 * (self.steps_without_position - self.max_no_position_duration)
+            # NO PENALTY for not trading - let agent learn naturally
+            # Penalty causes agent to never learn proper trading timing
+            # if self.steps_without_position > self.max_no_position_duration:
+            #     position_penalty = -0.0001
 
         # Auto-close if position held too long
         if self.position and self.steps_in_position >= self.max_position_duration * 1.2:  # 20% grace period
@@ -243,8 +247,8 @@ class TradingEnv(gym.Env):
 
         self.equity_history.append(self.equity)
 
-        # Calculate reward with position penalty
-        reward = self._calculate_reward(trade_reward) + position_penalty
+        # Calculate reward with position penalty and exploration bonus
+        reward = self._calculate_reward(trade_reward) + position_penalty + exploration_bonus
 
         # Move to next step
         self.current_step += 1

@@ -25,6 +25,7 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.noise import NormalActionNoise
 
 from src.policy.trading_env import TradingEnv
+from src.policy.wrappers import ContinuousActionWrapper
 from src.data.loader import load_market_data, prepare_env_data, split_train_test, create_sample_data
 
 
@@ -169,6 +170,7 @@ def train_td3(
             window_size=window_size,
             reward_type=reward_type
         )
+        env = ContinuousActionWrapper(env)
         return Monitor(env)
 
     train_env = DummyVecEnv([lambda: make_env(train_data)])

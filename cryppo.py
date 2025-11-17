@@ -6,10 +6,25 @@ Beautiful command-line interface inspired by Claude Code
 
 import sys
 import os
+import io
+import time
 import argparse
 import subprocess
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
+
+import numpy as np
+
+if os.name == "nt":
+    for stream_name in ("stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        if stream and hasattr(stream, "buffer"):
+            try:
+                buffer = stream.buffer
+                setattr(sys, stream_name, io.TextIOWrapper(buffer, encoding="utf-8", errors="ignore"))
+            except Exception:
+                pass
 
 from rich.console import Console
 from rich.panel import Panel
@@ -23,6 +38,161 @@ from rich.live import Live
 from rich.text import Text
 
 console = Console()
+
+
+@contextmanager
+def server_module_path():
+    """Temporarily add server/src to sys.path for imports."""
+    server_path = str(Path(__file__).parent / "server")
+    added = False
+    if server_path not in sys.path:
+        sys.path.insert(0, server_path)
+        added = True
+    try:
+        yield
+    finally:
+        if added and server_path in sys.path:
+            sys.path.remove(server_path)
+
+
+ACTION_NAMES = ["HOLD", "OPEN_LONG", "OPEN_SHORT", "CLOSE"]
+
+
+MODEL_REGISTRY: Dict[str, Dict] = {
+    "d3qn": {
+        "label": "D3QN",
+        "module": "src.training.train_d3qn",
+        "args": [
+            ("--symbol", "symbol"),
+            ("--timeframe", "timeframe"),
+            ("--episodes", "episodes"),
+            ("--max-steps", "max_steps"),
+            ("--eval-freq", "eval_freq"),
+            ("--save-freq", "save_freq"),
+            ("--balance", "balance"),
+            ("--leverage", "leverage"),
+            ("--window", "window"),
+            ("--reward", "reward"),
+            ("--lr", "lr"),
+            ("--gamma", "gamma"),
+            ("--batch-size", "batch_size"),
+            ("--buffer-size", "buffer_size"),
+            ("--checkpoint-dir", "checkpoint_dir"),
+            ("--log-dir", "log_dir"),
+        ],
+        "flags": [("--sample-data", "sample_data")]
+    },
+    "ppo": {
+        "label": "PPO",
+        "module": "src.training.train_ppo",
+        "args": [
+            ("--symbol", "symbol"),
+            ("--timeframe", "timeframe"),
+            ("--timesteps", "timesteps"),
+            ("--balance", "balance"),
+            ("--leverage", "leverage"),
+            ("--lr", "lr"),
+            ("--gamma", "gamma"),
+            ("--n-steps", "n_steps"),
+            ("--batch-size", "batch_size"),
+            ("--n-epochs", "n_epochs"),
+            ("--clip-range", "clip_range"),
+            ("--window", "window"),
+            ("--reward", "reward"),
+            ("--checkpoint-dir", "checkpoint_dir"),
+            ("--log-dir", "log_dir"),
+            ("--eval-freq", "eval_freq"),
+            ("--n-eval-episodes", "n_eval_episodes"),
+            ("--save-freq", "save_freq"),
+            ("--verbose", "verbose"),
+        ],
+        "flags": [("--sample-data", "sample_data")]
+    },
+    "sac": {
+        "label": "SAC",
+        "module": "src.training.train_sac",
+        "args": [
+            ("--symbol", "symbol"),
+            ("--timeframe", "timeframe"),
+            ("--timesteps", "timesteps"),
+            ("--balance", "balance"),
+            ("--leverage", "leverage"),
+            ("--lr", "lr"),
+            ("--gamma", "gamma"),
+            ("--buffer-size", "buffer_size"),
+            ("--batch-size", "batch_size"),
+            ("--learning-starts", "learning_starts"),
+            ("--tau", "tau"),
+            ("--window", "window"),
+            ("--reward", "reward"),
+            ("--checkpoint-dir", "checkpoint_dir"),
+            ("--log-dir", "log_dir"),
+            ("--eval-freq", "eval_freq"),
+            ("--n-eval-episodes", "n_eval_episodes"),
+            ("--save-freq", "save_freq"),
+            ("--verbose", "verbose"),
+        ],
+        "flags": [("--sample-data", "sample_data")]
+    },
+    "td3": {
+        "label": "TD3",
+        "module": "src.training.train_td3",
+        "args": [
+            ("--symbol", "symbol"),
+            ("--timeframe", "timeframe"),
+            ("--timesteps", "timesteps"),
+            ("--balance", "balance"),
+            ("--leverage", "leverage"),
+            ("--lr", "lr"),
+            ("--gamma", "gamma"),
+            ("--buffer-size", "buffer_size"),
+            ("--batch-size", "batch_size"),
+            ("--learning-starts", "learning_starts"),
+            ("--tau", "tau"),
+            ("--policy-delay", "policy_delay"),
+            ("--window", "window"),
+            ("--reward", "reward"),
+            ("--checkpoint-dir", "checkpoint_dir"),
+            ("--log-dir", "log_dir"),
+            ("--eval-freq", "eval_freq"),
+            ("--n-eval-episodes", "n_eval_episodes"),
+            ("--save-freq", "save_freq"),
+            ("--verbose", "verbose"),
+        ],
+        "flags": [("--sample-data", "sample_data")]
+    },
+}
+
+SB3_MODELS = {"ppo": "PPO", "sac": "SAC", "td3": "TD3"}
+
+
+def unwrap_env(env):
+    """Drill through wrappers to get base TradingEnv."""
+    base = env
+    while hasattr(base, "env"):
+        base = base.env
+    return base
+
+
+def action_to_env(model_key: str, action_value):
+    """Convert model output to environment-compatible action."""
+    if model_key in {"sac", "td3"}:
+        return action_value
+
+    array = np.array(action_value).flatten()
+    if array.size == 0:
+        return 0
+    return int(array[0])
+
+
+def action_to_index(model_key: str, action_value):
+    """Get discrete action index for logging/metrics."""
+    if model_key in {"sac", "td3"}:
+        array = np.array(action_value, dtype=np.float32).flatten()
+        if array.size == 0:
+            return 0
+        return int(np.argmax(array))
+    return action_to_env(model_key, action_value)
 
 # ============================================================================
 # Banner & Styling
@@ -42,13 +212,21 @@ BANNER = """
 
 def print_banner():
     """Print beautiful startup banner"""
-    console.print(
-        Panel(
-            Text(BANNER, style="bold cyan", justify="center"),
-            border_style="bright_cyan",
-            box=box.DOUBLE
+    try:
+        console.print(
+            Panel(
+                Text(BANNER, style="bold cyan", justify="center"),
+                border_style="bright_cyan",
+                box=box.DOUBLE
+            )
         )
-    )
+    except UnicodeEncodeError:
+        # Fallback for terminals that cannot render block characters
+        fallback = "CRYPPO - Deep RL Crypto Trading System"
+        try:
+            print(fallback)
+        except UnicodeEncodeError:
+            sys.stdout.write(fallback + "\n")
 
 # ============================================================================
 # System Check
@@ -56,27 +234,27 @@ def print_banner():
 
 def check_system():
     """Check system requirements"""
-    console.print("\n[bold cyan]🔍 System Check[/bold cyan]\n")
+    console.print("\n[bold cyan]System Check[/bold cyan]\n")
 
     checks = []
 
     # Check Python
     import sys
     python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-    checks.append(("Python", python_version, "✓" if sys.version_info >= (3, 10) else "✗"))
+    checks.append(("Python", python_version, "OK" if sys.version_info >= (3, 10) else "FAIL"))
 
     # Check PyTorch
     try:
         import torch
         torch_version = torch.__version__
         cuda_available = torch.cuda.is_available()
-        checks.append(("PyTorch", torch_version, "✓"))
-        checks.append(("CUDA", "Available" if cuda_available else "Not Available", "✓" if cuda_available else "⚠"))
+        checks.append(("PyTorch", torch_version, "OK"))
+        checks.append(("CUDA", "Available" if cuda_available else "Not Available", "OK" if cuda_available else "WARN"))
         if cuda_available:
             gpu_name = torch.cuda.get_device_name(0)
-            checks.append(("GPU", gpu_name, "✓"))
+            checks.append(("GPU", gpu_name, "OK"))
     except Exception as e:
-        checks.append(("PyTorch", f"Error: {str(e)}", "✗"))
+        checks.append(("PyTorch", f"Error: {str(e)}", "FAIL"))
 
     # Check other packages
     packages = [
@@ -90,9 +268,9 @@ def check_system():
         try:
             mod = __import__(module)
             version = getattr(mod, "__version__", "installed")
-            checks.append((name, version, "✓"))
+            checks.append((name, version, "OK"))
         except:
-            checks.append((name, "Not installed", "✗"))
+            checks.append((name, "Not installed", "FAIL"))
 
     # Create table
     table = Table(show_header=True, header_style="bold magenta", box=box.ROUNDED)
@@ -100,8 +278,9 @@ def check_system():
     table.add_column("Version/Status", style="white")
     table.add_column("Status", justify="center")
 
+    status_styles = {"OK": "green", "WARN": "yellow", "FAIL": "red"}
     for component, version, status in checks:
-        style = "green" if status == "✓" else ("yellow" if status == "⚠" else "red")
+        style = status_styles.get(status, "white")
         table.add_row(component, version, f"[{style}]{status}[/{style}]")
 
     console.print(table)
@@ -126,7 +305,7 @@ def download_data(symbol: str, start: str, end: str, timeframe: str = "1h"):
         if server_path in sys.path:
             sys.path.remove(server_path)
 
-    console.print(f"\n[bold cyan]📥 Downloading {symbol} Data[/bold cyan]\n")
+    console.print(f"\n[bold cyan]Downloading {symbol} data[/bold cyan]\n")
 
     with Progress(
         SpinnerColumn(),
@@ -150,19 +329,19 @@ def download_data(symbol: str, start: str, end: str, timeframe: str = "1h"):
             progress.update(task, completed=100)
 
             # Show summary
-            console.print(f"\n[green]✓[/green] Downloaded {len(df)} candles")
+            console.print(f"\n[green]OK[/green] Downloaded {len(df)} candles")
             console.print(f"[dim]Period: {df.index[0]} to {df.index[-1]}[/dim]")
             console.print(f"[dim]Saved to: data/{symbol}_{timeframe}_{start}_{end}.parquet[/dim]\n")
 
         except Exception as e:
-            console.print(f"\n[red]✗ Error: {e}[/red]\n")
+            console.print(f"\n[red]Error: {e}[/red]\n")
             import traceback
             console.print(f"[red]{traceback.format_exc()}[/red]\n")
             sys.exit(1)
 
 def list_data():
     """List available data files"""
-    console.print("\n[bold cyan]📊 Available Data Files[/bold cyan]\n")
+    console.print("\n[bold cyan]Available data files[/bold cyan]\n")
 
     data_dir = Path("data")
     if not data_dir.exists():
@@ -198,79 +377,135 @@ def list_data():
     console.print(table)
     console.print()
 
+
+def prepare_data(
+    symbol: str,
+    timeframe: str,
+    window: int,
+    train_ratio: float,
+    val_ratio: float,
+    output_dir: str,
+    add_indicators: bool = True,
+    normalize: bool = True,
+    sample_data: bool = False,
+    sample_size: int = 10000
+):
+    """Prepare numpy datasets for training/backtesting"""
+    if train_ratio + val_ratio >= 1.0:
+        console.print("[red]Train + validation ratio must be < 1.0[/red]\n")
+        return
+
+    console.print(f"\n[bold cyan]Preparing data for {symbol} ({timeframe})[/bold cyan]")
+
+    with server_module_path():
+        from src.data.loader import (
+            load_market_data,
+            prepare_env_data,
+            split_train_test,
+            create_sample_data
+        )
+
+    if sample_data:
+        df = create_sample_data(symbol=symbol, n_samples=sample_size, save_dir="data")
+    else:
+        df = load_market_data(symbol=symbol, timeframe=timeframe)
+
+    env_data = prepare_env_data(df, add_indicators=add_indicators, normalize=normalize)
+
+    if len(env_data) <= window:
+        console.print("[red]Not enough rows after preprocessing. Try a smaller window or more data.[/red]\n")
+        return
+
+    train_data, val_data, test_data = split_train_test(env_data, train_ratio=train_ratio, val_ratio=val_ratio)
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    file_path = output_path / f"{symbol}_{timeframe}_prepared.npz"
+    np.savez_compressed(file_path, train=train_data, val=val_data, test=test_data)
+
+    table = Table(show_header=True, header_style="bold magenta", box=box.ROUNDED)
+    table.add_column("Split", style="cyan")
+    table.add_column("Samples", justify="right")
+
+    table.add_row("Train", f"{len(train_data):,}")
+    table.add_row("Validation", f"{len(val_data):,}")
+    table.add_row("Test", f"{len(test_data):,}")
+
+    console.print(table)
+    console.print(f"[green]OK[/green] Saved processed dataset to: {file_path}")
+    console.print()
+
+
+def generate_sample_dataset(symbol: str, samples: int):
+    """Generate synthetic parquet data for quick experiments"""
+    with server_module_path():
+        from src.data.loader import create_sample_data
+
+    console.print(f"\n[bold cyan]Generating {samples:,} synthetic candles[/bold cyan]")
+    df = create_sample_data(symbol=symbol, n_samples=samples, save_dir="data")
+
+    console.print(f"[green]OK[/green] Sample data ready with {len(df):,} rows")
+    console.print()
+
 # ============================================================================
 # Training
 # ============================================================================
 
-def train(
-    symbol: str,
-    episodes: int,
-    model: str = "d3qn",
-    learning_rate: float = 0.00025,
-    reward_type: str = "sharpe",
-    sample_data: bool = False
-):
-    """Train model with beautiful progress tracking"""
-    console.print(f"\n[bold cyan]🚀 Training {model.upper()} Model[/bold cyan]\n")
+def train(args: argparse.Namespace):
+    """Dispatch training to the appropriate script"""
+    model_key = args.model.lower()
+    config = MODEL_REGISTRY.get(model_key)
 
-    # Show configuration
+    if not config:
+        console.print(f"[red]Unknown model '{args.model}'. Available: {', '.join(MODEL_REGISTRY)}[/red]\n")
+        return
+
+    console.print(f"\n[bold cyan]Training {config['label']} model[/bold cyan]\n")
+
+    iterations = f"{args.episodes} episodes" if model_key == "d3qn" else f"{args.timesteps:,} timesteps"
+
     config_table = Table(show_header=False, box=box.SIMPLE)
     config_table.add_column("Parameter", style="cyan")
     config_table.add_column("Value", style="white")
-
-    config_table.add_row("Symbol", symbol)
-    config_table.add_row("Model", model.upper())
-    config_table.add_row("Episodes", str(episodes))
-    config_table.add_row("Learning Rate", str(learning_rate))
-    config_table.add_row("Reward Type", reward_type.upper())
-    config_table.add_row("Sample Data", "Yes" if sample_data else "No")
+    config_table.add_row("Symbol", args.symbol)
+    config_table.add_row("Timeframe", args.timeframe)
+    config_table.add_row("Model", config["label"])
+    config_table.add_row("Iterations", iterations)
+    config_table.add_row("Learning Rate", str(args.lr))
+    config_table.add_row("Reward", args.reward.upper())
+    config_table.add_row("Sample Data", "Yes" if args.sample_data else "No")
+    config_table.add_row("Checkpoint Dir", args.checkpoint_dir)
 
     console.print(config_table)
     console.print()
 
-    # Build command to run training as subprocess
-    # This avoids sys.path issues and PyTorch DLL conflicts
     server_dir = Path(__file__).parent / "server"
+    cmd = [sys.executable, "-m", config["module"]]
 
-    cmd = [
-        sys.executable,  # Use current Python interpreter
-        "-m", "src.training.train_d3qn",
-        "--symbol", symbol,
-        "--episodes", str(episodes),
-        "--lr", str(learning_rate),
-        "--gamma", "0.99",  # Reduced to prevent Q-value spiral (research-based)
-        "--batch-size", "64",
-        "--buffer-size", "100000",
-        "--reward", reward_type,
-        "--save-freq", "10"
-    ]
+    for flag, attr in config["args"]:
+        value = getattr(args, attr, None)
+        if value is None:
+            continue
+        cmd.extend([flag, str(value)])
 
-    if sample_data:
-        cmd.append("--sample-data")
+    for flag, attr in config.get("flags", []):
+        if getattr(args, attr, False):
+            cmd.append(flag)
 
     try:
-        console.print("\n[cyan]Starting training... (Real-time output)[/cyan]")
+        console.print("[cyan]Starting training...[/cyan]")
         console.print("[dim]" + "=" * 70 + "[/dim]\n")
 
-        # Run WITHOUT capture_output to show real-time progress
-        result = subprocess.run(
-            cmd,
-            cwd=server_dir
-            # NO capture_output - show everything live!
-        )
+        result = subprocess.run(cmd, cwd=server_dir)
 
         console.print("\n[dim]" + "=" * 70 + "[/dim]")
         if result.returncode == 0:
-            console.print(f"[green]✓ Training completed![/green]")
-            console.print(f"[dim]Model saved to: checkpoints/[/dim]")
-            console.print(f"[dim]Detailed logs saved to: logs/training_*.log[/dim]")
-            console.print(f"[dim]Episode details saved to: logs/episode_*.jsonl[/dim]\n")
+            console.print("[green]Training completed[/green]\n")
         else:
-            console.print(f"\n[red]✗ Training failed with exit code {result.returncode}[/red]\n")
-            sys.exit(1)
-
-    except Exception as e:
-        console.print(f"\n[red]✗ Training failed: {e}[/red]\n")
+            console.print(f"[red]Training failed with exit code {result.returncode}[/red]\n")
+            sys.exit(result.returncode)
+    except Exception as exc:
+        console.print(f"\n[red]Training failed: {exc}[/red]\n")
         import traceback
         traceback.print_exc()
         sys.exit(1)
@@ -279,48 +514,292 @@ def train(
 # Backtesting
 # ============================================================================
 
-def backtest(model_path: str, sample_data: bool = False):
-    """Run backtest with beautiful results display"""
-    console.print(f"\n[bold cyan]📈 Running Backtest[/bold cyan]\n")
+def backtest(
+    model_path: str,
+    model_type: str,
+    sample_data: bool,
+    symbol: str,
+    timeframe: str,
+    initial_balance: float,
+    max_leverage: float,
+    reward_type: str,
+    window_size: int
+):
+    """Run backtest directly inside the CLI"""
+    model_key = model_type.lower()
+    if model_key not in MODEL_REGISTRY:
+        console.print(f"[red]Unknown model '{model_type}'[/red]\n")
+        return
 
-    console.print(f"[dim]Model: {model_path}[/dim]\n")
+    path = Path(model_path)
+    if not path.exists():
+        console.print(f"[red]Model file not found:[/red] {model_path}\n")
+        return
 
-    # Build command to run backtest as subprocess
-    cmd = [
-        sys.executable,
-        "test_backtest.py",
-        "--model", model_path
-    ]
+    console.print(f"\n[bold cyan]Backtesting {MODEL_REGISTRY[model_key]['label']}[/bold cyan]")
+    console.print(f"[dim]Model file: {model_path}[/dim]\n")
+
+    with server_module_path():
+        from src.data.loader import load_market_data, prepare_env_data, create_sample_data
+        from src.policy.trading_env import TradingEnv
+        from src.policy.wrappers import ContinuousActionWrapper
+        if model_key == "d3qn":
+            from src.agent.d3qn_agent import D3QNAgent
+        else:
+            from stable_baselines3 import PPO, SAC, TD3
 
     if sample_data:
-        cmd.append("--sample-data")
+        df = create_sample_data(symbol=symbol, n_samples=5000, save_dir="data")
+    else:
+        df = load_market_data(symbol=symbol, timeframe=timeframe)
 
-    try:
-        with console.status("[cyan]Running backtest...", spinner="dots"):
-            # Run backtest as subprocess
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True
-            )
+    env_data = prepare_env_data(df, add_indicators=True, normalize=False)
+    env = TradingEnv(
+        data=env_data,
+        initial_balance=initial_balance,
+        max_leverage=max_leverage,
+        window_size=window_size,
+        reward_type=reward_type
+    )
 
-        if result.returncode == 0:
-            # Display results from output
-            console.print("\n[bold green]Backtest Results[/bold green]\n")
+    if model_key in {"sac", "td3"}:
+        env = ContinuousActionWrapper(env)
 
-            # Show backtest output
-            if result.stdout:
-                console.print(result.stdout)
+    base_env = unwrap_env(env)
+
+    if model_key == "d3qn":
+        import torch
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        state_dim = int(np.prod(env.observation_space.shape))
+        action_dim = base_env.action_space.n
+
+        agent = D3QNAgent(
+            state_dim=state_dim,
+            action_dim=action_dim,
+            learning_rate=0.00025,
+            gamma=0.995
+        )
+        agent.load(str(path))
+
+        def select_action(observation):
+            return agent.select_action(observation.flatten(), training=False)
+    else:
+        model_classes = {"ppo": PPO, "sac": SAC, "td3": TD3}
+        ModelClass = model_classes[model_key]
+        model = ModelClass.load(str(path))
+
+        def select_action(observation):
+            action, _ = model.predict(observation, deterministic=True)
+            return action
+
+    state, _ = env.reset()
+    done = False
+    total_reward = 0.0
+    steps = 0
+    equity_curve = []
+    last_info = None
+
+    while not done:
+        action_raw = select_action(state)
+        env_action = action_to_env(model_key, action_raw)
+
+        state, reward, terminated, truncated, info = env.step(env_action)
+        done = terminated or truncated
+        total_reward += reward
+        steps += 1
+        last_info = info
+        equity_curve.append(info["equity"])
+
+    if not last_info:
+        console.print("[red]Backtest produced no results.[/red]\n")
+        return
+
+    equity_array = np.array(equity_curve) if equity_curve else np.array([initial_balance])
+    if len(equity_array) > 1:
+        returns = np.diff(equity_array) / equity_array[:-1]
+    else:
+        returns = np.array([])
+
+    sharpe = float(np.mean(returns) / (np.std(returns) + 1e-8) * np.sqrt(252 * 24)) if len(returns) else 0.0
+    running_max = np.maximum.accumulate(equity_array)
+    drawdown = (equity_array - running_max) / running_max
+    max_drawdown = float(abs(drawdown.min()) * 100) if len(drawdown) else 0.0
+
+    final_balance = last_info["balance"]
+    total_return_pct = (final_balance - initial_balance) / initial_balance * 100
+
+    table = Table(show_header=True, header_style="bold magenta", box=box.ROUNDED)
+    table.add_column("Metric", style="cyan")
+    table.add_column("Value", justify="right")
+
+    table.add_row("Initial Balance", f"${initial_balance:,.2f}")
+    table.add_row("Final Balance", f"${final_balance:,.2f}")
+    table.add_row("Total Return", f"{total_return_pct:+.2f}%")
+    table.add_row("Total Reward", f"{total_reward:.2f}")
+    table.add_row("Win Rate", f"{last_info['win_rate'] * 100:.2f}%")
+    table.add_row("Trades", str(last_info["total_trades"]))
+    table.add_row("Sharpe Ratio", f"{sharpe:.3f}")
+    table.add_row("Max Drawdown", f"{max_drawdown:.2f}%")
+    table.add_row("Steps", str(steps))
+
+    console.print(table)
+    console.print()
+
+
+def paper_trade(
+    model_path: str,
+    model_type: str,
+    symbol: str,
+    timeframe: str,
+    interval: float,
+    steps: int,
+    initial_balance: float,
+    max_leverage: float,
+    reward_type: str,
+    window_size: int
+):
+    """Run a live-style paper trading loop"""
+    model_key = model_type.lower()
+    if model_key not in MODEL_REGISTRY:
+        console.print(f"[red]Unknown model '{model_type}'[/red]\n")
+        return
+
+    path = Path(model_path)
+    if not path.exists():
+        console.print(f"[red]Model file not found:[/red] {model_path}\n")
+        return
+
+    console.print(f"\n[bold cyan]Paper trading {MODEL_REGISTRY[model_key]['label']} on {symbol} ({timeframe})[/bold cyan]")
+
+    import pandas as pd
+    import ccxt
+
+    exchange = ccxt.binance({"enableRateLimit": True})
+    limit = max(window_size * 2, steps * 5, 1000)
+    candles = exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
+    df = pd.DataFrame(candles, columns=["timestamp", "open", "high", "low", "close", "volume"])
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
+
+    with server_module_path():
+        from src.data.loader import prepare_env_data
+        from src.policy.trading_env import TradingEnv
+        from src.policy.wrappers import ContinuousActionWrapper
+        if model_key == "d3qn":
+            from src.agent.d3qn_agent import D3QNAgent
         else:
-            console.print(f"\n[red]✗ Backtest failed![/red]\n")
-            if result.stderr:
-                console.print("[red]Error:[/red]")
-                console.print(result.stderr[-500:] if len(result.stderr) > 500 else result.stderr)
-            sys.exit(1)
+            from stable_baselines3 import PPO, SAC, TD3
 
-    except Exception as e:
-        console.print(f"\n[red]✗ Backtest failed: {e}[/red]\n")
-        sys.exit(1)
+    env_data = prepare_env_data(df, add_indicators=True, normalize=False)
+    env = TradingEnv(
+        data=env_data,
+        initial_balance=initial_balance,
+        max_leverage=max_leverage,
+        window_size=window_size,
+        reward_type=reward_type
+    )
+    if model_key in {"sac", "td3"}:
+        env = ContinuousActionWrapper(env)
+
+    base_env = unwrap_env(env)
+
+    if model_key == "d3qn":
+        import torch
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        state_dim = int(np.prod(env.observation_space.shape))
+        action_dim = base_env.action_space.n
+        agent = D3QNAgent(
+            state_dim=state_dim,
+            action_dim=action_dim,
+            learning_rate=0.00025,
+            gamma=0.995,
+            device=device
+        )
+        agent.load(str(path))
+
+        def select_action(observation):
+            return agent.select_action(observation.flatten(), training=False)
+    else:
+        model_classes = {"ppo": PPO, "sac": SAC, "td3": TD3}
+        ModelClass = model_classes[model_key]
+        model = ModelClass.load(str(path))
+
+        def select_action(observation):
+            action, _ = model.predict(observation, deterministic=True)
+            return action
+
+    state, _ = env.reset()
+    total_reward = 0.0
+    last_info = None
+    equity_curve = []
+
+    def render_panel(step_idx: int, price: float, action_name: str, info: dict, reward_value: float):
+        table = Table(show_header=False, box=box.SIMPLE)
+        table.add_row("Step", str(step_idx))
+        table.add_row("Action", action_name)
+        table.add_row("Price", f"${price:,.2f}")
+        table.add_row("Balance", f"${info['balance']:,.2f}")
+        table.add_row("Equity", f"${info['equity']:,.2f}")
+        table.add_row("Trades", str(info["total_trades"]))
+        table.add_row("Reward", f"{reward_value:+.4f}")
+        return Panel(table, border_style="bright_cyan", title="Paper Trading")
+
+    with Live(render_panel(0, float(base_env.data[base_env.current_step, 3]), "HOLD", {"balance": initial_balance, "equity": initial_balance, "total_trades": 0}, 0.0), refresh_per_second=4) as live:
+        for idx in range(1, steps + 1):
+            action_raw = select_action(state)
+            env_action = action_to_env(model_key, action_raw)
+            action_idx = action_to_index(model_key, action_raw)
+
+            state, reward, terminated, truncated, info = env.step(env_action)
+            last_info = info
+            total_reward += reward
+            equity_curve.append(info["equity"])
+
+            price_idx = min(base_env.current_step - 1, base_env.data.shape[0] - 1)
+            price = float(base_env.data[price_idx, 3])
+
+            panel = render_panel(idx, price, ACTION_NAMES[action_idx], info, reward)
+            live.update(panel)
+
+            if terminated or truncated:
+                break
+
+            time.sleep(max(0.1, interval))
+
+    if not last_info:
+        console.print("[red]Paper trading session ended without trades.[/red]\n")
+        return
+
+    equity_array = np.array(equity_curve) if equity_curve else np.array([initial_balance])
+    if len(equity_array) > 1:
+        returns = np.diff(equity_array) / equity_array[:-1]
+    else:
+        returns = np.array([])
+
+    sharpe = float(np.mean(returns) / (np.std(returns) + 1e-8) * np.sqrt(252 * 24)) if len(returns) else 0.0
+    running_max = np.maximum.accumulate(equity_array)
+    drawdown = (equity_array - running_max) / running_max
+    max_drawdown = float(abs(drawdown.min()) * 100) if len(drawdown) else 0.0
+
+    final_balance = last_info["balance"]
+    total_return_pct = (final_balance - initial_balance) / initial_balance * 100
+
+    console.print("\n[bold green]Session Summary[/bold green]")
+    table = Table(show_header=True, header_style="bold magenta", box=box.ROUNDED)
+    table.add_column("Metric", style="cyan")
+    table.add_column("Value", justify="right")
+    table.add_row("Steps", str(len(equity_curve)))
+    table.add_row("Total Reward", f"{total_reward:.4f}")
+    table.add_row("Final Balance", f"${final_balance:,.2f}")
+    table.add_row("Return", f"{total_return_pct:+.2f}%")
+    table.add_row("Trades", str(last_info["total_trades"]))
+    table.add_row("Win Rate", f"{last_info['win_rate'] * 100:.2f}%")
+    table.add_row("Sharpe", f"{sharpe:.3f}")
+    table.add_row("Max Drawdown", f"{max_drawdown:.2f}%")
+
+    console.print(table)
+    console.print()
 
 # ============================================================================
 # Models Management
@@ -328,7 +807,7 @@ def backtest(model_path: str, sample_data: bool = False):
 
 def list_models():
     """List available trained models"""
-    console.print("\n[bold cyan]🤖 Available Models[/bold cyan]\n")
+    console.print("\n[bold cyan]Available models[/bold cyan]\n")
 
     checkpoints_dir = Path("checkpoints")
     if not checkpoints_dir.exists():
@@ -384,22 +863,89 @@ def main():
     download_parser.add_argument("--timeframe", default="1h", help="Timeframe (default: 1h)")
 
     data_subparsers.add_parser("list", help="List available data files")
+    prepare_parser = data_subparsers.add_parser("prepare", help="Prepare numpy datasets")
+    prepare_parser.add_argument("--symbol", required=True, help="Trading symbol")
+    prepare_parser.add_argument("--timeframe", default="1h", help="Timeframe to load")
+    prepare_parser.add_argument("--window", type=int, default=72, help="Window size for sequences")
+    prepare_parser.add_argument("--train-ratio", type=float, default=0.7, dest="train_ratio")
+    prepare_parser.add_argument("--val-ratio", type=float, default=0.15, dest="val_ratio")
+    prepare_parser.add_argument("--output", default="data/processed", help="Directory for npz file")
+    prepare_parser.add_argument("--no-indicators", action="store_true", help="Skip indicator engineering")
+    prepare_parser.add_argument("--no-normalize", action="store_true", help="Skip normalization")
+    prepare_parser.add_argument("--sample-data", action="store_true", help="Use synthetic sample data")
+    prepare_parser.add_argument("--samples", type=int, default=10000, help="Number of synthetic samples")
+
+    sample_parser = data_subparsers.add_parser("sample", help="Generate synthetic parquet data")
+    sample_parser.add_argument("--symbol", default="BTCUSDT", help="Symbol label for file name")
+    sample_parser.add_argument("--samples", type=int, default=2000, help="Number of rows")
 
     # Train command
     train_parser = subparsers.add_parser("train", help="Train RL model")
     train_parser.add_argument("--symbol", default="BTCUSDT", help="Trading symbol")
-    train_parser.add_argument("--episodes", type=int, default=100, help="Number of episodes")
-    train_parser.add_argument("--model", default="d3qn", help="Model type (d3qn)")
-    train_parser.add_argument("--lr", type=float, default=0.00025, help="Learning rate")
+    train_parser.add_argument("--timeframe", default="1h", help="Historical timeframe")
+    train_parser.add_argument("--model", default="d3qn", choices=list(MODEL_REGISTRY.keys()),
+                              help="RL algorithm to use")
+    train_parser.add_argument("--episodes", type=int, default=100, help="Episodes (D3QN)")
+    train_parser.add_argument("--timesteps", type=int, default=50000, help="Timesteps (PPO/SAC/TD3)")
+    train_parser.add_argument("--lr", "--learning-rate", dest="lr", type=float, default=0.00025,
+                              help="Learning rate")
+    train_parser.add_argument("--gamma", type=float, default=0.995, help="Discount factor")
+    train_parser.add_argument("--batch-size", type=int, default=64, help="Batch size")
+    train_parser.add_argument("--buffer-size", type=int, default=100000, help="Replay buffer size")
+    train_parser.add_argument("--n-steps", type=int, default=2048, help="PPO rollout steps")
+    train_parser.add_argument("--n-epochs", type=int, default=10, help="PPO epochs per update")
+    train_parser.add_argument("--clip-range", dest="clip_range", type=float, default=0.2,
+                              help="PPO clip range")
+    train_parser.add_argument("--max-steps", type=int, default=10000, help="Max env steps per episode (D3QN)")
+    train_parser.add_argument("--learning-starts", type=int, default=1000,
+                              help="SAC/TD3 warmup steps")
+    train_parser.add_argument("--tau", type=float, default=0.005, help="Soft update coefficient")
+    train_parser.add_argument("--policy-delay", type=int, default=2, help="TD3 policy delay")
     train_parser.add_argument("--reward", default="sharpe",
-                            choices=["profit", "return", "sharpe", "sortino"],
-                            help="Reward type (default: sharpe)")
-    train_parser.add_argument("--sample-data", action="store_true", help="Use sample data")
+                              choices=["profit", "return", "sharpe", "sortino"],
+                              help="Reward type")
+    train_parser.add_argument("--sample-data", action="store_true", help="Use synthetic sample data")
+    train_parser.add_argument("--balance", type=float, default=10000.0, help="Initial balance")
+    train_parser.add_argument("--leverage", type=float, default=3.0, help="Max leverage")
+    train_parser.add_argument("--window", type=int, default=72, help="Observation window")
+    train_parser.add_argument("--eval-freq", type=int, default=10000, help="Evaluation frequency")
+    train_parser.add_argument("--n-eval-episodes", type=int, default=5, help="Eval episodes")
+    train_parser.add_argument("--save-freq", type=int, default=10000, help="Checkpoint frequency")
+    train_parser.add_argument("--checkpoint-dir", default="checkpoints", help="Checkpoint directory")
+    train_parser.add_argument("--log-dir", default="logs", help="Log directory")
+    train_parser.add_argument("--verbose", type=int, default=1, help="Verbosity level")
 
     # Backtest command
     backtest_parser = subparsers.add_parser("backtest", help="Run backtest")
     backtest_parser.add_argument("--model", required=True, help="Path to model file")
+    backtest_parser.add_argument("--model-type", default="d3qn", choices=list(MODEL_REGISTRY.keys()),
+                                 help="Specify algorithm for the model file")
+    backtest_parser.add_argument("--symbol", default="BTCUSDT", help="Symbol to evaluate")
+    backtest_parser.add_argument("--timeframe", default="1h", help="Timeframe for evaluation data")
+    backtest_parser.add_argument("--balance", type=float, default=10000.0, help="Initial balance")
+    backtest_parser.add_argument("--leverage", type=float, default=3.0, help="Max leverage")
+    backtest_parser.add_argument("--window", type=int, default=72, help="Observation window")
+    backtest_parser.add_argument("--reward", default="sharpe",
+                                 choices=["profit", "return", "sharpe", "sortino"],
+                                 help="Reward shaping for env")
     backtest_parser.add_argument("--sample-data", action="store_true", help="Use sample data")
+
+    paper_parser = subparsers.add_parser("paper", help="Live-style paper trading")
+    paper_parser.add_argument("--model", required=True, help="Path to trained model")
+    paper_parser.add_argument("--model-type", default="d3qn", choices=list(MODEL_REGISTRY.keys()),
+                              help="Algorithm the model was trained with")
+    paper_parser.add_argument("--symbol", default="BTCUSDT", help="Trading symbol")
+    paper_parser.add_argument("--timeframe", default="1m", help="Live timeframe (default 1m)")
+    paper_parser.add_argument("--interval", type=float, default=2.0,
+                              help="Seconds between updates")
+    paper_parser.add_argument("--steps", type=int, default=120,
+                              help="Maximum steps to simulate")
+    paper_parser.add_argument("--balance", type=float, default=10000.0, help="Initial balance")
+    paper_parser.add_argument("--leverage", type=float, default=3.0, help="Max leverage")
+    paper_parser.add_argument("--window", type=int, default=72, help="Observation window")
+    paper_parser.add_argument("--reward", default="sharpe",
+                              choices=["profit", "return", "sharpe", "sortino"],
+                              help="Reward shaping strategy")
 
     # Models command
     subparsers.add_parser("models", help="List trained models")
@@ -418,14 +964,53 @@ def main():
             download_data(args.symbol, args.start, args.end, args.timeframe)
         elif args.data_command == "list":
             list_data()
+        elif args.data_command == "prepare":
+            prepare_data(
+                symbol=args.symbol,
+                timeframe=args.timeframe,
+                window=args.window,
+                train_ratio=args.train_ratio,
+                val_ratio=args.val_ratio,
+                output_dir=args.output,
+                add_indicators=not args.no_indicators,
+                normalize=not args.no_normalize,
+                sample_data=args.sample_data,
+                sample_size=args.samples
+            )
+        elif args.data_command == "sample":
+            generate_sample_dataset(args.symbol, args.samples)
         else:
-            console.print("[yellow]Use: cryppo data download/list[/yellow]\n")
+            console.print("[yellow]Use: cryppo data [download|list|prepare|sample][/yellow]\n")
 
     elif args.command == "train":
-        train(args.symbol, args.episodes, args.model, args.lr, args.reward, args.sample_data)
+        train(args)
 
     elif args.command == "backtest":
-        backtest(args.model, args.sample_data)
+        backtest(
+            model_path=args.model,
+            model_type=args.model_type,
+            sample_data=args.sample_data,
+            symbol=args.symbol,
+            timeframe=args.timeframe,
+            initial_balance=args.balance,
+            max_leverage=args.leverage,
+            reward_type=args.reward,
+            window_size=args.window
+        )
+
+    elif args.command == "paper":
+        paper_trade(
+            model_path=args.model,
+            model_type=args.model_type,
+            symbol=args.symbol,
+            timeframe=args.timeframe,
+            interval=args.interval,
+            steps=args.steps,
+            initial_balance=args.balance,
+            max_leverage=args.leverage,
+            reward_type=args.reward,
+            window_size=args.window
+        )
 
     elif args.command == "models":
         list_models()

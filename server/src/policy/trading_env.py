@@ -225,6 +225,7 @@ class TradingEnv(gym.Env):
         # Execute action
         trade_reward = 0.0
         exploration_bonus = 0.0
+        position_penalty = 0.0
 
         # Track action for diversity bonus
         self.action_counts[action] = self.action_counts.get(action, 0) + 1
@@ -379,11 +380,19 @@ class TradingEnv(gym.Env):
 
             # Execute stops (in priority order)
             if hit_trailing_sl:
+                prior_position = self.position
+                prior_entry = self.entry_price
                 trade_reward = self._close_position(current_price)
                 # Small penalty (better than regular SL, but not as good as TP)
                 trade_reward -= 0.01
                 if self.total_trades <= 5:
-                    profit_pct = ((current_price - self.entry_price) / self.entry_price * 100) if self.position == 'long' else ((self.entry_price - current_price) / self.entry_price * 100)
+                    if prior_entry:
+                        if prior_position == 'long':
+                            profit_pct = (current_price - prior_entry) / prior_entry * 100
+                        else:
+                            profit_pct = (prior_entry - current_price) / prior_entry * 100
+                    else:
+                        profit_pct = 0.0
                     print(f"  [TRAIL SL] Trailing Stop HIT @ ${current_price:.2f} ({profit_pct:+.2f}%)")
 
             elif hit_sl:

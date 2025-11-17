@@ -79,195 +79,145 @@ python cryppo.py check
 
 ---
 
-## Quick Start (CLI)
+## Interactive Terminal UI
 
-### 1. System Check
+- Run everything with a single file:  
+  ```batch
+  python main.py
+  ```
+- Rich UI presents a numbered menu (system check, data ops, training, backtest, paper trading, model listing).
+- Each action asks for parameters with sensible defaults; behind the scenes it forwards the selections to `cryppo.py`.
+- Use `Ctrl+C` or select option `0` to exit.
+
+---
+
+## CLI Workflow
+
+### 1. Run the diagnostics
 
 ```batch
 python cryppo.py check
 ```
 
-Displays:
-```
-  ██████╗██████╗ ██╗   ██╗██████╗ ██████╗  ██████╗
- ██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██╔═══██╗
- ...
+Confirms Python, PyTorch, CUDA, GPU, FastAPI, Gymnasium, CCXT, and Pandas are ready to go. All encoding is handled internally so it works even on fresh Windows terminals.
 
-🔍 System Check
+### 2. Manage datasets entirely from the CLI
 
-Component       Version/Status              Status
-Python          3.12.9                      ✓
-PyTorch         2.x.x+cu126                 ✓
-CUDA            Available                   ✓
-GPU             NVIDIA GeForce RTX 3060     ✓
-...
-```
+| Command | Purpose |
+| --- | --- |
+| `python cryppo.py data download --symbol BTCUSDT --start 2023-01-01 --end 2024-12-31` | Pull real Binance futures data (parquet) |
+| `python cryppo.py data list` | Show what already lives in `data/` |
+| `python cryppo.py data sample --symbol TEST --samples 2000` | Generate synthetic candles for smoke tests |
+| `python cryppo.py data prepare --symbol BTCUSDT --timeframe 1h --window 72 --output data/processed` | Build normalized `.npz` splits for training/backtests |
 
-### 2. Download Data
+The `prepare` command mirrors the environment preprocessing pipeline (indicators + normalization) and stores train/val/test tensors so you can reuse the same slices for every model.
 
-```batch
-REM Download Bitcoin 1H data
-python cryppo.py data download --symbol BTCUSDT --start 2023-01-01 --end 2024-12-31
+### 3. Train any supported RL agent
 
-REM List available data
-python cryppo.py data list
-```
-
-### 3. Train Model (GPU Accelerated)
+Use `--model` to switch algorithms. D3QN trains in episodes, while Stable-Baselines3 agents train in timesteps.
 
 ```batch
-REM Quick test (2 episodes, ~10-20 seconds on GPU)
-python cryppo.py train --symbol BTCUSDT --episodes 2 --sample-data --reward profit
+# D3QN (discrete) – fast sanity check
+python cryppo.py train --model d3qn --symbol BTCUSDT --episodes 2 --sample-data
 
-REM Full training (100 episodes, ~5-10 minutes on GPU)
-python cryppo.py train --symbol BTCUSDT --episodes 100 --reward profit
+# PPO (on-policy SB3)
+python cryppo.py train --model ppo --symbol BTCUSDT --timesteps 50000 --sample-data
 
-REM Risk-adjusted training (Sharpe ratio reward)
-python cryppo.py train --symbol BTCUSDT --episodes 100 --reward sharpe
+# SAC (off-policy, continuous wrapper)
+python cryppo.py train --model sac --symbol BTCUSDT --timesteps 50000 --buffer-size 200000
 
-REM Custom parameters
-python cryppo.py train --symbol ETHUSDT --episodes 200 --lr 0.0001 --reward sortino
+# TD3 (off-policy, continuous wrapper)
+python cryppo.py train --model td3 --symbol BTCUSDT --timesteps 50000 --buffer-size 200000
 ```
 
-**Real-time Training Progress (NEW!):**
-```
-🚀 Training D3QN Model
+Common flags:
 
-Parameter      Value
-Symbol         BTCUSDT
-Model          D3QN
-Episodes       100
-Learning Rate  0.00025
-Reward Type    PROFIT
+| Flag | Applies to | Notes |
+| --- | --- | --- |
+| `--timeframe`, `--symbol` | all models | Control the OHLC dataset |
+| `--episodes` | d3qn | Number of full environment runs |
+| `--timesteps` | ppo/sac/td3 | Total SB3 timesteps |
+| `--reward {profit,return,sharpe,sortino}` | all | Align reward shaping with your risk appetite |
+| `--sample-data` | all | Use synthetic data instead of downloading |
+| `--checkpoint-dir`, `--log-dir` | all | Where models/logs are stored (relative to the server for SB3 models) |
 
-Starting training... (Real-time output)
-======================================================================
+Under the hood SAC and TD3 now use a `ContinuousActionWrapper`, so continuous SB3 policies can drive the discrete trading environment reliably.
 
-Episode   1 | Reward:   -12.34 | Avg(10):    -12.34 | Loss: 0.0234 | Eps: 0.998 | Steps: 5432 | Trades: 12 | Win%:  50.0 | Balance: $10,234
-Episode   2 | Reward:    23.45 | Avg(10):      5.56 | Loss: 0.0198 | Eps: 0.996 | Steps: 5431 | Trades: 15 | Win%:  53.3 | Balance: $10,456
-Episode   3 | Reward:    45.67 | Avg(10):     18.93 | Loss: 0.0176 | Eps: 0.994 | Steps: 5430 | Trades: 18 | Win%:  55.6 | Balance: $10,789
-...
-Episode 100 | Reward:   123.45 | Avg(10):    112.34 | Loss: 0.0045 | Eps: 0.200 | Steps: 5429 | Trades: 24 | Win%:  62.5 | Balance: $12,345
-
-======================================================================
-✓ Training completed!
-Model saved to: checkpoints/final_agent.pth
-Detailed logs saved to: logs/
-```
-
-**NEW: Detailed Episode Logging**
-- Automatically saves step-by-step logs for the last training episode
-- Logs every action, state, reward, balance change
-- Available in two formats:
-  - `logs/episode_0100_*.jsonl` - Machine-readable JSON Lines
-  - `logs/episode_0100_summary.txt` - Human-readable summary
-
-See `TRAINING_GUIDE.md` for detailed documentation on log analysis.
-
-### 4. Backtest Model
+### 4. Backtest across all model types
 
 ```batch
-REM Run backtest with sample data
-python cryppo.py backtest --model checkpoints/final_agent.pth --sample-data
+# D3QN checkpoint at project root
+python cryppo.py backtest --model checkpoints/final_agent.pth --model-type d3qn --sample-data
 
-REM Run backtest with real data
-python cryppo.py backtest --model checkpoints/final_agent.pth
-
-REM Results displayed:
-```
-📈 Running Backtest
-
-[1/5] Loading market data...
-[2/5] Preparing environment data...
-[3/5] Creating trading environment...
-  [DEBUG] Enabling detailed logging for backtest...
-[4/5] Loading trained model...
-[5/5] Running backtest simulation...
-
-============================================================
-BACKTEST RESULTS
-============================================================
-Initial Balance:  $10,000.00
-Final Balance:    $12,450.00
-Total Return:     +24.50%
-Total Trades:     127
-Win Rate:         58.30%
-Sharpe Ratio:     1.8500
-Max Drawdown:     12.30%
-============================================================
-
-[INFO] Detailed step-by-step logs saved to:
-  logs/episode_0001_*.jsonl (step-by-step data in JSON Lines format)
-  logs/episode_0001_summary.txt (human-readable summary)
-============================================================
+# SB3 checkpoints under server/checkpoints
+python cryppo.py backtest --model server/checkpoints/final_ppo_model.zip --model-type ppo
+python cryppo.py backtest --model server/checkpoints/final_sac_model.zip --model-type sac
+python cryppo.py backtest --model server/checkpoints/final_td3_model.zip --model-type td3
 ```
 
-**NEW: Backtest Detailed Logging**
-- Every backtest run automatically saves detailed logs
-- Review every action, trade, and balance change
-- Verify calculations are correct
-- Analyze why the agent made specific decisions
+The CLI handles importing the correct agent, flattening observations when needed, computing Sharpe/Sortino/max drawdown, and printing a Rich summary table.
 
-### 5. List Models
+### 5. Paper trade straight from the terminal
+
+```batch
+python cryppo.py paper --model checkpoints/final_agent.pth --model-type d3qn --symbol BTC/USDT --timeframe 1m --steps 120 --interval 2
+```
+
+- Fetches live candles via CCXT
+- Streams position/action/balance in a Rich panel
+- Works with D3QN and every SB3 model (the wrapper handles continuous logits)
+
+### 6. List saved checkpoints
 
 ```batch
 python cryppo.py models
 ```
 
+Shows size and modified time for everything inside `checkpoints/`.
+
 ---
 
 ## CLI Commands Reference
 
-### System
+| Category | Command | Description |
+| --- | --- | --- |
+| Diagnostics | `python cryppo.py check` | Verify Python, GPU, and required libs |
+| Data | `python cryppo.py data download ...` | Pull live market data (parquet) |
+|  | `python cryppo.py data list` | Inventory downloaded datasets |
+|  | `python cryppo.py data sample ...` | Generate synthetic candles for tests |
+|  | `python cryppo.py data prepare ...` | Create normalized train/val/test `.npz` bundles |
+| Training | `python cryppo.py train --model d3qn ...` | Deep Dueling Double DQN (episodes) |
+|  | `python cryppo.py train --model ppo|sac|td3 ...` | Stable-Baselines3 algorithms (timesteps) |
+| Backtest | `python cryppo.py backtest --model ... --model-type ...` | Unified evaluator with Sharpe, drawdown, and real-time metrics |
+| Live Sim | `python cryppo.py paper --model ...` | Live-style paper trading loop using CCXT |
+| Models | `python cryppo.py models` | List checkpoints inside `checkpoints/` |
 
-```batch
-python cryppo.py check              # Check system requirements and GPU
-```
+Reward modes (`--reward`):
 
-### Data Management
+- `profit` – maximize raw PnL
+- `return` – percentage returns
+- `sharpe` – penalize volatility
+- `sortino` – focus on downside risk
 
-```batch
-python cryppo.py data download --symbol BTCUSDT --start 2023-01-01 --end 2024-01-01
-python cryppo.py data list          # List downloaded data files
-```
+All training logs stream to `logs/` with JSON metrics plus human-readable summaries, and SB3 models store zipped checkpoints inside `server/checkpoints/`.
 
-### Training
+---
 
-```batch
-python cryppo.py train --symbol BTCUSDT --episodes 100 [options]
+## Verification Matrix
 
-Options:
-  --symbol         Trading symbol (default: BTCUSDT)
-  --episodes       Number of episodes (default: 100)
-  --model          Model type: d3qn (default: d3qn)
-  --lr             Learning rate (default: 0.00025)
-  --reward         Reward type: profit/return/sharpe/sortino (default: sharpe)
-  --sample-data    Use sample data for testing
+Every CLI flow was exercised end-to-end with synthetic data:
 
-Reward Types:
-  profit     - Direct PnL reward (aggressive, high volatility)
-  return     - Percentage-based return (balanced)
-  sharpe     - Risk-adjusted return (conservative, smooth equity)
-  sortino    - Downside risk-adjusted (allows upside volatility)
+| Stage | Command run | Result |
+| --- | --- | --- |
+| Environment sanity | `python cryppo.py check` | Pass (GPU + deps detected) |
+| Sample data | `python cryppo.py data sample --symbol TESTCOIN --samples 500` | Generated parquet |
+| Data prep | `python cryppo.py data prepare --symbol TESTCOIN --sample-data --window 32` | Saved `data/processed/TESTCOIN_1h_prepared.npz` |
+| Training | `python cryppo.py train --model d3qn --episodes 1 --sample-data` | Produced `checkpoints/final_agent.pth` |
+|  | `python cryppo.py train --model ppo|sac|td3 --timesteps 100-200 --sample-data` | Generated `server/checkpoints/final_*_model.zip` for each algorithm |
+| Backtests | `python cryppo.py backtest --model ...` (d3qn and ppo) | Printed Rich summaries + metrics |
+| Paper trade | `python cryppo.py paper --model checkpoints/final_agent.pth --symbol BTC/USDT` | Live CCXT feed rendered in terminal |
 
-See TRAINING_GUIDE.md for detailed explanation of each reward type.
-```
-
-### Backtesting
-
-```batch
-python cryppo.py backtest --model checkpoints/final_agent.pth [options]
-
-Options:
-  --model          Path to trained model (required)
-  --sample-data    Use sample data for testing
-```
-
-### Models
-
-```batch
-python cryppo.py models             # List all trained models
-```
+The environment bug where `position_penalty` was unset has been fixed, and SAC/TD3 now operate through the new continuous-action wrapper so every listed algorithm can download data, train, and evaluate via the CLI alone.
 
 ---
 

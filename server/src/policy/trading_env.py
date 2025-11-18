@@ -52,7 +52,7 @@ class TradingEnv(gym.Env):
         atr_period: int = 14,  # ATR calculation period
         atr_sl_multiplier: float = 1.5,  # Stop Loss = Entry ± (ATR × 1.5) [INCREASED from 1.0]
         atr_tp_multiplier: float = 3.0,  # Take Profit = Entry ± (ATR × 3.0) [INCREASED from 2.0]
-        trailing_distance_multiplier: float = 1.0,  # Trailing distance = ATR × 1.0 [INCREASED from 0.5]
+        trailing_distance_multiplier: float = 2.0,  # Trailing distance = ATR × 2.0 [INCREASED from 1.0 - industry standard for crypto per web research]
         streaming_mode: bool = False
     ):
         """
@@ -69,7 +69,7 @@ class TradingEnv(gym.Env):
             atr_period: Period for ATR calculation (default 14)
             atr_sl_multiplier: Multiplier for Stop Loss calculation (default 1.5x ATR)
             atr_tp_multiplier: Multiplier for Take Profit calculation (default 3.0x ATR)
-            trailing_distance_multiplier: Multiplier for Trailing Stop distance (default 1.0x ATR)
+            trailing_distance_multiplier: Multiplier for Trailing Stop distance (default 2.0x ATR - industry standard for crypto)
         """
         super().__init__()
 

@@ -108,10 +108,88 @@ class DuelingQNetwork(nn.Module):
         return q_values
 
 
+class PrioritizedReplayBuffer:
+    """
+    Prioritized Experience Replay Buffer (2025 Best Practice)
+    Samples important experiences more frequently
+    - TD error = priority (bigger mistakes → learn more)
+    - α = prioritization exponent (0=uniform, 1=full priority)
+    - β = importance sampling weight (corrects bias from prioritization)
+    """
+
+    def __init__(self, capacity: int = 100000, alpha: float = 0.6, beta_start: float = 0.4, beta_increment: float = 0.001):
+        self.capacity = capacity
+        self.alpha = alpha  # How much prioritization to use (0=none, 1=full)
+        self.beta = beta_start  # Importance sampling weight (increases over time)
+        self.beta_increment = beta_increment
+        self.max_priority = 1.0  # Initialize with high priority
+
+        self.buffer = []
+        self.priorities = []
+        self.position = 0
+
+    def push(self, state, action, reward, next_state, done):
+        """Add experience to buffer with maximum priority"""
+        experience = Experience(state, action, reward, next_state, done)
+
+        if len(self.buffer) < self.capacity:
+            self.buffer.append(experience)
+            self.priorities.append(self.max_priority)
+        else:
+            self.buffer[self.position] = experience
+            self.priorities[self.position] = self.max_priority
+
+        self.position = (self.position + 1) % self.capacity
+
+    def sample(self, batch_size: int) -> Tuple:
+        """Sample batch based on priorities"""
+        if len(self.buffer) == 0:
+            return None
+
+        # Calculate sampling probabilities
+        priorities = np.array(self.priorities[:len(self.buffer)])
+        probs = priorities ** self.alpha
+        probs = probs / probs.sum()
+
+        # Sample indices based on priorities
+        indices = np.random.choice(len(self.buffer), batch_size, p=probs, replace=False)
+
+        # Calculate importance sampling weights
+        total = len(self.buffer)
+        weights = (total * probs[indices]) ** (-self.beta)
+        weights = weights / weights.max()  # Normalize
+
+        # Increase beta over time (reduces bias correction as training progresses)
+        self.beta = min(1.0, self.beta + self.beta_increment)
+
+        # Get experiences
+        experiences = [self.buffer[idx] for idx in indices]
+
+        # Convert to tensors
+        states = torch.FloatTensor(np.array([e.state for e in experiences]))
+        actions = torch.LongTensor(np.array([e.action for e in experiences]))
+        rewards = torch.FloatTensor(np.array([e.reward for e in experiences]))
+        next_states = torch.FloatTensor(np.array([e.next_state for e in experiences]))
+        dones = torch.FloatTensor(np.array([e.done for e in experiences]))
+        weights = torch.FloatTensor(weights)
+
+        return states, actions, rewards, next_states, dones, weights, indices
+
+    def update_priorities(self, indices: List[int], td_errors: np.ndarray):
+        """Update priorities based on TD errors"""
+        for idx, td_error in zip(indices, td_errors):
+            priority = abs(td_error) + 1e-6  # Small constant to avoid zero priority
+            self.priorities[idx] = priority
+            self.max_priority = max(self.max_priority, priority)
+
+    def __len__(self):
+        return len(self.buffer)
+
+
 class ReplayBuffer:
     """
-    Experience Replay Buffer
-    Stores transitions and samples random batches for training
+    Standard Experience Replay Buffer (kept for backward compatibility)
+    Use PrioritizedReplayBuffer for better performance
     """
 
     def __init__(self, capacity: int = 100000):
@@ -155,6 +233,7 @@ class D3QNAgent:
         buffer_size: int = 100000,
         batch_size: int = 128,  # INCREASED for more stable gradients
         target_update_freq: int = 250,  # More frequent for faster convergence
+        use_prioritized_replay: bool = True,  # Use Prioritized Experience Replay (2025 best practice)
         device: str = "cuda" if torch.cuda.is_available() else "cpu"
     ):
         """
@@ -192,8 +271,12 @@ class D3QNAgent:
         # Optimizer
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)
 
-        # Replay buffer
-        self.memory = ReplayBuffer(buffer_size)
+        # Replay buffer (Prioritized for better learning!)
+        self.use_prioritized_replay = use_prioritized_replay
+        if use_prioritized_replay:
+            self.memory = PrioritizedReplayBuffer(buffer_size)
+        else:
+            self.memory = ReplayBuffer(buffer_size)
 
         # Training stats
         self.steps = 0
@@ -255,8 +338,18 @@ class D3QNAgent:
         if len(self.memory) < self.batch_size:
             return None
 
-        # Sample batch
-        states, actions, rewards, next_states, dones = self.memory.sample(self.batch_size)
+        # Sample batch (different for prioritized vs standard replay)
+        if self.use_prioritized_replay:
+            batch = self.memory.sample(self.batch_size)
+            if batch is None:
+                return None
+            states, actions, rewards, next_states, dones, weights, indices = batch
+            weights = weights.to(self.device)
+        else:
+            states, actions, rewards, next_states, dones = self.memory.sample(self.batch_size)
+            weights = None
+            indices = None
+
         states = states.to(self.device)
         actions = actions.to(self.device)
         rewards = rewards.to(self.device)
@@ -275,8 +368,16 @@ class D3QNAgent:
             # Compute target Q values
             target_q_values = rewards + (1 - dones) * self.gamma * next_q_values
 
+        # Calculate TD errors for prioritized replay
+        td_errors = (current_q_values - target_q_values).detach().cpu().numpy()
+
         # Compute loss (Huber loss is more robust than MSE)
-        loss = F.smooth_l1_loss(current_q_values, target_q_values)
+        if self.use_prioritized_replay and weights is not None:
+            # Weighted loss for prioritized replay (corrects sampling bias)
+            elementwise_loss = F.smooth_l1_loss(current_q_values, target_q_values, reduction='none')
+            loss = (elementwise_loss * weights).mean()
+        else:
+            loss = F.smooth_l1_loss(current_q_values, target_q_values)
 
         # Optimize
         self.optimizer.zero_grad()
@@ -284,6 +385,10 @@ class D3QNAgent:
         # Gradient clipping to prevent exploding gradients
         torch.nn.utils.clip_grad_norm_(self.policy_net.parameters(), 10.0)
         self.optimizer.step()
+
+        # Update priorities for prioritized replay
+        if self.use_prioritized_replay and indices is not None:
+            self.memory.update_priorities(indices, td_errors)
 
         # Update target network
         self.steps += 1

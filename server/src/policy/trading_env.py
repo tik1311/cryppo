@@ -50,7 +50,7 @@ class TradingEnv(gym.Env):
         reward_type: str = 'sharpe',
         min_episode_length: int = 1200,  # Minimum steps per episode (20-30% more than avg ~1000)
         atr_period: int = 14,  # ATR calculation period
-        atr_sl_multiplier: float = 1.0,  # Stop Loss = Entry ± (ATR × 1.0) - tight risk control
+        atr_sl_multiplier: float = 1.5,  # Stop Loss = Entry ± (ATR × 1.5) - wider breathing room to avoid noise
         atr_tp_multiplier: float = 4.5,  # Take Profit = Entry ± (ATR × 4.5) - high reward target
         streaming_mode: bool = False
     ):
@@ -66,7 +66,7 @@ class TradingEnv(gym.Env):
             reward_type: Type of reward ('profit', 'sharpe', 'sortino')
             min_episode_length: Minimum steps per episode (ensures 20-30% longer episodes)
             atr_period: Period for ATR calculation (default 14)
-            atr_sl_multiplier: Multiplier for Stop Loss calculation (1.0x ATR - tight control)
+            atr_sl_multiplier: Multiplier for Stop Loss calculation (1.5x ATR - wider to reduce noise-induced exits)
             atr_tp_multiplier: Multiplier for Take Profit calculation (4.5x ATR - high RR ratio of 4.5:1)
         """
         super().__init__()
@@ -182,6 +182,10 @@ class TradingEnv(gym.Env):
         self.consecutive_holds = 0
         self.last_action = -1
 
+        # Anti-overtrading: Track last trade to enforce minimum spacing
+        self.last_trade_step = -100  # Initialize far in past to allow first trade
+        self.min_bars_between_trades = 8  # Minimum 8 hours between trades (reduces overtrading)
+
         return self._get_observation(), self._get_info()
 
     def _get_observation(self) -> np.ndarray:
@@ -249,8 +253,12 @@ class TradingEnv(gym.Env):
         if self.current_step - self.window_size < 3:
             print(f"  [ACTION] Step {self.current_step}: {action_names[action]} | Pos: {self.position or 'None'}")
 
-        if action == 0:
+        if action == 0:  # HOLD
             self.consecutive_holds += 1
+            # Reward HOLD when not in position (better than overtrading!)
+            if self.position is None:
+                exploration_bonus += 0.0005  # Small reward for patience
+            # Penalize excessive holding
             if self.consecutive_holds > 20:
                 hold_penalty = -0.0005 * (self.consecutive_holds - 20)
                 exploration_bonus += hold_penalty
@@ -265,18 +273,38 @@ class TradingEnv(gym.Env):
             if action_freq < 0.10:
                 exploration_bonus += 0.0002
 
-        if action == 1:
+        if action == 1:  # OPEN_LONG
             if self.position is None:
-                self._open_position('long', close_price)
-                exploration_bonus += 0.001
+                # Check minimum spacing between trades (anti-overtrading)
+                bars_since_last_trade = self.current_step - self.last_trade_step
+                if bars_since_last_trade >= self.min_bars_between_trades:
+                    self._open_position('long', close_price)
+                    self.last_trade_step = self.current_step  # Update last trade time
+                    # Transaction cost penalty (discourages frequent trading)
+                    position_penalty -= 0.002  # Penalize opening positions
+                else:
+                    # Blocked by minimum spacing rule
+                    position_penalty -= 0.005  # Penalty for trying to trade too soon
+                    if self.total_trades < 5:
+                        print(f"  [BLOCKED] Cannot trade - must wait {self.min_bars_between_trades - bars_since_last_trade} more bars")
             else:
                 position_penalty -= 0.01
                 if self.total_trades < 5:
                     print(f"  [BLOCKED] Cannot OPEN_LONG - already have {self.position.upper()} position. Wait for TP/SL!")
-        elif action == 2:
+        elif action == 2:  # OPEN_SHORT
             if self.position is None:
-                self._open_position('short', close_price)
-                exploration_bonus += 0.001
+                # Check minimum spacing between trades (anti-overtrading)
+                bars_since_last_trade = self.current_step - self.last_trade_step
+                if bars_since_last_trade >= self.min_bars_between_trades:
+                    self._open_position('short', close_price)
+                    self.last_trade_step = self.current_step  # Update last trade time
+                    # Transaction cost penalty (discourages frequent trading)
+                    position_penalty -= 0.002  # Penalize opening positions
+                else:
+                    # Blocked by minimum spacing rule
+                    position_penalty -= 0.005  # Penalty for trying to trade too soon
+                    if self.total_trades < 5:
+                        print(f"  [BLOCKED] Cannot trade - must wait {self.min_bars_between_trades - bars_since_last_trade} more bars")
             else:
                 position_penalty -= 0.01
                 if self.total_trades < 5:

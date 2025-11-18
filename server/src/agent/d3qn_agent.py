@@ -27,36 +27,38 @@ class DuelingQNetwork(nn.Module):
     Q(s,a) = V(s) + (A(s,a) - mean(A(s,a)))
     """
 
-    def __init__(self, state_dim: int, action_dim: int, hidden_layers: List[int] = [256, 256, 128]):
+    def __init__(self, state_dim: int, action_dim: int, hidden_layers: List[int] = [512, 512, 256, 128]):
         super(DuelingQNetwork, self).__init__()
 
         self.state_dim = state_dim
         self.action_dim = action_dim
 
-        # Shared feature layers
+        # Shared feature layers (DEEPER network for complex pattern recognition)
         layers = []
         prev_dim = state_dim
         for hidden_dim in hidden_layers:
             layers.append(nn.Linear(prev_dim, hidden_dim))
             layers.append(nn.ReLU())
             layers.append(nn.LayerNorm(hidden_dim))
-            layers.append(nn.Dropout(0.2))
+            layers.append(nn.Dropout(0.15))  # Reduced dropout for better learning
             prev_dim = hidden_dim
 
         self.features = nn.Sequential(*layers)
 
-        # Value stream V(s)
+        # Value stream V(s) - LARGER capacity
         self.value_stream = nn.Sequential(
-            nn.Linear(prev_dim, 128),
+            nn.Linear(prev_dim, 256),
             nn.ReLU(),
-            nn.Linear(128, 1)
+            nn.Dropout(0.1),
+            nn.Linear(256, 1)
         )
 
-        # Advantage stream A(s,a)
+        # Advantage stream A(s,a) - LARGER capacity
         self.advantage_stream = nn.Sequential(
-            nn.Linear(prev_dim, 128),
+            nn.Linear(prev_dim, 256),
             nn.ReLU(),
-            nn.Linear(128, action_dim)
+            nn.Dropout(0.1),
+            nn.Linear(256, action_dim)
         )
 
         # Initialize advantage layer to favor trading actions over HOLD
@@ -145,14 +147,14 @@ class D3QNAgent:
         self,
         state_dim: int,
         action_dim: int,
-        learning_rate: float = 0.00025,
-        gamma: float = 0.99,  # Reduced from 0.995 to prevent Q-value spiral
+        learning_rate: float = 0.0003,  # INCREASED for faster learning
+        gamma: float = 0.97,  # REDUCED to focus more on immediate rewards (TP/SL)
         epsilon_start: float = 1.0,
-        epsilon_end: float = 0.2,  # Keep high exploration (was 0.1)
-        epsilon_decay: float = 0.9999,  # Very slow decay (was 0.9998)
+        epsilon_end: float = 0.15,  # Lower for more exploitation after training
+        epsilon_decay: float = 0.9995,  # Faster decay to reach good policy quicker
         buffer_size: int = 100000,
-        batch_size: int = 64,
-        target_update_freq: int = 500,  # More frequent updates (was 1000) to prevent Q-spiral
+        batch_size: int = 128,  # INCREASED for more stable gradients
+        target_update_freq: int = 250,  # More frequent for faster convergence
         device: str = "cuda" if torch.cuda.is_available() else "cpu"
     ):
         """

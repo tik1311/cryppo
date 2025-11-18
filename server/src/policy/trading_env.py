@@ -45,13 +45,13 @@ class TradingEnv(gym.Env):
         data: np.ndarray,
         initial_balance: float = 10000.0,
         fee_rate: float = 0.0004,
-        max_leverage: float = 1.5,  # REDUCED from 3.0 - lower risk, prevent -78% losses
+        max_leverage: float = 1.0,  # CONSERVATIVE 1x - minimize risk, maximize consistency
         window_size: int = 72,
         reward_type: str = 'sharpe',
         min_episode_length: int = 1200,  # Minimum steps per episode (20-30% more than avg ~1000)
         atr_period: int = 14,  # ATR calculation period
-        atr_sl_multiplier: float = 1.5,  # Stop Loss = Entry ± (ATR × 1.5) [INCREASED from 1.0]
-        atr_tp_multiplier: float = 3.0,  # Take Profit = Entry ± (ATR × 3.0) [INCREASED from 2.0]
+        atr_sl_multiplier: float = 1.0,  # Stop Loss = Entry ± (ATR × 1.0) - tight risk control
+        atr_tp_multiplier: float = 4.5,  # Take Profit = Entry ± (ATR × 4.5) - high reward target
         streaming_mode: bool = False
     ):
         """
@@ -61,13 +61,13 @@ class TradingEnv(gym.Env):
             data: Market data array [timesteps, features]
             initial_balance: Starting capital
             fee_rate: Trading fee rate (0.04%)
-            max_leverage: Maximum leverage allowed (default 1.5x)
+            max_leverage: Maximum leverage allowed (default 1.0x - conservative)
             window_size: Number of historical timesteps in observation
             reward_type: Type of reward ('profit', 'sharpe', 'sortino')
             min_episode_length: Minimum steps per episode (ensures 20-30% longer episodes)
             atr_period: Period for ATR calculation (default 14)
-            atr_sl_multiplier: Multiplier for Stop Loss calculation (default 1.5x ATR)
-            atr_tp_multiplier: Multiplier for Take Profit calculation (default 3.0x ATR)
+            atr_sl_multiplier: Multiplier for Stop Loss calculation (1.0x ATR - tight control)
+            atr_tp_multiplier: Multiplier for Take Profit calculation (4.5x ATR - high RR ratio of 4.5:1)
         """
         super().__init__()
 
@@ -327,11 +327,11 @@ class TradingEnv(gym.Env):
             if exit_event:
                 trade_reward = self._close_position(exit_price)
                 if exit_event == 'tp':
-                    trade_reward += 0.02
+                    trade_reward += 0.10  # INCREASED: Strong positive reinforcement for TP
                     if self.total_trades <= 5:
                         print(f"  [WIN] Take Profit HIT @ ${exit_price:.2f}")
                 elif exit_event == 'sl':
-                    trade_reward -= 0.02
+                    trade_reward -= 0.005  # REDUCED: Light penalty for SL (acceptable risk management)
                     if self.total_trades <= 5:
                         print(f"  [RISK] Stop Loss HIT @ ${exit_price:.2f}")
 

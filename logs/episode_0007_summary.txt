@@ -1,0 +1,41 @@
+Episode 7 Summary
+======================================================================
+
+Total Steps: 6835
+Total Trades: 0
+Winning Trades: 0
+Win Rate: 0.00%
+Initial Balance: $10,000.00
+Final Balance: $10,000.00
+Final Equity: $10,000.00
+Total PnL: $0.00
+Return: +0.00%
+
+======================================================================
+
+First 10 Steps:
+----------------------------------------------------------------------
+Step 1223 | HOLD  | Price: $96777.10 | Balance: $  10000.00 | Reward:  +0.0005
+Step 1224 | HOLD  | Price: $97116.10 | Balance: $  10000.00 | Reward:  +0.0005
+Step 1225 | HOLD  | Price: $97313.70 | Balance: $  10000.00 | Reward:  +0.0005
+Step 1226 | HOLD  | Price: $97305.60 | Balance: $  10000.00 | Reward:  +0.0005
+Step 1227 | HOLD  | Price: $97573.10 | Balance: $  10000.00 | Reward:  +0.0005
+Step 1228 | HOLD  | Price: $97775.20 | Balance: $  10000.00 | Reward:  +0.0005
+Step 1229 | HOLD  | Price: $98333.00 | Balance: $  10000.00 | Reward:  +0.0005
+Step 1230 | HOLD  | Price: $98164.90 | Balance: $  10000.00 | Reward:  +0.0005
+Step 1231 | HOLD  | Price: $98089.90 | Balance: $  10000.00 | Reward:  +0.0005
+Step 1232 | HOLD  | Price: $98566.40 | Balance: $  10000.00 | Reward:  +0.0005
+
+----------------------------------------------------------------------
+Last 10 Steps:
+----------------------------------------------------------------------
+Step 8048 | HOLD  | Price: $95608.00 | Balance: $  10000.00 | Reward:  -3.4025
+Step 8049 | HOLD  | Price: $95607.60 | Balance: $  10000.00 | Reward:  -3.4030
+Step 8050 | HOLD  | Price: $95530.10 | Balance: $  10000.00 | Reward:  -3.4035
+Step 8051 | HOLD  | Price: $95283.40 | Balance: $  10000.00 | Reward:  -3.4040
+Step 8052 | HOLD  | Price: $93913.50 | Balance: $  10000.00 | Reward:  -3.4045
+Step 8053 | HOLD  | Price: $94730.20 | Balance: $  10000.00 | Reward:  -3.4050
+Step 8054 | HOLD  | Price: $93915.70 | Balance: $  10000.00 | Reward:  -3.4055
+Step 8055 | HOLD  | Price: $94267.00 | Balance: $  10000.00 | Reward:  -3.4060
+Step 8056 | HOLD  | Price: $92724.00 | Balance: $  10000.00 | Reward:  -3.4065
+Step 8057 | HOLD  | Price: $92484.10 | Balance: $  10000.00 | Reward:  -3.4070

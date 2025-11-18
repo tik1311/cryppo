@@ -1,0 +1,193 @@
+
+
+================================================================================
+NEW BACKTEST SESSION - 2025-11-18 18:59:22
+Session ID: 20251118_185922
+================================================================================
+
+LOG FILES:
+- backtest_steps.jsonl: Every single step with full state/action/reward
+- backtest_trades.jsonl: Every trade entry/exit with PnL and reasons
+- backtest_episodes.jsonl: Episode summaries with statistics
+- backtest_analysis.txt: Human-readable analysis (this file)
+
+LOG FORMAT:
+- All prices in USD
+- All percentages as decimals (0.01 = 1%)
+- All times in steps (1 step = 1 hour)
+- Q-values: [HOLD, LONG, SHORT]
+- NO special characters (epsilon = eps) for Windows compatibility
+
+KEY METRICS TO WATCH:
+1. Win Rate: Should be >25% for RR 4.5:1 to be profitable
+2. Avg Win vs Avg Loss: Should match RR ratio (~4.5:1)
+3. Action Distribution: Too much HOLD means no trading
+4. Q-Value Evolution: Should stabilize and differentiate actions
+5. Epsilon Decay: Should gradually decrease exploration
+
+================================================================================
+
+
+Step 0 (Episode 1):
+  Price: $29443.40 | Balance: $10,000.00
+  Action: HOLD (eps=0.000)
+  Q-values: HOLD=-0.2238, LONG=-0.2279, SHORT=-0.2300
+  Reason: Greedy (Q=-0.2238 best)
+  Position: None | Size: 0.0000
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0005
+
+Step 1 (Episode 1):
+  Price: $29442.60 | Balance: $10,000.00
+  Action: HOLD (eps=0.000)
+  Q-values: HOLD=-0.2238, LONG=-0.2279, SHORT=-0.2300
+  Reason: Greedy (Q=-0.2238 best)
+  Position: None | Size: 0.0000
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0005
+
+Step 2 (Episode 1):
+  Price: $29434.60 | Balance: $10,000.00
+  Action: HOLD (eps=0.000)
+  Q-values: HOLD=-0.2238, LONG=-0.2279, SHORT=-0.2300
+  Reason: Greedy (Q=-0.2238 best)
+  Position: None | Size: 0.0000
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0005
+
+Step 3 (Episode 1):
+  Price: $29401.80 | Balance: $10,000.00
+  Action: HOLD (eps=0.000)
+  Q-values: HOLD=-0.2238, LONG=-0.2279, SHORT=-0.2300
+  Reason: Greedy (Q=-0.2238 best)
+  Position: None | Size: 0.0000
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0005
+
+Step 4 (Episode 1):
+  Price: $29377.80 | Balance: $10,000.00
+  Action: HOLD (eps=0.000)
+  Q-values: HOLD=-0.2238, LONG=-0.2279, SHORT=-0.2300
+  Reason: Greedy (Q=-0.2238 best)
+  Position: None | Size: 0.0000
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0005
+
+Step 5 (Episode 1):
+  Price: $29374.20 | Balance: $10,000.00
+  Action: HOLD (eps=0.000)
+  Q-values: HOLD=-0.2238, LONG=-0.2279, SHORT=-0.2300
+  Reason: Greedy (Q=-0.2238 best)
+  Position: None | Size: 0.0000
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0005
+
+Step 6 (Episode 1):
+  Price: $29390.20 | Balance: $10,000.00
+  Action: HOLD (eps=0.000)
+  Q-values: HOLD=-0.2238, LONG=-0.2279, SHORT=-0.2300
+  Reason: Greedy (Q=-0.2238 best)
+  Position: None | Size: 0.0000
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0005
+
+Step 7 (Episode 1):
+  Price: $29385.50 | Balance: $10,000.00
+  Action: HOLD (eps=0.000)
+  Q-values: HOLD=-0.2238, LONG=-0.2279, SHORT=-0.2300
+  Reason: Greedy (Q=-0.2238 best)
+  Position: None | Size: 0.0000
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0005
+
+Step 8 (Episode 1):
+  Price: $29399.70 | Balance: $10,000.00
+  Action: HOLD (eps=0.000)
+  Q-values: HOLD=-0.2238, LONG=-0.2279, SHORT=-0.2300
+  Reason: Greedy (Q=-0.2238 best)
+  Position: None | Size: 0.0000
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0005
+
+Step 9 (Episode 1):
+  Price: $29398.80 | Balance: $10,000.00
+  Action: HOLD (eps=0.000)
+  Q-values: HOLD=-0.2238, LONG=-0.2279, SHORT=-0.2300
+  Reason: Greedy (Q=-0.2238 best)
+  Position: None | Size: 0.0000
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0005
+
+Step 19866 (Episode 1):
+  Price: $92484.10 | Balance: $10,000.00
+  Action: HOLD (eps=0.000)
+  Q-values: HOLD=-0.2238, LONG=-0.2279, SHORT=-0.2300
+  Reason: Greedy (Q=-0.2238 best)
+  Position: None | Size: 0.0000
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=-9.9230
+
+
+################################################################################
+EPISODE 1 SUMMARY
+################################################################################
+
+Duration: 19867 steps
+
+FINANCIAL RESULTS:
+  Initial Balance: $10,000.00
+  Final Balance: $10,000.00
+  Return: +0.00%
+  Total Reward: -98470.88
+  Max Drawdown: 0.00%
+  Sharpe Ratio: 0.0000
+
+TRADING STATISTICS:
+  Total Trades: 0
+  Winning Trades: 0
+  Losing Trades: 0
+  Win Rate: 0.00%
+
+  Average Win: $0.00
+  Average Loss: $0.00
+  Risk/Reward Ratio: 0.00:1
+
+ACTION DISTRIBUTION:
+  HOLD: 19867
+  LONG: 0
+  SHORT: 0
+
+LEARNING PROGRESS:
+  Training Loss: 0.000000
+  Epsilon: 0.000 → 0.000
+
+PROFITABILITY ANALYSIS:
+  Required Win Rate for RR 4.5:1: 18.18%
+  Actual Win Rate: 0.00%
+  Status: UNPROFITABLE ✗
+
+DIAGNOSIS:
+  ⚠️ Win rate below minimum (18%) - agent not finding good setups
+  ⚠️ Actual RR ratio below expected (4.5:1) - exits too early?
+  ⚠️ Too much HOLD (>70%) - agent too conservative
+
+################################################################################
+
+
+
+================================================================================
+LOGGING SESSION ENDED - 2025-11-18 19:00:21
+Session ID: 20251118_185922
+Mode: BACKTEST
+================================================================================
+
+Total Episodes Logged: 1
+
+Log Files:
+- logs/backtest/backtest_steps.jsonl
+- logs/backtest/backtest_trades.jsonl
+- logs/backtest/backtest_episodes.jsonl
+- logs/backtest/backtest_analysis.txt
+
+To analyze these logs:
+1. Check backtest_analysis.txt for human-readable summaries
+2. Parse backtest_episodes.jsonl for episode statistics
+3. Parse backtest_trades.jsonl for trade-by-trade analysis
+4. Parse backtest_steps.jsonl for detailed step analysis
+
+Look for patterns in:
+- When does the agent WIN vs LOSE?
+- What Q-values lead to profitable trades?
+- Is the agent learning (epsilon decay, loss decrease)?
+- Are TP/SL levels appropriate (check actual vs expected RR)?
+
+================================================================================

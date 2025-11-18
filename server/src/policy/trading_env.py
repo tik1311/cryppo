@@ -318,11 +318,12 @@ class TradingEnv(gym.Env):
                         self.trailing_stop_loss = new_trailing_stop
                         if self.total_trades <= 5:
                             print(f"  [TRAIL] Stop updated: ${old_trailing:.2f} -> ${self.trailing_stop_loss:.2f} (price: ${high_price:.2f})")
-                if self.break_even and self.highest_price_since_entry >= self.break_even:
-                    if self.stop_loss < self.break_even:
-                        self.stop_loss = self.break_even
-                    if self.trailing_stop_loss < self.break_even:
-                        self.trailing_stop_loss = self.break_even
+                # DISABLED break-even logic for LONG - it was causing premature exits
+                # if self.break_even and self.highest_price_since_entry >= self.break_even:
+                #     if self.stop_loss < self.break_even:
+                #         self.stop_loss = self.break_even
+                #     if self.trailing_stop_loss < self.break_even:
+                #         self.trailing_stop_loss = self.break_even
             else:
                 if self.lowest_price_since_entry == 0 or low_price < self.lowest_price_since_entry:
                     self.lowest_price_since_entry = low_price
@@ -330,18 +331,32 @@ class TradingEnv(gym.Env):
                     # Only update if new trailing protects profit with buffer:
                     # Must be: (1) better than current trailing, (2) better than SL, (3) below entry - 0.5x ATR for breathing room
                     min_profit_buffer = atr * 0.5  # Need at least 0.5x ATR profit before trailing activates
+                    entry_threshold = self.entry_price - min_profit_buffer
+
+                    # Debug first few trades
+                    if self.total_trades <= 3:
+                        print(f"  [DEBUG] SHORT trailing check:")
+                        print(f"    Entry: ${self.entry_price:.2f} | Low: ${low_price:.2f}")
+                        print(f"    Profit: ${self.entry_price - low_price:.2f}")
+                        print(f"    New trailing: ${new_trailing_stop:.2f}")
+                        print(f"    Entry threshold: ${entry_threshold:.2f} (entry - 0.5x ATR)")
+                        print(f"    Check 1: new < current? ${new_trailing_stop:.2f} < ${self.trailing_stop_loss:.2f} = {new_trailing_stop < self.trailing_stop_loss}")
+                        print(f"    Check 2: new < SL? ${new_trailing_stop:.2f} < ${self.stop_loss:.2f} = {new_trailing_stop < self.stop_loss}")
+                        print(f"    Check 3: new <= threshold? ${new_trailing_stop:.2f} <= ${entry_threshold:.2f} = {new_trailing_stop <= entry_threshold}")
+
                     if (new_trailing_stop < self.trailing_stop_loss and
                         new_trailing_stop < self.stop_loss and
-                        new_trailing_stop <= self.entry_price - min_profit_buffer):
+                        new_trailing_stop <= entry_threshold):
                         old_trailing = self.trailing_stop_loss
                         self.trailing_stop_loss = new_trailing_stop
                         if self.total_trades <= 5:
                             print(f"  [TRAIL] Stop updated: ${old_trailing:.2f} -> ${self.trailing_stop_loss:.2f} (price: ${low_price:.2f})")
-                if self.break_even and self.lowest_price_since_entry <= self.break_even:
-                    if self.stop_loss > self.break_even:
-                        self.stop_loss = self.break_even
-                    if self.trailing_stop_loss > self.break_even:
-                        self.trailing_stop_loss = self.break_even
+                # DISABLED break-even logic for SHORT - it was causing premature exits (trailing moved to entry-0.12%)
+                # if self.break_even and self.lowest_price_since_entry <= self.break_even:
+                #     if self.stop_loss > self.break_even:
+                #         self.stop_loss = self.break_even
+                #     if self.trailing_stop_loss > self.break_even:
+                #         self.trailing_stop_loss = self.break_even
 
             exit_event = None
             exit_price = close_price

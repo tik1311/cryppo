@@ -122184,3 +122184,140 @@ Look for patterns in:
 - Are TP/SL levels appropriate (check actual vs expected RR)?
 
 ================================================================================
+
+
+================================================================================
+NEW TRAIN SESSION - 2025-11-18 20:38:07
+Session ID: 20251118_203807
+================================================================================
+
+LOG FILES:
+- train_steps.jsonl: Every single step with full state/action/reward
+- train_trades.jsonl: Every trade entry/exit with PnL and reasons
+- train_episodes.jsonl: Episode summaries with statistics
+- train_analysis.txt: Human-readable analysis (this file)
+
+LOG FORMAT:
+- All prices in USD
+- All percentages as decimals (0.01 = 1%)
+- All times in steps (1 step = 1 hour)
+- Q-values: [HOLD, LONG, SHORT]
+- NO special characters (epsilon = eps) for Windows compatibility
+
+KEY METRICS TO WATCH:
+1. Win Rate: Should be >25% for RR 4.5:1 to be profitable
+2. Avg Win vs Avg Loss: Should match RR ratio (~4.5:1)
+3. Action Distribution: Too much HOLD means no trading
+4. Q-Value Evolution: Should stabilize and differentiate actions
+5. Epsilon Decay: Should gradually decrease exploration
+
+================================================================================
+
+
+Step 0 (Episode 1):
+  Price: $36152.91 | Balance: $9,994.00
+  Action: SHORT (eps=1.000)
+  Q-values: HOLD=-0.1987, LONG=0.0497, SHORT=0.0855
+  Reason: Exploration (eps=1.000)
+  Position: short | Size: 0.4149
+  Entry: $36152.91 | TP: $34297.42 | SL: $36771.41
+  Unrealized PnL: $17.81 (0.18%)
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0018
+  Training Loss: 0.000000
+
+Step 1 (Episode 1):
+  Price: $36109.99 | Balance: $9,994.00
+  Action: HOLD (eps=1.000)
+  Q-values: HOLD=-0.2117, LONG=0.0604, SHORT=0.0739
+  Reason: Exploration (eps=1.000)
+  Position: short | Size: 0.4149
+  Entry: $36152.91 | TP: $34297.42 | SL: $36771.41
+  Unrealized PnL: $-48.87 (-0.49%)
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0036
+  Training Loss: 0.000000
+
+Step 2 (Episode 1):
+  Price: $36270.69 | Balance: $9,994.00
+  Action: HOLD (eps=1.000)
+  Q-values: HOLD=-0.2043, LONG=0.0694, SHORT=0.0790
+  Reason: Exploration (eps=1.000)
+  Position: short | Size: 0.4149
+  Entry: $36152.91 | TP: $34297.42 | SL: $36771.41
+  Unrealized PnL: $-141.16 (-1.41%)
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=-0.0133
+  Training Loss: 0.000000
+
+Step 3 (Episode 1):
+  Price: $36493.14 | Balance: $9,994.00
+  Action: HOLD (eps=1.000)
+  Q-values: HOLD=-0.2043, LONG=0.0488, SHORT=0.0865
+  Reason: Exploration (eps=1.000)
+  Position: short | Size: 0.4149
+  Entry: $36152.91 | TP: $34297.42 | SL: $36771.41
+  Unrealized PnL: $-95.06 (-0.95%)
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=-0.0186
+  Training Loss: 0.000000
+
+Step 4 (Episode 1):
+  Price: $36382.01 | Balance: $9,995.51
+  Action: HOLD (eps=1.000)
+  Q-values: HOLD=-0.2048, LONG=0.0548, SHORT=0.0765
+  Reason: Exploration (eps=1.000)
+  Position: short | Size: 0.4149
+  Entry: $36152.91 | TP: $34297.42 | SL: $36771.41
+  Unrealized PnL: $-188.38 (-1.88%)
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0097
+  Training Loss: 0.000000
+
+Step 5 (Episode 1):
+  Price: $36606.94 | Balance: $9,732.79
+  Action: HOLD (eps=1.000)
+  Q-values: HOLD=-0.2058, LONG=0.0556, SHORT=0.0945
+  Reason: Exploration (eps=1.000)
+  Position: None | Size: 0.0000
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=-0.1127
+  Training Loss: 0.000000
+
+Step 6 (Episode 1):
+  Price: $36323.63 | Balance: $9,726.95
+  Action: SHORT (eps=1.000)
+  Q-values: HOLD=-0.1818, LONG=0.0722, SHORT=0.0913
+  Reason: Exploration (eps=1.000)
+  Position: short | Size: 0.4019
+  Entry: $36323.63 | TP: $34359.08 | SL: $36978.48
+  Unrealized PnL: $105.23 (1.08%)
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0038
+  Training Loss: 0.000000
+
+Step 7 (Episode 1):
+  Price: $36061.81 | Balance: $9,726.95
+  Action: HOLD (eps=1.000)
+  Q-values: HOLD=-0.2056, LONG=0.0501, SHORT=0.0819
+  Reason: Exploration (eps=1.000)
+  Position: short | Size: 0.4019
+  Entry: $36323.63 | TP: $34359.08 | SL: $36978.48
+  Unrealized PnL: $114.00 (1.17%)
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0216
+  Training Loss: 0.000000
+
+Step 8 (Episode 1):
+  Price: $36039.99 | Balance: $9,726.95
+  Action: HOLD (eps=1.000)
+  Q-values: HOLD=-0.1970, LONG=0.0663, SHORT=0.0831
+  Reason: Exploration (eps=1.000)
+  Position: short | Size: 0.4019
+  Entry: $36323.63 | TP: $34359.08 | SL: $36978.48
+  Unrealized PnL: $210.60 (2.17%)
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=-0.0096
+  Training Loss: 0.000000
+
+Step 9 (Episode 1):
+  Price: $35799.65 | Balance: $9,726.95
+  Action: HOLD (eps=1.000)
+  Q-values: HOLD=-0.2117, LONG=0.0458, SHORT=0.0807
+  Reason: Exploration (eps=1.000)
+  Position: short | Size: 0.4019
+  Entry: $36323.63 | TP: $34359.08 | SL: $36978.48
+  Unrealized PnL: $234.22 (2.41%)
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=0.0160
+  Training Loss: 0.000000

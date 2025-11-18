@@ -1,0 +1,38 @@
+2025-11-18 20:38:04 - ============================================================
+2025-11-18 20:38:04 - D3QN Crypto Futures Trading - Training
+2025-11-18 20:38:04 - ============================================================
+2025-11-18 20:38:04 - Symbol: BTCUSDT
+2025-11-18 20:38:04 - Timeframe: 1h
+2025-11-18 20:38:04 - Episodes: 1
+2025-11-18 20:38:04 - Initial Balance: $10,000.00
+2025-11-18 20:38:04 - Max Leverage: 1.5x
+2025-11-18 20:38:04 - Window Size: 72 candles
+2025-11-18 20:38:04 - Reward Type: sharpe
+2025-11-18 20:38:04 - ============================================================
+2025-11-18 20:38:04 - [INFO] Checkpoints will be saved to: /home/user/cryppo/checkpoints
+2025-11-18 20:38:04 - 
+[DATA] Loading market data...
+2025-11-18 20:38:04 - [OK] Loaded 54,290 candles
+2025-11-18 20:38:04 -   Date range: 2019-09-08 17:00:00 to 2025-11-17 18:00:00
+2025-11-18 20:38:04 - 
+[PREP] Preparing data...
+2025-11-18 20:38:04 - [OK] Data shape: (54192, 17)
+2025-11-18 20:38:04 -   Features: 17
+2025-11-18 20:38:04 - [OK] Train: 37,934 | Val: 8,129 | Test: 8,129
+2025-11-18 20:38:04 - 
+[ENV] Creating environments...
+2025-11-18 20:38:04 - [OK] Train env: 37934 steps
+2025-11-18 20:38:04 - [OK] Val env: 8129 steps
+2025-11-18 20:38:04 - 
+[AGENT] Initializing D3QN agent...
+2025-11-18 20:38:07 - [OK] State dim: 1944
+2025-11-18 20:38:07 - [OK] Window size: 72, Features: 27
+2025-11-18 20:38:07 - [OK] Action dim: 3 (HOLD, LONG, SHORT, CLOSE)
+2025-11-18 20:38:07 - [OK] Using hybrid CNN-BiLSTM-Attention-QR-DQN architecture
+2025-11-18 20:38:07 - [OK] Device: cpu
+2025-11-18 20:38:07 - 
+[TRAIN] Starting training...
+2025-11-18 20:38:07 - ============================================================
+2025-11-18 20:38:07 - [INFO] Detailed logs will be saved to: logs/train/
+2025-11-18 20:38:07 - 
+[DEBUG] Episode 1 - Enabling detailed environment logging

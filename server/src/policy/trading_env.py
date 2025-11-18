@@ -52,7 +52,7 @@ class TradingEnv(gym.Env):
         atr_period: int = 14,  # ATR calculation period
         atr_sl_multiplier: float = 1.5,  # Stop Loss = Entry ± (ATR × 1.5) [INCREASED from 1.0]
         atr_tp_multiplier: float = 3.0,  # Take Profit = Entry ± (ATR × 3.0) [INCREASED from 2.0]
-        trailing_distance_multiplier: float = 2.0,  # Trailing distance = ATR × 2.0 [INCREASED from 1.0 - industry standard for crypto per web research]
+        trailing_distance_multiplier: float = 1.0,  # Trailing distance = ATR × 1.0 [MUST be < SL (1.5x) to protect profit!]
         streaming_mode: bool = False
     ):
         """
@@ -308,7 +308,11 @@ class TradingEnv(gym.Env):
                 if high_price > self.highest_price_since_entry:
                     self.highest_price_since_entry = high_price
                     new_trailing_stop = high_price - trailing_distance
-                    if new_trailing_stop > self.trailing_stop_loss:
+                    # Only update if new trailing protects profit:
+                    # Must be: (1) better than current trailing, (2) better than SL, (3) above entry to protect profit
+                    if (new_trailing_stop > self.trailing_stop_loss and
+                        new_trailing_stop > self.stop_loss and
+                        new_trailing_stop >= self.entry_price):
                         old_trailing = self.trailing_stop_loss
                         self.trailing_stop_loss = new_trailing_stop
                         if self.total_trades <= 5:
@@ -322,7 +326,11 @@ class TradingEnv(gym.Env):
                 if self.lowest_price_since_entry == 0 or low_price < self.lowest_price_since_entry:
                     self.lowest_price_since_entry = low_price
                     new_trailing_stop = low_price + trailing_distance
-                    if new_trailing_stop < self.trailing_stop_loss or self.trailing_stop_loss == self.stop_loss:
+                    # Only update if new trailing protects profit:
+                    # Must be: (1) better than current trailing, (2) better than SL, (3) below entry to protect profit
+                    if (new_trailing_stop < self.trailing_stop_loss and
+                        new_trailing_stop < self.stop_loss and
+                        new_trailing_stop <= self.entry_price):
                         old_trailing = self.trailing_stop_loss
                         self.trailing_stop_loss = new_trailing_stop
                         if self.total_trades <= 5:

@@ -211,10 +211,11 @@ class D3QNAgent:
         """
         if training and random.random() < self.epsilon:
             # Random action with STRONG bias towards trading (not holding)
-            # Action 0 = HOLD, 1 = LONG, 2 = SHORT, 3 = CLOSE
-            # Bias: 5% HOLD, 42% LONG, 42% SHORT, 11% CLOSE
+            # Action 0 = HOLD, 1 = LONG, 2 = SHORT
+            # Bias: 10% HOLD, 45% LONG, 45% SHORT
             # Force agent to explore trading actions
-            action_probs = [0.05, 0.42, 0.42, 0.11]
+            # NOTE: No CLOSE action - positions close via TP/SL/Trailing only
+            action_probs = [0.10, 0.45, 0.45]
             return random.choices(range(self.action_dim), weights=action_probs)[0]
 
         # Greedy action (exploitation)

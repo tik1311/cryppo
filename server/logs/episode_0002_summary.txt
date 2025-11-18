@@ -1,41 +1,41 @@
 Episode 2 Summary
 ======================================================================
 
-Total Steps: 6612
-Total Trades: 349
-Winning Trades: 65
-Win Rate: 18.62%
+Total Steps: 2868
+Total Trades: 0
+Winning Trades: 0
+Win Rate: 0.00%
 Initial Balance: $10,000.00
-Final Balance: $4,910.34
-Final Equity: $4,913.29
-Total PnL: $-5,089.66
-Return: -50.90%
+Final Balance: $10,000.00
+Final Equity: $10,000.00
+Total PnL: $0.00
+Return: +0.00%
 
 ======================================================================
 
 First 10 Steps:
 ----------------------------------------------------------------------
-Step 1446 | LONG  | Price: $97312.40 | Balance: $   9994.00 | Reward:  -0.0002
-Step 1447 | LONG  | Price: $97475.70 | Balance: $   9994.00 | Reward:  +0.0050
-Step 1448 | LONG  | Price: $97522.00 | Balance: $   9994.00 | Reward:  +0.0014
-Step 1449 | LONG  | Price: $97610.90 | Balance: $   9992.50 | Reward:  +0.0024
-Step 1450 | LONG  | Price: $97569.40 | Balance: $   9992.50 | Reward:  -0.0013
-Step 1451 | LONG  | Price: $97706.10 | Balance: $   9992.50 | Reward:  +0.0042
-Step 1452 | LONG  | Price: $97667.80 | Balance: $   9992.50 | Reward:  -0.0012
-Step 1453 | LONG  | Price: $97564.10 | Balance: $   9992.50 | Reward:  -0.0032
-Step 1454 | LONG  | Price: $97594.50 | Balance: $   9992.50 | Reward:  +0.0163
-Step 1455 | LONG  | Price: $97494.40 | Balance: $   9992.50 | Reward:  +0.0045
+Step 5190 | HOLD  | Price: $119352.20 | Balance: $  10000.00 | Reward:  +0.0001
+Step 5191 | HOLD  | Price: $118990.20 | Balance: $  10000.00 | Reward:  +0.0001
+Step 5192 | HOLD  | Price: $118680.10 | Balance: $  10000.00 | Reward:  +0.0001
+Step 5193 | HOLD  | Price: $118553.90 | Balance: $  10000.00 | Reward:  +0.0001
+Step 5194 | HOLD  | Price: $118045.00 | Balance: $  10000.00 | Reward:  +0.0001
+Step 5195 | HOLD  | Price: $118140.30 | Balance: $  10000.00 | Reward:  +0.0001
+Step 5196 | HOLD  | Price: $118805.90 | Balance: $  10000.00 | Reward:  +0.0001
+Step 5197 | HOLD  | Price: $118794.30 | Balance: $  10000.00 | Reward:  +0.0001
+Step 5198 | HOLD  | Price: $118304.10 | Balance: $  10000.00 | Reward:  +0.0001
+Step 5199 | HOLD  | Price: $117726.70 | Balance: $  10000.00 | Reward:  +0.0001
 
 ----------------------------------------------------------------------
 Last 10 Steps:
 ----------------------------------------------------------------------
-Step 8048 | LONG  | Price: $95608.00 | Balance: $   5144.65 | Reward:  -0.0145
-Step 8049 | LONG  | Price: $95607.60 | Balance: $   5143.88 | Reward:  -0.0162
-Step 8050 | LONG  | Price: $95530.10 | Balance: $   5143.88 | Reward:  -0.0182
-Step 8051 | LONG  | Price: $95283.40 | Balance: $   5143.88 | Reward:  -0.0264
-Step 8052 | LONG  | Price: $93913.50 | Balance: $   5057.41 | Reward:  -0.0734
-Step 8053 | LONG  | Price: $94730.20 | Balance: $   5054.38 | Reward:  -0.0252
-Step 8054 | LONG  | Price: $93915.70 | Balance: $   4990.02 | Reward:  -0.0650
-Step 8055 | LONG  | Price: $94267.00 | Balance: $   4987.03 | Reward:  -0.0245
-Step 8056 | LONG  | Price: $92724.00 | Balance: $   4916.98 | Reward:  -0.0698
-Step 8057 | LONG  | Price: $92484.10 | Balance: $   4910.34 | Reward:  -0.0269
+Step 8048 | HOLD  | Price: $95608.00 | Balance: $  10000.00 | Reward:  -2.8189
+Step 8049 | HOLD  | Price: $95607.60 | Balance: $  10000.00 | Reward:  -2.8199
+Step 8050 | HOLD  | Price: $95530.10 | Balance: $  10000.00 | Reward:  -2.8209
+Step 8051 | HOLD  | Price: $95283.40 | Balance: $  10000.00 | Reward:  -2.8219
+Step 8052 | HOLD  | Price: $93913.50 | Balance: $  10000.00 | Reward:  -2.8229
+Step 8053 | HOLD  | Price: $94730.20 | Balance: $  10000.00 | Reward:  -2.8239
+Step 8054 | HOLD  | Price: $93915.70 | Balance: $  10000.00 | Reward:  -2.8249
+Step 8055 | HOLD  | Price: $94267.00 | Balance: $  10000.00 | Reward:  -2.8259
+Step 8056 | HOLD  | Price: $92724.00 | Balance: $  10000.00 | Reward:  -2.8269
+Step 8057 | HOLD  | Price: $92484.10 | Balance: $  10000.00 | Reward:  -2.8279

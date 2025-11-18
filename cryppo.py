@@ -1056,7 +1056,7 @@ def main():
                               help="Reward type")
     train_parser.add_argument("--sample-data", action="store_true", help="Use synthetic sample data")
     train_parser.add_argument("--balance", type=float, default=10000.0, help="Initial balance")
-    train_parser.add_argument("--leverage", type=float, default=3.0, help="Max leverage")
+    train_parser.add_argument("--leverage", type=float, default=1.5, help="Max leverage (reduced from 3.0 for better risk management)")
     train_parser.add_argument("--window", type=int, default=72, help="Observation window")
     train_parser.add_argument("--eval-freq", type=int, default=10000, help="Evaluation frequency")
     train_parser.add_argument("--n-eval-episodes", type=int, default=5, help="Eval episodes")
@@ -1073,7 +1073,7 @@ def main():
     backtest_parser.add_argument("--symbol", default="BTCUSDT", help="Symbol to evaluate")
     backtest_parser.add_argument("--timeframe", default="1h", help="Timeframe for evaluation data")
     backtest_parser.add_argument("--balance", type=float, default=10000.0, help="Initial balance")
-    backtest_parser.add_argument("--leverage", type=float, default=3.0, help="Max leverage")
+    backtest_parser.add_argument("--leverage", type=float, default=1.5, help="Max leverage (reduced from 3.0 for better risk management)")
     backtest_parser.add_argument("--window", type=int, default=72, help="Observation window")
     backtest_parser.add_argument("--reward", default="sharpe",
                                  choices=["profit", "return", "sharpe", "sortino"],
@@ -1091,7 +1091,7 @@ def main():
     paper_parser.add_argument("--steps", type=int, default=120,
                               help="Maximum steps to simulate")
     paper_parser.add_argument("--balance", type=float, default=10000.0, help="Initial balance")
-    paper_parser.add_argument("--leverage", type=float, default=3.0, help="Max leverage")
+    paper_parser.add_argument("--leverage", type=float, default=1.5, help="Max leverage (reduced from 3.0 for better risk management)")
     paper_parser.add_argument("--window", type=int, default=72, help="Observation window")
     paper_parser.add_argument("--reward", default="sharpe",
                               choices=["profit", "return", "sharpe", "sortino"],

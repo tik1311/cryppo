@@ -9,6 +9,8 @@ import asyncio
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 import uuid
+from pathlib import Path
+import json
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,6 +26,32 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 # Setup logging
 from utils.logging_config import get_server_logger, get_training_logger
 server_logger = get_server_logger()
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+LOG_ROOT = PROJECT_ROOT / "logs"
+TRAIN_LOG_DIR = LOG_ROOT / "training"
+BACKTEST_LOG_DIR = LOG_ROOT / "backtest"
+PAPER_LOG_DIR = LOG_ROOT / "paper"
+for directory in (TRAIN_LOG_DIR, BACKTEST_LOG_DIR, PAPER_LOG_DIR):
+    directory.mkdir(parents=True, exist_ok=True)
+
+
+def serialize_trade_records(trades: List[Dict]) -> List[Dict]:
+    """Convert environment trade logs to JSON serializable rows."""
+    serialized = []
+    for trade in trades:
+        record = {}
+        for key, value in trade.items():
+            if isinstance(value, (np.integer, int)):
+                record[key] = int(value)
+            elif isinstance(value, (np.floating, float)):
+                record[key] = float(value)
+            elif isinstance(value, np.ndarray):
+                record[key] = value.tolist()
+            else:
+                record[key] = value
+        serialized.append(record)
+    return serialized
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -1149,6 +1177,8 @@ async def backtest_task(task_id: str, request: BacktestRequest):
         winning_trades = int(total_trades * (win_rate / 100)) if total_trades > 0 else 0
         losing_trades = total_trades - winning_trades
 
+        trade_history = serialize_trade_records(getattr(env, "trade_log", []))
+
         results = {
             "summary": {
                 "total_return_pct": round(total_return_pct, 2),
@@ -1169,10 +1199,20 @@ async def backtest_task(task_id: str, request: BacktestRequest):
                 "profit_factor": round(profit_factor, 2)
             },
             "chart_data": chart_data,
-            "trade_history": []  # Simplified: no detailed trade history for now
+            "trade_history": trade_history
         }
 
         print(f"[Backtest] Results: Return={total_return_pct:.2f}%, Trades={total_trades}, Win Rate={win_rate:.2f}%")
+        log_payload = {
+            "task_id": task_id,
+            "request": request.dict(),
+            "results": results,
+            "timestamp": datetime.now().isoformat()
+        }
+        log_file = BACKTEST_LOG_DIR / f"backtest_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{task_id}.json"
+        with open(log_file, 'w', encoding='utf-8') as f:
+            json.dump(log_payload, f, indent=2)
+        print(f"[Backtest] Log saved to: {log_file}")
 
         # Store results
         background_tasks_status[task_id]["results"] = results
@@ -1660,6 +1700,15 @@ async def paper_trading_task(config: dict):
             "volume": candle[5]
         } for candle in ohlcv]
 
+        run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        paper_log_file = PAPER_LOG_DIR / f"paper_{run_id}.log"
+        paper_trade_file = PAPER_LOG_DIR / f"paper_trades_{run_id}.jsonl"
+
+        def log_event(message: str):
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            with open(paper_log_file, 'a', encoding='utf-8') as f:
+                f.write(f"{timestamp} - {message}\n")
+
         async def broadcast_initial():
             await ws_manager.broadcast({
                 "type": "paper_trading_update",
@@ -1667,6 +1716,7 @@ async def paper_trading_task(config: dict):
             })
 
         await broadcast_initial()
+        log_event(f"Paper trading started for {symbol} (model={model_path})")
 
         df = pd.DataFrame(chart_data)
         df['timestamp'] = pd.to_datetime(df['time'], unit='s')
@@ -1740,6 +1790,18 @@ async def paper_trading_task(config: dict):
             return rows
 
         last_candle_time = chart_data[-1]["time"] if chart_data else None
+        last_logged_trade_idx = 0
+
+        def flush_trades():
+            nonlocal last_logged_trade_idx
+            trades = getattr(env, "trade_log", [])
+            if len(trades) <= last_logged_trade_idx:
+                return
+            new_trades = serialize_trade_records(trades[last_logged_trade_idx:])
+            with open(paper_trade_file, 'a', encoding='utf-8') as f:
+                for record in new_trades:
+                    f.write(json.dumps(record) + "\n")
+            last_logged_trade_idx = len(trades)
 
         while paper_trading_state["active"]:
             ticker = exchange.fetch_ticker(symbol)
@@ -1812,6 +1874,7 @@ async def paper_trading_task(config: dict):
                     }
 
                 trade_rows = format_trades(timestamps)
+                flush_trades()
 
                 await ws_manager.broadcast({
                     "type": "paper_trading_update",
@@ -1840,9 +1903,13 @@ async def paper_trading_task(config: dict):
 
             await asyncio.sleep(update_interval)
 
+        flush_trades()
+        log_event("Paper trading stopped normally")
+
     except Exception as e:
         print(f"Paper trading error: {e}")
         paper_trading_state["active"] = False
+        log_event(f"Paper trading stopped due to error: {e}")
         await ws_manager.broadcast({
             "type": "paper_trading_stopped",
             "message": f"Paper trading stopped due to error: {str(e)}"

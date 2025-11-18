@@ -89,6 +89,7 @@ python cryppo.py check
 - Each action asks for parameters with sensible defaults; behind the scenes it forwards the selections to `cryppo.py`.
 - Use `Ctrl+C` or select option `0` to exit.
 - Live paper trading (option 8) now loads the selected RL checkpoint, feeds it real 1m candles, and executes at most one action per closed bar with true-to-market TP/SL/trailing/liquidation logic.
+- Every workflow writes an audit log: `logs/training/*.log`, `logs/backtest/*.json`, `logs/paper/*.json` capture metrics plus full trade history (with position ids) so you can review executions after the run finishes.
 
 ---
 

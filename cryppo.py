@@ -13,6 +13,8 @@ import subprocess
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional, Dict
+from datetime import datetime
+import json
 
 import numpy as np
 
@@ -54,6 +56,13 @@ def server_module_path():
         if added and server_path in sys.path:
             sys.path.remove(server_path)
 
+
+LOG_ROOT = Path(__file__).parent / "logs"
+TRAIN_LOG_DIR = LOG_ROOT / "training"
+BACKTEST_LOG_DIR = LOG_ROOT / "backtest"
+PAPER_LOG_DIR = LOG_ROOT / "paper"
+for _dir in (TRAIN_LOG_DIR, BACKTEST_LOG_DIR, PAPER_LOG_DIR):
+    _dir.mkdir(parents=True, exist_ok=True)
 
 ACTION_NAMES = ["HOLD", "OPEN_LONG", "OPEN_SHORT", "CLOSE"]
 
@@ -172,6 +181,33 @@ def unwrap_env(env):
     while hasattr(base, "env"):
         base = base.env
     return base
+
+
+def serialize_trades(trades):
+    """Convert trade records to JSON-serializable list."""
+    serialized = []
+    for trade in trades:
+        record = {}
+        for key, value in trade.items():
+            if isinstance(value, (np.integer, int)):
+                record[key] = int(value)
+            elif isinstance(value, (np.floating, float)):
+                record[key] = float(value)
+            elif isinstance(value, np.ndarray):
+                record[key] = value.tolist()
+            else:
+                record[key] = value
+        serialized.append(record)
+    return serialized
+
+
+def save_json_log(directory: Path, prefix: str, payload: dict) -> Path:
+    """Persist JSON payload to logs and return path."""
+    directory.mkdir(parents=True, exist_ok=True)
+    log_file = directory / f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    with open(log_file, 'w', encoding='utf-8') as f:
+        json.dump(payload, f, indent=2, default=str)
+    return log_file
 
 
 def action_to_env(model_key: str, action_value):
@@ -646,6 +682,30 @@ def backtest(
     console.print(table)
     console.print()
 
+    log_payload = {
+        "meta": {
+            "symbol": symbol,
+            "timeframe": timeframe,
+            "model": model_path,
+            "model_type": model_type,
+            "timestamp": datetime.now().isoformat()
+        },
+        "summary": {
+            "initial_balance": initial_balance,
+            "final_balance": final_balance,
+            "total_return_pct": total_return_pct,
+            "total_reward": total_reward,
+            "trades": last_info["total_trades"],
+            "win_rate": last_info["win_rate"] * 100,
+            "sharpe": sharpe,
+            "max_drawdown": max_drawdown
+        },
+        "trades": serialize_trades(base_env.trade_log)
+    }
+    log_file = save_json_log(BACKTEST_LOG_DIR, "backtest", log_payload)
+    console.print(f"[dim]Backtest log saved to: {log_file}[/dim]")
+    console.print()
+
 
 def paper_trade(
     model_path: str,
@@ -799,6 +859,31 @@ def paper_trade(
     table.add_row("Max Drawdown", f"{max_drawdown:.2f}%")
 
     console.print(table)
+    console.print()
+
+    paper_payload = {
+        "meta": {
+            "symbol": symbol,
+            "timeframe": timeframe,
+            "model": model_path,
+            "model_type": model_type,
+            "steps": len(equity_curve),
+            "timestamp": datetime.now().isoformat()
+        },
+        "summary": {
+            "initial_balance": initial_balance,
+            "final_balance": final_balance,
+            "total_return_pct": total_return_pct,
+            "total_reward": total_reward,
+            "trades": last_info["total_trades"],
+            "win_rate": last_info["win_rate"] * 100,
+            "sharpe": sharpe,
+            "max_drawdown": max_drawdown
+        },
+        "trades": serialize_trades(base_env.trade_log)
+    }
+    paper_log_file = save_json_log(PAPER_LOG_DIR, "paper", paper_payload)
+    console.print(f"[dim]Paper trading log saved to: {paper_log_file}[/dim]")
     console.print()
 
 # ============================================================================

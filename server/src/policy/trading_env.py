@@ -171,6 +171,8 @@ class TradingEnv(gym.Env):
         self.winning_trades = 0
         self.total_pnl = 0.0
         self.trade_log: List[Dict[str, Any]] = []
+        self.position_id_counter = 0
+        self.current_position_id = None
         self.entry_step = 0
 
         # Action diversity tracking (for exploration bonus)
@@ -571,7 +573,7 @@ class TradingEnv(gym.Env):
         if self.total_trades < 5:
             tp_pct = abs((self.take_profit - price) / price * 100)
             sl_pct = abs((self.stop_loss - price) / price * 100)
-            print(f"  [TRADE] Open {position_type.upper()} @ ${price:.2f} | Size: {self.position_size:.4f} | Fee: ${fee:.2f}")
+            print(f"  [TRADE] Open {position_type.upper()} #{self.current_position_id} @ ${price:.2f} | Size: {self.position_size:.4f} | Fee: ${fee:.2f}")
             print(f"          ATR: ${atr:.2f} | TP: ${self.take_profit:.2f} (+{tp_pct:.2f}%) | SL: ${self.stop_loss:.2f} (-{sl_pct:.2f}%)")
             print(f"          Trailing SL: ${self.trailing_stop_loss:.2f}")
 
@@ -583,6 +585,7 @@ class TradingEnv(gym.Env):
         position_type = self.position
         entry_price = self.entry_price
         entry_step = self.entry_step
+        position_id = self.current_position_id or f"POS-{self.position_id_counter:06d}"
 
         # Calculate PnL
         if position_type == 'long':
@@ -606,9 +609,10 @@ class TradingEnv(gym.Env):
         # Debug logging (only first 5 trades per episode)
         if self.total_trades <= 5:
             pnl_pct = (pnl / (entry_price * self.position_size)) * 100
-            print(f"  [TRADE] Close @ ${price:.2f} | PnL: ${pnl:.2f} ({pnl_pct:+.2f}%) | Balance: ${self.balance:.2f}")
+            print(f"  [TRADE] Close #{position_id} @ ${price:.2f} | PnL: ${pnl:.2f} ({pnl_pct:+.2f}%) | Balance: ${self.balance:.2f}")
 
         trade_record = {
+            "position_id": position_id,
             "direction": position_type,
             "entry_price": entry_price,
             "exit_price": price,
@@ -619,7 +623,8 @@ class TradingEnv(gym.Env):
                       if entry_price and self.position_size else 0.0,
             "entry_step": entry_step,
             "exit_step": self.current_step,
-            "duration_steps": self.current_step - entry_step
+            "duration_steps": self.current_step - entry_step,
+            "episode": self.episode_count
         }
         self.trade_log.append(trade_record)
 
@@ -639,6 +644,7 @@ class TradingEnv(gym.Env):
         self.trailing_stop_loss = 0.0
         self.highest_price_since_entry = 0.0
         self.lowest_price_since_entry = 0.0
+        self.current_position_id = None
 
         return pnl
 

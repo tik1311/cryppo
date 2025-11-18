@@ -70,15 +70,18 @@ print("[DEBUG] All imports successful!")
 class TrainingLogger:
     """Simple logger for training metrics"""
 
-    def __init__(self, log_dir: str = "logs"):
+    def __init__(self, log_dir: str | Path = "logs"):
         # Get project root (parent of server/)
         project_root = Path(__file__).resolve().parent.parent.parent.parent
-        self.log_dir = project_root / log_dir
+        log_dir_path = Path(log_dir)
+        if not log_dir_path.is_absolute():
+            log_dir_path = project_root / log_dir_path
+        self.log_dir = log_dir_path
         self.log_dir.mkdir(exist_ok=True, parents=True)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.log_file = self.log_dir / f"training_{timestamp}.log"
-        self.metrics_file = self.log_dir / f"metrics_{timestamp}.json"
+        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.log_file = self.log_dir / f"training_{self.timestamp}.log"
+        self.metrics_file = self.log_dir / f"metrics_{self.timestamp}.json"
 
         self.metrics = {
             'episodes': [],
@@ -127,6 +130,28 @@ class TrainingLogger:
         with open(self.metrics_file, 'w') as f:
             json.dump(metrics_native, f, indent=2)
 
+    def save_trade_log(self, trades: List[Dict], label: str = "trades"):
+        """Persist trade history to JSON"""
+        if not trades:
+            return
+
+        import numpy as np
+
+        def convert(value):
+            if isinstance(value, (np.integer, int)):
+                return int(value)
+            if isinstance(value, (np.floating, float)):
+                return float(value)
+            if isinstance(value, np.ndarray):
+                return value.tolist()
+            return value
+
+        serialized = [{k: convert(v) for k, v in trade.items()} for trade in trades]
+        trade_file = self.log_dir / f"{label}_{self.timestamp}.json"
+        with open(trade_file, 'w', encoding='utf-8') as f:
+            json.dump(serialized, f, indent=2)
+        self.log(f"[INFO] Trade log saved: {trade_file}")
+
 
 def train_d3qn(
     symbol: str = "BTCUSDT",
@@ -170,7 +195,8 @@ def train_d3qn(
         log_dir: Directory for logs
     """
     # Initialize logger
-    logger = TrainingLogger(log_dir)
+    log_path = Path(log_dir) / "training"
+    logger = TrainingLogger(log_path)
     logger.log("=" * 60)
     logger.log("D3QN Crypto Futures Trading - Training")
     logger.log("=" * 60)
@@ -397,6 +423,8 @@ def train_d3qn(
 
     # Save metrics
     logger.save_metrics()
+    logger.save_trade_log(train_env.trade_log, "train_trades")
+    logger.save_trade_log(test_env.trade_log, "test_trades")
     logger.log(f"[INFO] Metrics saved: {logger.metrics_file}")
     logger.log(f"[INFO] Logs saved: {logger.log_file}")
     logger.log(f"\n[INFO] Detailed episode logs saved to: {project_root / 'logs'}")

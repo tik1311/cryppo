@@ -42,3 +42,7 @@
 2025-11-18 19:24:26 - Episode    4 | Reward:     3.58 | Avg(10):    -1.23 | Loss: 0.0003 | Eps: 0.150 | Steps: 6605 | Trades: 294 | Win%:  31.6 | Balance: $17,924
 2025-11-18 19:24:37 - Episode    5 | Reward:    -2.80 | Avg(10):    -1.55 | Loss: 0.0004 | Eps: 0.150 | Steps:  509 | Trades: 26 | Win%:  34.6 | Balance: $3,322
 2025-11-18 19:26:34 - Episode    6 | Reward:    -8.01 | Avg(10):    -2.62 | Loss: 0.0005 | Eps: 0.150 | Steps: 4988 | Trades: 225 | Win%:  23.6 | Balance: $3,061
+2025-11-18 19:30:48 - Episode    7 | Reward:     9.61 | Avg(10):    -0.88 | Loss: 0.0014 | Eps: 0.150 | Steps: 10000 | Trades: 398 | Win%:  28.6 | Balance: $3,766
+2025-11-18 19:33:41 - Episode    8 | Reward:    -3.93 | Avg(10):    -1.26 | Loss: 0.0030 | Eps: 0.150 | Steps: 6336 | Trades: 255 | Win%:  30.2 | Balance: $2,994
+2025-11-18 19:33:41 - 
+[DEBUG] Episode 9 - Enabling detailed environment logging

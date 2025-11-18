@@ -27,7 +27,10 @@ class TradingEnv(gym.Env):
         0: HOLD (do nothing)
         1: OPEN_LONG (or close short and go long)
         2: OPEN_SHORT (or close long and go short)
-        3: CLOSE_POSITION (close any open position)
+
+        NOTE: Positions can ONLY be closed by TP/SL/Trailing Stop.
+              No manual CLOSE action to prevent premature exits and ensure
+              disciplined trading according to risk management rules.
 
     State Space:
         - OHLCV data + technical indicators
@@ -85,8 +88,9 @@ class TradingEnv(gym.Env):
         self.n_features = data.shape[1]
         self.n_steps = len(data)
 
-        # Action space: HOLD, OPEN_LONG, OPEN_SHORT, CLOSE_POSITION
-        self.action_space = spaces.Discrete(4)
+        # Action space: HOLD, OPEN_LONG, OPEN_SHORT
+        # REMOVED: CLOSE_POSITION (positions close automatically via TP/SL/Trailing)
+        self.action_space = spaces.Discrete(3)
 
         # Observation space: window of features + position info
         # Position info: [is_in_position, entry_price_normalized, pnl_pct, hold_duration]
@@ -244,7 +248,7 @@ class TradingEnv(gym.Env):
 
         self.action_counts[action] = self.action_counts.get(action, 0) + 1
 
-        action_names = ['HOLD', 'OPEN_LONG', 'OPEN_SHORT', 'CLOSE']
+        action_names = ['HOLD', 'OPEN_LONG', 'OPEN_SHORT']
         if self.current_step - self.window_size < 3:
             print(f"  [ACTION] Step {self.current_step}: {action_names[action]} | Pos: {self.position or 'None'}")
 
@@ -271,7 +275,7 @@ class TradingEnv(gym.Env):
             else:
                 position_penalty -= 0.01
                 if self.total_trades < 5:
-                    print(f"  [BLOCKED] Cannot OPEN_LONG - already have {self.position.upper()} position. Must CLOSE first!")
+                    print(f"  [BLOCKED] Cannot OPEN_LONG - already have {self.position.upper()} position. Wait for TP/SL!")
         elif action == 2:
             if self.position is None:
                 self._open_position('short', close_price)
@@ -279,17 +283,7 @@ class TradingEnv(gym.Env):
             else:
                 position_penalty -= 0.01
                 if self.total_trades < 5:
-                    print(f"  [BLOCKED] Cannot OPEN_SHORT - already have {self.position.upper()} position. Must CLOSE first!")
-        elif action == 3:
-            if self.position is not None:
-                profit_pct = self._calculate_position_pnl() / self.balance if self.balance > 0 else 0.0
-                trade_reward = self._close_position(close_price)
-                if abs(profit_pct) < 0.005:
-                    exploration_bonus -= 0.005
-                    if self.total_trades <= 5:
-                        print(f"  [EARLY CLOSE] Closed at {profit_pct*100:+.2f}% (penalty applied)")
-            else:
-                position_penalty -= 0.005
+                    print(f"  [BLOCKED] Cannot OPEN_SHORT - already have {self.position.upper()} position. Wait for TP/SL!")
 
         if self.position and self.current_step % 8 == 0:
             funding_fee = self._apply_funding_rate(close_price)
@@ -433,7 +427,7 @@ class TradingEnv(gym.Env):
                 'step': self.current_step - self.window_size,
                 'global_step': self.current_step,
                 'action': int(action),
-                'action_name': ['HOLD', 'LONG', 'SHORT', 'CLOSE'][action],
+                'action_name': ['HOLD', 'LONG', 'SHORT'][action] if action < 3 else 'INVALID',
                 'price': float(close_price),
                 'position': self.position,
                 'position_size': float(self.position_size) if self.position else 0.0,

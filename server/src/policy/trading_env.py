@@ -276,21 +276,29 @@ class TradingEnv(gym.Env):
             self.consecutive_holds += 1
             # Reward HOLD when not in position (better than overtrading!)
             if self.position is None:
-                exploration_bonus += 0.0001  # Small reward for patience (Part A: reduced from 0.0005)
+                exploration_bonus += 0.0001  # Small reward for patience
 
-            # Action Masking: Penalize excessive holding (Phase 3.4)
+            # Action Masking: Penalize excessive holding (STRENGTHENED Phase 4)
             # This prevents HOLD-only bias
-            if self.consecutive_holds > 50:
-                # Increasing penalty for excessive holding
-                hold_penalty = -0.001 * (self.consecutive_holds - 50)
-                exploration_bonus += hold_penalty
-            if self.consecutive_holds > 100:
-                # Heavy penalty to force action
-                exploration_bonus -= 0.01
-        else:
             if self.consecutive_holds > 30:
-                exploration_bonus += 0.002
+                # Earlier and stronger penalty
+                hold_penalty = -0.002 * (self.consecutive_holds - 30)
+                exploration_bonus += hold_penalty
+            if self.consecutive_holds > 50:
+                # Very heavy penalty to force action
+                exploration_bonus -= 0.02
+            if self.consecutive_holds > 100:
+                # Extreme penalty
+                exploration_bonus -= 0.05
+        else:
+            # Reward for breaking HOLD streak (STRENGTHENED)
+            if self.consecutive_holds > 20:
+                exploration_bonus += 0.005  # Strong bonus for taking action
             self.consecutive_holds = 0
+
+            # Additional exploration bonus for trading actions
+            if action in [1, 2]:  # LONG or SHORT
+                exploration_bonus += 0.001  # Encourage trading exploration
 
         total_actions = sum(self.action_counts.values())
         if total_actions > 100:
@@ -308,17 +316,20 @@ class TradingEnv(gym.Env):
                     # Transaction cost penalty (discourages frequent trading)
                     position_penalty -= 0.0005  # Penalize opening positions (Part A: reduced from 0.002)
 
-                    # Market regime bonus/penalty
+                    # Market regime bonus/penalty (STRENGTHENED Phase 4)
                     if self.market_regime == 'bull':
-                        exploration_bonus += 0.001 * self.regime_strength  # Bonus for LONG in bull market
+                        exploration_bonus += 0.003 * self.regime_strength  # Strong bonus
                     elif self.market_regime == 'bear':
-                        position_penalty -= 0.001 * self.regime_strength  # Penalty for LONG in bear market
+                        position_penalty -= 0.002 * self.regime_strength
 
-                    # Volume confirmation bonus/penalty (Phase 3.3)
+                    # Volume confirmation bonus/penalty (STRENGTHENED)
                     if volume_confirmed:
-                        exploration_bonus += 0.0005  # Bonus for trading with volume confirmation
+                        exploration_bonus += 0.002  # Strong bonus
                     else:
-                        position_penalty -= 0.0003  # Light penalty for trading without volume
+                        position_penalty -= 0.001
+
+                    # Exploration: reward taking trading action
+                    exploration_bonus += 0.002  # Base trading bonus
                 else:
                     # Blocked by minimum spacing rule
                     position_penalty -= 0.0005  # Penalty for trying to trade too soon (Part A: reduced from 0.005)
@@ -338,17 +349,20 @@ class TradingEnv(gym.Env):
                     # Transaction cost penalty (discourages frequent trading)
                     position_penalty -= 0.0005  # Penalize opening positions (Part A: reduced from 0.002)
 
-                    # Market regime bonus/penalty
+                    # Market regime bonus/penalty (STRENGTHENED Phase 4)
                     if self.market_regime == 'bear':
-                        exploration_bonus += 0.001 * self.regime_strength  # Bonus for SHORT in bear market
+                        exploration_bonus += 0.003 * self.regime_strength  # Strong bonus
                     elif self.market_regime == 'bull':
-                        position_penalty -= 0.001 * self.regime_strength  # Penalty for SHORT in bull market
+                        position_penalty -= 0.002 * self.regime_strength
 
-                    # Volume confirmation bonus/penalty (Phase 3.3)
+                    # Volume confirmation bonus/penalty (STRENGTHENED)
                     if volume_confirmed:
-                        exploration_bonus += 0.0005  # Bonus for trading with volume confirmation
+                        exploration_bonus += 0.002  # Strong bonus
                     else:
-                        position_penalty -= 0.0003  # Light penalty for trading without volume
+                        position_penalty -= 0.001
+
+                    # Exploration: reward taking trading action
+                    exploration_bonus += 0.002  # Base trading bonus
                 else:
                     # Blocked by minimum spacing rule
                     position_penalty -= 0.0005  # Penalty for trying to trade too soon (Part A: reduced from 0.005)

@@ -278,20 +278,27 @@ def train_d3qn(
 
     # Initialize agent
     logger.log("\n[AGENT] Initializing D3QN agent...")
-    state_dim = train_env.observation_space.shape[0] * train_env.observation_space.shape[1]  # Flatten
+    window_size = train_env.observation_space.shape[0]
+    n_features = train_env.observation_space.shape[1]
+    state_dim = window_size * n_features  # Flatten
     action_dim = train_env.action_space.n
 
     agent = D3QNAgent(
         state_dim=state_dim,
         action_dim=action_dim,
+        window_size=window_size,
+        n_features=n_features,
         learning_rate=learning_rate,
         gamma=gamma,
         batch_size=batch_size,
-        buffer_size=buffer_size
+        buffer_size=buffer_size,
+        use_hybrid_network=True  # Enable hybrid CNN-LSTM-Attention architecture
     )
 
     logger.log(f"[OK] State dim: {state_dim}")
+    logger.log(f"[OK] Window size: {window_size}, Features: {n_features}")
     logger.log(f"[OK] Action dim: {action_dim} (HOLD, LONG, SHORT, CLOSE)")
+    logger.log(f"[OK] Using hybrid CNN-BiLSTM-Attention-QR-DQN architecture")
     logger.log(f"[OK] Device: {agent.device}")
 
     # Training loop

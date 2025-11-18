@@ -1,9 +1,11 @@
 """
-Deep Dueling Double DQN (D3QN) Agent
+Deep Dueling Double DQN (D3QN) Agent with Hybrid CNN-LSTM-Attention Architecture
 Combines:
 - Deep Q-Network (DQN)
 - Double DQN (prevents overestimation)
 - Dueling DQN (separate value and advantage streams)
+- CNN-BiLSTM-Attention for temporal pattern recognition
+- QR-DQN distributional RL for risk assessment
 """
 
 import torch
@@ -14,6 +16,8 @@ import numpy as np
 from collections import deque, namedtuple
 import random
 from typing import Tuple, List, Optional
+
+from .hybrid_network import HybridQNetwork
 
 
 # Experience tuple for replay buffer
@@ -225,23 +229,28 @@ class D3QNAgent:
         self,
         state_dim: int,
         action_dim: int,
-        learning_rate: float = 0.0003,  # INCREASED for faster learning
-        gamma: float = 0.97,  # REDUCED to focus more on immediate rewards (TP/SL)
+        window_size: int = 72,
+        n_features: int = 25,
+        learning_rate: float = 0.0003,
+        gamma: float = 0.97,
         epsilon_start: float = 1.0,
-        epsilon_end: float = 0.15,  # Lower for more exploitation after training
-        epsilon_decay: float = 0.9995,  # Faster decay to reach good policy quicker
+        epsilon_end: float = 0.15,
+        epsilon_decay: float = 0.9995,
         buffer_size: int = 100000,
-        batch_size: int = 128,  # INCREASED for more stable gradients
-        target_update_freq: int = 250,  # More frequent for faster convergence
-        use_prioritized_replay: bool = True,  # Use Prioritized Experience Replay (2025 best practice)
+        batch_size: int = 128,
+        target_update_freq: int = 250,
+        use_prioritized_replay: bool = True,
+        use_hybrid_network: bool = True,  # NEW: Use hybrid CNN-LSTM-Attention architecture
         device: str = "cuda" if torch.cuda.is_available() else "cpu"
     ):
         """
-        Initialize D3QN Agent
+        Initialize D3QN Agent with Hybrid Network
 
         Args:
-            state_dim: Dimension of state space
+            state_dim: Dimension of state space (window_size * n_features)
             action_dim: Number of actions
+            window_size: Time window length
+            n_features: Number of features per timestep
             learning_rate: Learning rate for optimizer
             gamma: Discount factor
             epsilon_start: Starting epsilon for exploration
@@ -250,21 +259,49 @@ class D3QNAgent:
             buffer_size: Replay buffer capacity
             batch_size: Batch size for training
             target_update_freq: Frequency to update target network
+            use_prioritized_replay: Use PER (2025 best practice)
+            use_hybrid_network: Use hybrid CNN-LSTM-Attention network
             device: Device to run on (cuda/cpu)
         """
         self.state_dim = state_dim
         self.action_dim = action_dim
+        self.window_size = window_size
+        self.n_features = n_features
         self.gamma = gamma
         self.epsilon = epsilon_start
         self.epsilon_end = epsilon_end
         self.epsilon_decay = epsilon_decay
         self.batch_size = batch_size
         self.target_update_freq = target_update_freq
+        self.use_hybrid_network = use_hybrid_network
         self.device = torch.device(device)
 
-        # Networks
-        self.policy_net = DuelingQNetwork(state_dim, action_dim).to(self.device)
-        self.target_net = DuelingQNetwork(state_dim, action_dim).to(self.device)
+        # Networks - Choose architecture
+        if use_hybrid_network:
+            # Use new Hybrid CNN-LSTM-Attention architecture
+            self.policy_net = HybridQNetwork(
+                window_size=window_size,
+                n_features=n_features,
+                action_dim=action_dim,
+                cnn_channels=64,
+                lstm_hidden=128,
+                num_quantiles=32,
+                num_attention_heads=4
+            ).to(self.device)
+            self.target_net = HybridQNetwork(
+                window_size=window_size,
+                n_features=n_features,
+                action_dim=action_dim,
+                cnn_channels=64,
+                lstm_hidden=128,
+                num_quantiles=32,
+                num_attention_heads=4
+            ).to(self.device)
+        else:
+            # Fallback to original MLP architecture
+            self.policy_net = DuelingQNetwork(state_dim, action_dim).to(self.device)
+            self.target_net = DuelingQNetwork(state_dim, action_dim).to(self.device)
+
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
 

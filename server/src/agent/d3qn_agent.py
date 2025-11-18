@@ -320,31 +320,67 @@ class D3QNAgent:
         self.episodes = 0
         self.losses = []
 
-    def select_action(self, state: np.ndarray, training: bool = True) -> int:
+    def select_action(self, state: np.ndarray, training: bool = True, action_mask: Optional[np.ndarray] = None) -> int:
         """
-        Select action using epsilon-greedy policy with exploration bias
+        Select action using epsilon-greedy policy with exploration bias and action masking
 
         Args:
             state: Current state
             training: Whether in training mode (uses exploration)
+            action_mask: Optional binary mask of valid actions (1=valid, 0=invalid) - Phase 4.2
 
         Returns:
             Selected action index
         """
+        # Get valid actions from mask
+        if action_mask is not None:
+            valid_actions = np.where(action_mask > 0)[0]
+            if len(valid_actions) == 0:
+                # Fallback: if no valid actions (shouldn't happen), allow HOLD
+                valid_actions = np.array([0])
+        else:
+            valid_actions = np.arange(self.action_dim)
+
         if training and random.random() < self.epsilon:
             # Random action with STRONG bias towards trading (not holding)
             # Action 0 = HOLD, 1 = LONG, 2 = SHORT
             # Bias: 10% HOLD, 45% LONG, 45% SHORT
             # Force agent to explore trading actions
             # NOTE: No CLOSE action - positions close via TP/SL/Trailing only
-            action_probs = [0.10, 0.45, 0.45]
-            return random.choices(range(self.action_dim), weights=action_probs)[0]
+
+            # Apply action mask to exploration
+            if action_mask is not None:
+                # Only sample from valid actions
+                if len(valid_actions) == 1:
+                    # Only one valid action (e.g., HOLD when position exists)
+                    return valid_actions[0]
+                else:
+                    # Multiple valid actions - apply trading bias
+                    action_probs = [0.10, 0.45, 0.45]
+                    # Filter to valid actions
+                    valid_probs = [action_probs[a] for a in valid_actions]
+                    # Normalize probabilities
+                    total = sum(valid_probs)
+                    valid_probs = [p / total for p in valid_probs]
+                    return random.choices(valid_actions.tolist(), weights=valid_probs)[0]
+            else:
+                # No masking - original behavior
+                action_probs = [0.10, 0.45, 0.45]
+                return random.choices(range(self.action_dim), weights=action_probs)[0]
 
         # Greedy action (exploitation)
         with torch.no_grad():
             state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
             q_values = self.policy_net(state_tensor)
-            return q_values.argmax(dim=1).item()
+
+            # Apply action mask to Q-values
+            if action_mask is not None:
+                # Set invalid actions to very negative value
+                q_values_np = q_values.cpu().numpy()[0]
+                q_values_np[action_mask == 0] = -np.inf
+                return np.argmax(q_values_np)
+            else:
+                return q_values.argmax(dim=1).item()
 
     def get_q_values(self, state: np.ndarray) -> np.ndarray:
         """

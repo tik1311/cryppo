@@ -11,13 +11,22 @@ Beautiful CLI interface powered by Rich library | PyTorch CUDA 12.6 | Python 3.1
 
 ## What is CRYPPO?
 
-CRYPPO is a command-line cryptocurrency trading system that uses Deep Reinforcement Learning (D3QN) to learn optimal trading strategies. Train AI agents on GPU, backtest performance, and run paper trading simulations - all through an elegant CLI.
+CRYPPO is a command-line cryptocurrency trading system that uses state-of-the-art Deep Reinforcement Learning (Hybrid CNN-BiLSTM-Attention-QR-DQN) to learn optimal trading strategies. Train AI agents on GPU, backtest performance, and run paper trading simulations - all through an elegant CLI.
+
+The system combines:
+- **CNN** for pattern recognition (support/resistance, candlesticks)
+- **BiLSTM** for temporal modeling (trends, reversals)
+- **Self-Attention** for focusing on critical market moments
+- **QR-DQN** for distributional RL and risk quantification
+- **Action Masking** for preventing invalid trades
+- **Position-Aware States** for complete trade cycle learning
 
 ### Core Features
 
 - 🎨 **Beautiful CLI** - Inspired by Claude Code, with progress bars, tables, and panels
 - ⚡ **GPU-Accelerated** - CUDA 12.6 support for 10-20x faster training
-- 🤖 **D3QN Agent** - Deep Dueling Double DQN with experience replay
+- 🤖 **Hybrid CNN-BiLSTM-Attention-QR-DQN** - State-of-the-art deep RL architecture (2024-2025 research)
+- 🧠 **Advanced State Representation** - Position type one-hot encoding + action masking for valid actions
 - 📊 **Real-time Data** - Download from Binance, backtest, paper trade
 - 🎯 **Simple Commands** - `cryppo train`, `cryppo backtest`, `cryppo data download`
 
@@ -316,6 +325,94 @@ cryppo/
 ├── checkpoints/              # Trained models
 └── logs/                     # Training logs
 ```
+
+---
+
+## Hybrid CNN-BiLSTM-Attention-QR-DQN Architecture
+
+CRYPPO uses a state-of-the-art hybrid deep learning architecture based on 2024-2025 research:
+
+### Architecture Components
+
+```
+Input (72 timesteps × 27 features)
+    ↓
+1. CNN Feature Extractor (Multi-scale)
+    - Kernel sizes: 3, 5, 7 for different temporal patterns
+    - 64 channels per scale → 128 combined channels
+    - Batch normalization + dropout (0.1)
+    ↓
+2. Bidirectional LSTM
+    - 2 layers, 128 hidden units each direction
+    - Total: 256 features (forward + backward)
+    - Captures long-term temporal dependencies
+    ↓
+3. Self-Attention Mechanism
+    - 4 attention heads
+    - Focuses on critical time steps
+    - Residual connection + layer normalization
+    ↓
+4. Feature Aggregation
+    - Last timestep + attention-weighted average
+    - Combined: 512 features
+    ↓
+5. Dueling D3QN Head
+    - Value stream: V(s) → 32 quantiles
+    - Advantage stream: A(s,a) → 3 actions × 32 quantiles
+    - Q(s,a) = V(s) + (A(s,a) - mean(A))
+    ↓
+6. QR-DQN Output
+    - 32 quantiles per action for distributional RL
+    - Better risk assessment vs single Q-value
+    - Returns: [HOLD, LONG, SHORT] Q-values
+```
+
+### State Representation (27 Features)
+
+**Market Data (17 features):**
+- OHLCV (5): Open, High, Low, Close, Volume
+- Technical Indicators (12): RSI, MACD, ATR, Bollinger Bands, etc.
+
+**Position Information (10 features):**
+- Position Type One-Hot (3): `[no_position, long_position, short_position]`
+- Entry Price Normalized (1)
+- PnL Percentage (1)
+- Hold Duration Normalized (1)
+- Market Regime One-Hot (3): `[bull, bear, sideways]`
+- Regime Strength (1)
+
+### Action Masking
+
+The environment enforces valid actions:
+- **No Position**: Can HOLD, LONG, or SHORT
+- **Has Position**: Can only HOLD (positions close automatically at TP/SL)
+
+Action masking prevents:
+- Opening new positions while holding one
+- Invalid state transitions
+- Inefficient exploration of impossible actions
+
+### Episode Extension Logic
+
+**Problem**: Random episode sampling could cut episodes mid-position, preventing natural TP/SL closures.
+
+**Solution**: Position-aware episode extension
+1. Episodes sample random starting points (prevents memorization)
+2. If episode ends with open position → extend up to 500 bars
+3. Wait for natural TP/SL closure
+4. Only force-close if max extension exceeded
+
+This ensures the agent learns from complete trade cycles, not interrupted positions.
+
+### Key Advantages
+
+1. **CNN**: Captures local patterns (support/resistance, candlestick patterns)
+2. **BiLSTM**: Models long-term trends and reversals
+3. **Attention**: Focuses on market regime changes and volatility spikes
+4. **QR-DQN**: Distributional RL quantifies uncertainty and risk
+5. **Dueling**: Separates "how good is this state" from "which action is best"
+6. **Position State**: Agent knows if it can trade or must wait
+7. **Action Masking**: Eliminates wasted exploration on invalid actions
 
 ---
 

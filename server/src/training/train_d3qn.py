@@ -344,8 +344,11 @@ def train_d3qn(
             # Get Q-values for logging
             q_values = agent.get_q_values(state)
 
-            # Select action
-            action = agent.select_action(state, training=True)
+            # Get action mask (Phase 4.2)
+            action_mask = train_env.get_action_mask()
+
+            # Select action with masking
+            action = agent.select_action(state, training=True, action_mask=action_mask)
             action_names = ['HOLD', 'LONG', 'SHORT']
             episode_actions[action_names[action]] += 1
 
@@ -603,8 +606,11 @@ def evaluate_agent(agent: D3QNAgent, env: TradingEnv, episodes: int = 5) -> tupl
         done = False
 
         while not done:
-            # Select greedy action (no exploration)
-            action = agent.select_action(state, training=False)
+            # Get action mask (Phase 4.2)
+            action_mask = env.get_action_mask()
+
+            # Select greedy action (no exploration) with masking
+            action = agent.select_action(state, training=False, action_mask=action_mask)
 
             # Take step
             next_state, reward, terminated, truncated, info = env.step(action)

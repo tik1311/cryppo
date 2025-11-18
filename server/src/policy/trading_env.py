@@ -90,9 +90,10 @@ class TradingEnv(gym.Env):
         self.action_space = spaces.Discrete(3)
 
         # Observation space: window of features + position info + market regime
-        # Position info: [is_in_position, entry_price_normalized, pnl_pct, hold_duration,
+        # Position info: [no_pos, long_pos, short_pos, entry_price_normalized, pnl_pct, hold_duration,
         #                 regime_bull, regime_bear, regime_sideways, regime_strength]
-        obs_shape = (window_size, self.n_features + 8)  # Changed from +4 to +8
+        # Changed: position type is now one-hot encoded (3 features instead of 1)
+        obs_shape = (window_size, self.n_features + 10)  # Changed from +8 to +10
         self.observation_space = spaces.Box(
             low=-np.inf,
             high=np.inf,
@@ -211,8 +212,12 @@ class TradingEnv(gym.Env):
         # Current price for normalization
         current_price = self.data[current_idx, 3]  # Close price (index 3)
 
-        # Position information
-        is_in_position = 1.0 if self.position is not None else 0.0
+        # Position type (one-hot encoded) - Phase 4.1
+        has_no_position = 1.0 if self.position is None else 0.0
+        has_long_position = 1.0 if self.position == 'long' else 0.0
+        has_short_position = 1.0 if self.position == 'short' else 0.0
+
+        # Position metrics
         entry_price_norm = (self.entry_price / current_price - 1.0) if self.position else 0.0
         pnl_pct = self._calculate_position_pnl() / self.balance if self.position else 0.0
         hold_duration_norm = self.hold_duration / 100.0  # Normalize hold duration
@@ -222,9 +227,10 @@ class TradingEnv(gym.Env):
         regime_bear = 1.0 if self.market_regime == 'bear' else 0.0
         regime_sideways = 1.0 if self.market_regime == 'sideways' else 0.0
 
-        # Position info array repeated for each timestep (now includes regime)
+        # Position info array repeated for each timestep (now includes position type one-hot)
         position_info = np.array([
-            is_in_position, entry_price_norm, pnl_pct, hold_duration_norm,
+            has_no_position, has_long_position, has_short_position,
+            entry_price_norm, pnl_pct, hold_duration_norm,
             regime_bull, regime_bear, regime_sideways, self.regime_strength
         ])
         position_info_tiled = np.tile(position_info, (self.window_size, 1))
@@ -244,6 +250,29 @@ class TradingEnv(gym.Env):
             'total_trades': self.total_trades,
             'win_rate': self.winning_trades / max(self.total_trades, 1)
         }
+
+    def get_action_mask(self) -> np.ndarray:
+        """
+        Get valid action mask for current state - Phase 4.2
+
+        Returns:
+            np.ndarray: Binary mask where 1 = valid action, 0 = invalid action
+                       [HOLD, LONG, SHORT]
+        """
+        mask = np.zeros(self.action_space.n, dtype=np.float32)
+
+        if self.position is None:
+            # No position: can HOLD, LONG, or SHORT
+            mask[0] = 1.0  # HOLD
+            mask[1] = 1.0  # LONG
+            mask[2] = 1.0  # SHORT
+        else:
+            # Has position: can only HOLD (wait for TP/SL to close)
+            mask[0] = 1.0  # HOLD
+            mask[1] = 0.0  # Cannot open new LONG
+            mask[2] = 0.0  # Cannot open new SHORT
+
+        return mask
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, dict]:
         """Execute a single timestep using OHLC data"""

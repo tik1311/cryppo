@@ -47,9 +47,9 @@ class TradingEnv(gym.Env):
         reward_type: str = 'sharpe',
         min_episode_length: int = 1200,  # Minimum steps per episode (20-30% more than avg ~1000)
         atr_period: int = 14,  # ATR calculation period
-        atr_sl_multiplier: float = 1.0,  # Stop Loss = Entry ± (ATR × 1.0)
-        atr_tp_multiplier: float = 2.0,  # Take Profit = Entry ± (ATR × 2.0)
-        trailing_distance_multiplier: float = 0.5,  # Trailing distance = ATR × 0.5
+        atr_sl_multiplier: float = 1.5,  # Stop Loss = Entry ± (ATR × 1.5) [INCREASED from 1.0]
+        atr_tp_multiplier: float = 3.0,  # Take Profit = Entry ± (ATR × 3.0) [INCREASED from 2.0]
+        trailing_distance_multiplier: float = 1.0,  # Trailing distance = ATR × 1.0 [INCREASED from 0.5]
         streaming_mode: bool = False
     ):
         """
@@ -59,14 +59,14 @@ class TradingEnv(gym.Env):
             data: Market data array [timesteps, features]
             initial_balance: Starting capital
             fee_rate: Trading fee rate (0.04%)
-            max_leverage: Maximum leverage allowed
+            max_leverage: Maximum leverage allowed (default 1.5x)
             window_size: Number of historical timesteps in observation
             reward_type: Type of reward ('profit', 'sharpe', 'sortino')
             min_episode_length: Minimum steps per episode (ensures 20-30% longer episodes)
             atr_period: Period for ATR calculation (default 14)
-            atr_sl_multiplier: Multiplier for Stop Loss calculation
-            atr_tp_multiplier: Multiplier for Take Profit calculation
-            trailing_distance_multiplier: Multiplier for Trailing Stop distance
+            atr_sl_multiplier: Multiplier for Stop Loss calculation (default 1.5x ATR)
+            atr_tp_multiplier: Multiplier for Take Profit calculation (default 3.0x ATR)
+            trailing_distance_multiplier: Multiplier for Trailing Stop distance (default 1.0x ATR)
         """
         super().__init__()
 
@@ -479,17 +479,23 @@ class TradingEnv(gym.Env):
 
         # Need at least period+1 candles for ATR
         if self.current_step < self.window_size + period:
-            # Not enough data, use simple price range as fallback
+            # Not enough data, use simple volatility as fallback
             recent_data = self.data[max(0, self.current_step - 20):self.current_step + 1]
             if len(recent_data) > 1:
-                high_col = 1  # High price column
-                low_col = 2   # Low price column
-                price_range = np.max(recent_data[:, high_col]) - np.min(recent_data[:, low_col])
-                return price_range / len(recent_data)
-            else:
-                # Ultimate fallback: 1% of current price
+                close_col = 3  # Close price column
+                close_prices = recent_data[:, close_col]
+                # Use standard deviation as volatility measure
+                # Multiply by 2 to approximate ATR-like value
+                volatility = np.std(close_prices) * 2.0
+
+                # Ensure minimum ATR (0.5% of current price)
                 current_price = self.data[self.current_step, 3]
-                return current_price * 0.01
+                min_atr = current_price * 0.005
+                return max(volatility, min_atr)
+            else:
+                # Ultimate fallback: 0.8% of current price
+                current_price = self.data[self.current_step, 3]
+                return current_price * 0.008
 
         # Get OHLC data for ATR calculation
         start_idx = self.current_step - period
@@ -515,7 +521,13 @@ class TradingEnv(gym.Env):
         else:
             # Fallback
             current_price = close[-1]
-            atr = current_price * 0.01
+            atr = current_price * 0.008
+
+        # IMPORTANT: Ensure minimum ATR threshold (0.5% of current price)
+        # This prevents unrealistically tight TP/SL ranges
+        current_price = close[-1]
+        min_atr = current_price * 0.005
+        atr = max(atr, min_atr)
 
         return float(atr)
 

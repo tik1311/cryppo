@@ -15,7 +15,7 @@
 # /data/processed/
 # /data/indicators/
 /outputs/
-/logs/
+# LOGS ARE NOW TRACKED FOR DEBUGGING - removed /logs/ from gitignore
 /checkpoints/
 /results/
 
@@ -93,9 +93,9 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
-# Logs
-*.log
-logs/
+# Logs - NOW TRACKED FOR DEBUGGING
+# *.log  -- REMOVED to allow log files
+# logs/  -- REMOVED to allow logs directory
 
 # Tensorboard
 runs/

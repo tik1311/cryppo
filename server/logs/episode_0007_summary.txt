@@ -1,0 +1,41 @@
+Episode 7 Summary
+======================================================================
+
+Total Steps: 1401
+Total Trades: 86
+Winning Trades: 47
+Win Rate: 54.65%
+Initial Balance: $10,000.00
+Final Balance: $7,383.18
+Final Equity: $7,387.55
+Total PnL: $-2,616.82
+Return: -26.17%
+
+======================================================================
+
+First 10 Steps:
+----------------------------------------------------------------------
+Step   14 | HOLD  | Price: $45646.32 | Balance: $  10000.00 | Reward:  +0.0000
+Step   15 | HOLD  | Price: $45688.64 | Balance: $  10000.00 | Reward:  +0.0000
+Step   16 | HOLD  | Price: $45761.50 | Balance: $  10000.00 | Reward:  +0.0000
+Step   17 | HOLD  | Price: $45669.21 | Balance: $  10000.00 | Reward:  +0.0000
+Step   18 | HOLD  | Price: $45597.86 | Balance: $  10000.00 | Reward:  +0.0000
+Step   19 | HOLD  | Price: $45599.73 | Balance: $  10000.00 | Reward:  +0.0000
+Step   20 | HOLD  | Price: $45440.74 | Balance: $  10000.00 | Reward:  +0.0000
+Step   21 | HOLD  | Price: $45470.76 | Balance: $  10000.00 | Reward:  +0.0000
+Step   22 | HOLD  | Price: $45424.46 | Balance: $  10000.00 | Reward:  +0.0000
+Step   23 | HOLD  | Price: $45309.89 | Balance: $  10000.00 | Reward:  +0.0000
+
+----------------------------------------------------------------------
+Last 10 Steps:
+----------------------------------------------------------------------
+Step 1405 | HOLD  | Price: $43538.34 | Balance: $   7175.02 | Reward:  +0.0288
+Step 1406 | HOLD  | Price: $43394.52 | Balance: $   7323.18 | Reward:  +0.0497
+Step 1407 | SHORT | Price: $43365.19 | Balance: $   7318.79 | Reward:  +0.0175
+Step 1408 | HOLD  | Price: $43464.86 | Balance: $   7318.79 | Reward:  +0.0074
+Step 1409 | HOLD  | Price: $43316.12 | Balance: $   7319.89 | Reward:  +0.0287
+Step 1410 | HOLD  | Price: $43344.62 | Balance: $   7319.89 | Reward:  +0.0170
+Step 1411 | HOLD  | Price: $43288.71 | Balance: $   7319.89 | Reward:  +0.0223
+Step 1412 | HOLD  | Price: $43173.95 | Balance: $   7319.89 | Reward:  +0.0290
+Step 1413 | HOLD  | Price: $43119.86 | Balance: $   7319.89 | Reward:  +0.0292
+Step 1414 | HOLD  | Price: $43098.08 | Balance: $   7383.18 | Reward:  +0.0265

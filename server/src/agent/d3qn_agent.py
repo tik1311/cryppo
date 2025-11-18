@@ -226,6 +226,21 @@ class D3QNAgent:
             q_values = self.policy_net(state_tensor)
             return q_values.argmax(dim=1).item()
 
+    def get_q_values(self, state: np.ndarray) -> np.ndarray:
+        """
+        Get Q-values for all actions (for logging/debugging)
+
+        Args:
+            state: Current state
+
+        Returns:
+            Q-values for all actions [HOLD, LONG, SHORT]
+        """
+        with torch.no_grad():
+            state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
+            q_values = self.policy_net(state_tensor)
+            return q_values.cpu().numpy()[0]
+
     def store_transition(self, state, action, reward, next_state, done):
         """Store transition in replay buffer"""
         self.memory.push(state, action, reward, next_state, done)

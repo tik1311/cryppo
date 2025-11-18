@@ -21,53 +21,64 @@ import numpy as np
 class DetailedStepLogger:
     """Logs every single step with full context for post-training analysis"""
 
-    def __init__(self, log_dir: str = "logs/detailed", prefix: str = ""):
+    def __init__(self, log_dir: str = "logs/detailed", mode: str = "train", session_id: str = None):
+        """
+        Initialize logger
+
+        Args:
+            log_dir: Base log directory (e.g., "logs")
+            mode: Logging mode - "train", "backtest", or "paper"
+            session_id: Optional session ID (if None, will use timestamp)
+        """
         self.log_dir = Path(log_dir)
-        self.log_dir.mkdir(parents=True, exist_ok=True)
+        self.mode = mode
+        self.session_id = session_id or datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        base_name = f"{prefix}_{timestamp}" if prefix else timestamp
+        # Create mode-specific directory
+        self.mode_dir = self.log_dir / mode
+        self.mode_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create separate log files for different aspects
-        self.step_log_file = self.log_dir / f"steps_{base_name}.jsonl"
-        self.trade_log_file = self.log_dir / f"trades_{base_name}.jsonl"
-        self.episode_log_file = self.log_dir / f"episodes_{base_name}.jsonl"
-        self.analysis_log_file = self.log_dir / f"analysis_{base_name}.txt"
+        # Use consistent filenames (append mode) instead of creating new files each time
+        self.step_log_file = self.mode_dir / f"{mode}_steps.jsonl"
+        self.trade_log_file = self.mode_dir / f"{mode}_trades.jsonl"
+        self.episode_log_file = self.mode_dir / f"{mode}_episodes.jsonl"
+        self.analysis_log_file = self.mode_dir / f"{mode}_analysis.txt"
 
-        # Open files
-        self.step_log = open(self.step_log_file, 'w', buffering=1)
-        self.trade_log = open(self.trade_log_file, 'w', buffering=1)
-        self.episode_log = open(self.episode_log_file, 'w', buffering=1)
-        self.analysis_log = open(self.analysis_log_file, 'w', buffering=1)
+        # Open files in APPEND mode with UTF-8 encoding (fixes Windows cp874 issue)
+        self.step_log = open(self.step_log_file, 'a', buffering=1, encoding='utf-8')
+        self.trade_log = open(self.trade_log_file, 'a', buffering=1, encoding='utf-8')
+        self.episode_log = open(self.episode_log_file, 'a', buffering=1, encoding='utf-8')
+        self.analysis_log = open(self.analysis_log_file, 'a', buffering=1, encoding='utf-8')
 
         # Episode tracking
         self.current_episode = 0
         self.episode_steps = []
         self.episode_trades = []
 
-        # Write headers
-        self._write_header()
+        # Write session header
+        self._write_session_header()
 
-    def _write_header(self):
-        """Write header with format explanation"""
+    def _write_session_header(self):
+        """Write session header with format explanation"""
         header = f"""
+
 {'='*80}
-DETAILED TRADING LOG - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+NEW {self.mode.upper()} SESSION - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Session ID: {self.session_id}
 {'='*80}
 
-This log contains EVERYTHING needed to debug trading performance:
-
-FILES:
-- steps_*.jsonl: Every single step with full state/action/reward
-- trades_*.jsonl: Every trade entry/exit with PnL and reasons
-- episodes_*.jsonl: Episode summaries with statistics
-- analysis_*.txt: Human-readable analysis (this file)
+LOG FILES:
+- {self.step_log_file.name}: Every single step with full state/action/reward
+- {self.trade_log_file.name}: Every trade entry/exit with PnL and reasons
+- {self.episode_log_file.name}: Episode summaries with statistics
+- {self.analysis_log_file.name}: Human-readable analysis (this file)
 
 LOG FORMAT:
 - All prices in USD
 - All percentages as decimals (0.01 = 1%)
 - All times in steps (1 step = 1 hour)
 - Q-values: [HOLD, LONG, SHORT]
+- NO special characters (epsilon = eps) for Windows compatibility
 
 KEY METRICS TO WATCH:
 1. Win Rate: Should be >25% for RR 4.5:1 to be profitable
@@ -129,11 +140,11 @@ KEY METRICS TO WATCH:
             self._write_step_summary(step_data_clean)
 
     def _write_step_summary(self, step_data: Dict[str, Any]):
-        """Write human-readable step summary"""
+        """Write human-readable step summary (NO special characters for Windows)"""
         summary = f"""
 Step {step_data['step']} (Episode {step_data['episode']}):
   Price: ${step_data['price']:.2f} | Balance: ${step_data['balance']:,.2f}
-  Action: {step_data['action_name']} (epsilon={step_data['epsilon']:.3f})
+  Action: {step_data['action_name']} (eps={step_data['epsilon']:.3f})
   Q-values: HOLD={step_data['q_values'][0]:.4f}, LONG={step_data['q_values'][1]:.4f}, SHORT={step_data['q_values'][2]:.4f}
   Reason: {step_data['reason']}
   Position: {step_data['position'] or 'None'} | Size: {step_data['position_size']:.4f}
@@ -344,6 +355,8 @@ DIAGNOSIS:
 
 {'='*80}
 LOGGING SESSION ENDED - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Session ID: {self.session_id}
+Mode: {self.mode.upper()}
 {'='*80}
 
 Total Episodes Logged: {self.current_episode}
@@ -355,10 +368,10 @@ Log Files:
 - {self.analysis_log_file}
 
 To analyze these logs:
-1. Check analysis_*.txt for human-readable summaries
-2. Parse episodes_*.jsonl for episode statistics
-3. Parse trades_*.jsonl for trade-by-trade analysis
-4. Parse steps_*.jsonl for detailed step analysis
+1. Check {self.analysis_log_file.name} for human-readable summaries
+2. Parse {self.episode_log_file.name} for episode statistics
+3. Parse {self.trade_log_file.name} for trade-by-trade analysis
+4. Parse {self.step_log_file.name} for detailed step analysis
 
 Look for patterns in:
 - When does the agent WIN vs LOSE?

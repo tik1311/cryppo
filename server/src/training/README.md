@@ -145,8 +145,8 @@ Reward Type: sharpe
 
 🚀 Starting training...
 ============================================================
-Episode   10 | Reward:    -5.23 | Avg(10):    -8.45 | Loss: 0.0234 | ε: 0.950 | Steps:  100 | Trades:  5 | Win%:  40.0 | Balance: $9,500
-Episode   20 | Reward:     2.15 | Avg(10):     0.12 | Loss: 0.0189 | ε: 0.902 | Steps:  150 | Trades:  8 | Win%:  50.0 | Balance: $10,200
+Episode   10 | Reward:    -5.23 | Avg(10):    -8.45 | Loss: 0.0234 | Eps: 0.950 | Steps:  100 | Trades:  5 | Win%:  40.0 | Balance: $9,500
+Episode   20 | Reward:     2.15 | Avg(10):     0.12 | Loss: 0.0189 | Eps: 0.902 | Steps:  150 | Trades:  8 | Win%:  50.0 | Balance: $10,200
 ...
 ```
 

@@ -105,8 +105,8 @@ def run_backtest(
     print("[5/5] Running backtest simulation with detailed logging...")
 
     # Initialize detailed logger
-    detailed_logger = DetailedStepLogger(log_dir="logs/backtest/detailed", prefix="backtest")
-    print(f"  Detailed logs will be saved to: logs/backtest/detailed/")
+    detailed_logger = DetailedStepLogger(log_dir="logs", mode="backtest")
+    print(f"  Detailed logs will be saved to: logs/backtest/")
 
     state, _ = env.reset()
     terminated = False

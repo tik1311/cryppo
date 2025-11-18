@@ -302,8 +302,8 @@ def train_d3qn(
     episode_rewards = []
 
     # Initialize detailed logger (logs EVERY step)
-    detailed_logger = DetailedStepLogger(log_dir="logs/training/detailed", prefix="train")
-    logger.log(f"[INFO] Detailed logs will be saved to: logs/training/detailed/")
+    detailed_logger = DetailedStepLogger(log_dir="logs", mode="train")
+    logger.log(f"[INFO] Detailed logs will be saved to: logs/train/")
 
     for episode in range(1, episodes + 1):
         # Enable detailed environment logging for specific episodes
@@ -344,7 +344,7 @@ def train_d3qn(
 
             # Determine why this action was chosen
             if random.random() < agent.epsilon:
-                reason = f"Exploration (ε={agent.epsilon:.3f})"
+                reason = f"Exploration (eps={agent.epsilon:.3f})"
             else:
                 reason = f"Exploitation (Q={q_values[action]:.4f} best)"
 
@@ -477,7 +477,7 @@ def train_d3qn(
             f"Reward: {episode_reward:8.2f} | "
             f"Avg(10): {avg_reward_10:8.2f} | "
             f"Loss: {avg_loss:.4f} | "
-            f"Eps: {agent_stats['epsilon']:.3f} | "  # Changed from ε to Eps
+            f"Eps: {agent_stats['epsilon']:.3f} | "  # Changed from epsilon to Eps
             f"Steps: {step:4d} | "
             f"Trades: {info['total_trades']:2d} | "
             f"Win%: {info['win_rate']*100:5.1f} | "

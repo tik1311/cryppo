@@ -1,41 +1,41 @@
 Episode 4 Summary
 ======================================================================
 
-Total Steps: 2645
-Total Trades: 0
-Winning Trades: 0
-Win Rate: 0.00%
+Total Steps: 3884
+Total Trades: 230
+Winning Trades: 62
+Win Rate: 26.96%
 Initial Balance: $10,000.00
-Final Balance: $10,000.00
-Final Equity: $10,000.00
-Total PnL: $0.00
-Return: +0.00%
+Final Balance: $6,522.82
+Final Equity: $6,529.66
+Total PnL: $-3,477.18
+Return: -34.77%
 
 ======================================================================
 
 First 10 Steps:
 ----------------------------------------------------------------------
-Step 5413 | HOLD  | Price: $118678.50 | Balance: $  10000.00 | Reward:  +0.0005
-Step 5414 | HOLD  | Price: $117950.00 | Balance: $  10000.00 | Reward:  +0.0005
-Step 5415 | HOLD  | Price: $117697.00 | Balance: $  10000.00 | Reward:  +0.0005
-Step 5416 | HOLD  | Price: $117748.10 | Balance: $  10000.00 | Reward:  +0.0005
-Step 5417 | HOLD  | Price: $116477.00 | Balance: $  10000.00 | Reward:  +0.0005
-Step 5418 | HOLD  | Price: $116865.20 | Balance: $  10000.00 | Reward:  +0.0005
-Step 5419 | HOLD  | Price: $117138.90 | Balance: $  10000.00 | Reward:  +0.0005
-Step 5420 | HOLD  | Price: $117280.00 | Balance: $  10000.00 | Reward:  +0.0005
-Step 5421 | HOLD  | Price: $117431.20 | Balance: $  10000.00 | Reward:  +0.0005
-Step 5422 | HOLD  | Price: $117771.00 | Balance: $  10000.00 | Reward:  +0.0005
+Step 4174 | SHORT | Price: $105676.50 | Balance: $   9988.00 | Reward:  -0.0024
+Step 4175 | SHORT | Price: $105651.40 | Balance: $   9988.00 | Reward:  +0.0014
+Step 4176 | SHORT | Price: $105476.40 | Balance: $   9988.00 | Reward:  +0.0099
+Step 4177 | SHORT | Price: $105512.80 | Balance: $   9991.00 | Reward:  -0.0015
+Step 4178 | SHORT | Price: $105617.00 | Balance: $   9991.00 | Reward:  -0.0059
+Step 4179 | SHORT | Price: $105395.40 | Balance: $   9991.00 | Reward:  +0.0126
+Step 4180 | SHORT | Price: $105328.80 | Balance: $   9991.00 | Reward:  +0.0038
+Step 4181 | SHORT | Price: $105646.60 | Balance: $   9991.00 | Reward:  -0.0179
+Step 4182 | SHORT | Price: $105516.70 | Balance: $   9991.00 | Reward:  +0.0121
+Step 4183 | SHORT | Price: $105889.80 | Balance: $   9991.00 | Reward:  -0.0276
 
 ----------------------------------------------------------------------
 Last 10 Steps:
 ----------------------------------------------------------------------
-Step 8048 | HOLD  | Price: $95608.00 | Balance: $  10000.00 | Reward:  -1.3075
-Step 8049 | HOLD  | Price: $95607.60 | Balance: $  10000.00 | Reward:  -1.3080
-Step 8050 | HOLD  | Price: $95530.10 | Balance: $  10000.00 | Reward:  -1.3085
-Step 8051 | HOLD  | Price: $95283.40 | Balance: $  10000.00 | Reward:  -1.3090
-Step 8052 | HOLD  | Price: $93913.50 | Balance: $  10000.00 | Reward:  -1.3095
-Step 8053 | HOLD  | Price: $94730.20 | Balance: $  10000.00 | Reward:  -1.3100
-Step 8054 | HOLD  | Price: $93915.70 | Balance: $  10000.00 | Reward:  -1.3105
-Step 8055 | HOLD  | Price: $94267.00 | Balance: $  10000.00 | Reward:  -1.3110
-Step 8056 | HOLD  | Price: $92724.00 | Balance: $  10000.00 | Reward:  -1.3115
-Step 8057 | HOLD  | Price: $92484.10 | Balance: $  10000.00 | Reward:  -1.3120
+Step 8048 | SHORT | Price: $95608.00 | Balance: $   5910.70 | Reward:  -0.0007
+Step 8049 | SHORT | Price: $95607.60 | Balance: $   5912.47 | Reward:  +0.0021
+Step 8050 | SHORT | Price: $95530.10 | Balance: $   5912.47 | Reward:  +0.0063
+Step 8051 | SHORT | Price: $95283.40 | Balance: $   5912.47 | Reward:  +0.0190
+Step 8052 | SHORT | Price: $93913.50 | Balance: $   5912.47 | Reward:  +0.0925
+Step 8053 | SHORT | Price: $94730.20 | Balance: $   5912.47 | Reward:  -0.0411
+Step 8054 | SHORT | Price: $93915.70 | Balance: $   5912.47 | Reward:  +0.0581
+Step 8055 | SHORT | Price: $94267.00 | Balance: $   5912.47 | Reward:  -0.0157
+Step 8056 | SHORT | Price: $92724.00 | Balance: $   5912.47 | Reward:  +0.1004
+Step 8057 | SHORT | Price: $92484.10 | Balance: $   6522.82 | Reward:  +0.0223

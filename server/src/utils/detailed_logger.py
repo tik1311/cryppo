@@ -381,9 +381,15 @@ Look for patterns in:
 
 {'='*80}
 """
-            self.analysis_log.write(final)
-            self.analysis_log.close()
+            # Check if file is still open before writing
+            if not self.analysis_log.closed:
+                self.analysis_log.write(final)
+                self.analysis_log.close()
 
     def __del__(self):
-        """Cleanup"""
-        self.close()
+        """Cleanup - safe destructor"""
+        try:
+            self.close()
+        except (ValueError, AttributeError):
+            # File already closed or attribute doesn't exist - ignore
+            pass

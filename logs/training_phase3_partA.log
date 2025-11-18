@@ -1701,3 +1701,1157 @@ Total PnL: $-6408.93
           PnL vs Margin: -5.07% | PnL vs Notional: -1.69%
           Balance: $9308.93 | Total PnL: $-655.18
   [RISK] Stop Loss HIT @ $7334.51
+Episode   10 | Reward:    -8.68 | Avg(10):    -3.00 | Loss: 0.0028 | Eps: 0.150 | Steps:  905 | Trades: 40 | Win%:   7.5 | Balance: $3,022
+
+============================================================
+[DONE] Training complete!
+============================================================
+
+[TEST] Final evaluation on test set...
+[DEBUG] Enabling detailed logging for test episodes...
+  [TRADE] Open SHORT @ $103407.50
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 0.2901 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $759.73 | TP: $101014.35 (+2.31%) | SL: $104319.18 (-0.88%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $104319.18
+          Gross PnL: $-264.49 | Fee: $12.11 | Net PnL: $-276.60
+          PnL vs Margin: -2.77% | PnL vs Notional: -0.92%
+          Balance: $9711.40 | Total PnL: $-276.60
+  [RISK] Stop Loss HIT @ $104319.18
+  [BLOCKED] Cannot trade - must wait 2 more bars
+  [BLOCKED] Cannot trade - must wait 1 more bars
+  [TRADE] Open SHORT @ $103209.00
+          Margin: $9711.40 | Leverage: 3.0x
+          Position Size: 0.2823 | Notional: $29134.21
+          Fee: $11.65 (0.12% of margin)
+          ATR: $983.24 | TP: $100111.78 (+3.00%) | SL: $104388.89 (-1.14%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $104388.89
+          Gross PnL: $-333.06 | Fee: $11.79 | Net PnL: $-344.85
+          PnL vs Margin: -3.55% | PnL vs Notional: -1.18%
+          Balance: $9357.84 | Total PnL: $-621.45
+  [RISK] Stop Loss HIT @ $104388.89
+  [TRADE] Open SHORT @ $104000.00
+          Margin: $9357.84 | Leverage: 3.0x
+          Position Size: 0.2699 | Notional: $28073.51
+          Fee: $11.23 (0.12% of margin)
+          ATR: $872.49 | TP: $101251.67 (+2.64%) | SL: $105046.98 (-1.01%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $105046.98
+          Gross PnL: $-282.62 | Fee: $11.34 | Net PnL: $-293.96
+          PnL vs Margin: -3.14% | PnL vs Notional: -1.05%
+          Balance: $9055.47 | Total PnL: $-915.41
+  [RISK] Stop Loss HIT @ $105046.98
+  [TRADE] Open SHORT @ $104958.30
+          Margin: $9055.47 | Leverage: 3.0x
+          Position Size: 0.2588 | Notional: $27166.42
+          Fee: $10.87 (0.12% of margin)
+          ATR: $751.79 | TP: $102590.17 (+2.26%) | SL: $105860.44 (-0.86%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $105860.44
+          Gross PnL: $-233.50 | Fee: $10.96 | Net PnL: $-244.46
+          PnL vs Margin: -2.70% | PnL vs Notional: -0.90%
+          Balance: $8805.58 | Total PnL: $-1159.87
+  [RISK] Stop Loss HIT @ $105860.44
+  [TRADE] Open SHORT @ $106291.20
+          Margin: $8805.58 | Leverage: 3.0x
+          Position Size: 0.2485 | Notional: $26416.73
+          Fee: $10.57 (0.12% of margin)
+          ATR: $880.98 | TP: $103516.12 (+2.61%) | SL: $107348.38 (-0.99%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $103516.12
+          Gross PnL: $689.70 | Fee: $10.29 | Net PnL: $679.41
+          PnL vs Margin: +7.72% | PnL vs Notional: +2.57%
+          Balance: $9474.42 | Total PnL: $-480.47
+  [WIN] Take Profit HIT @ $103516.12
+  [LOG] Episode 2 detailed log saved:
+        - logs/episode_0002_20251118_193528.jsonl
+        - logs/episode_0002_summary.txt
+Balance: $2998.05
+Equity: $2998.05
+Position: None
+Total Trades: 259
+Win Rate: 26.64%
+Total PnL: $-5787.01
+--------------------------------------------------
+  [TRADE] Open SHORT @ $115713.70
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 0.2593 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $578.57 | TP: $113891.21 (+1.57%) | SL: $116407.99 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $113891.21
+          Gross PnL: $472.50 | Fee: $11.81 | Net PnL: $460.69
+          PnL vs Margin: +4.61% | PnL vs Notional: +1.54%
+          Balance: $10463.60 | Total PnL: $460.69
+  [WIN] Take Profit HIT @ $113891.21
+  [TRADE] Open SHORT @ $112740.00
+          Margin: $10463.60 | Leverage: 3.0x
+          Position Size: 0.2784 | Notional: $31390.79
+          Fee: $12.56 (0.12% of margin)
+          ATR: $705.83 | TP: $110516.64 (+1.97%) | SL: $113586.99 (-0.75%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $113586.99
+          Gross PnL: $-235.83 | Fee: $12.65 | Net PnL: $-248.48
+          PnL vs Margin: -2.37% | PnL vs Notional: -0.79%
+          Balance: $10202.56 | Total PnL: $212.21
+  [RISK] Stop Loss HIT @ $113586.99
+  [TRADE] Open SHORT @ $112598.80
+          Margin: $10202.56 | Leverage: 3.0x
+          Position Size: 0.2718 | Notional: $30607.67
+          Fee: $12.24 (0.12% of margin)
+          ATR: $876.66 | TP: $109837.33 (+2.45%) | SL: $113650.79 (-0.93%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $109837.33
+          Gross PnL: $750.65 | Fee: $11.94 | Net PnL: $738.71
+          PnL vs Margin: +7.24% | PnL vs Notional: +2.41%
+          Balance: $10938.17 | Total PnL: $950.91
+  [WIN] Take Profit HIT @ $109837.33
+  [TRADE] Open SHORT @ $109839.50
+          Margin: $10938.17 | Leverage: 3.0x
+          Position Size: 0.2987 | Notional: $32814.51
+          Fee: $13.13 (0.12% of margin)
+          ATR: $912.04 | TP: $106966.56 (+2.62%) | SL: $110933.95 (-1.00%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $110933.95
+          Gross PnL: $-326.97 | Fee: $13.26 | Net PnL: $-340.22
+          PnL vs Margin: -3.11% | PnL vs Notional: -1.04%
+          Balance: $10594.69 | Total PnL: $610.69
+  [RISK] Stop Loss HIT @ $110933.95
+  [TRADE] Open SHORT @ $111053.50
+          Margin: $10594.69 | Leverage: 3.0x
+          Position Size: 0.2862 | Notional: $31784.08
+          Fee: $12.71 (0.12% of margin)
+          ATR: $717.44 | TP: $108793.58 (+2.03%) | SL: $111914.42 (-0.78%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $111914.42
+          Gross PnL: $-246.40 | Fee: $12.81 | Net PnL: $-259.21
+          PnL vs Margin: -2.45% | PnL vs Notional: -0.82%
+          Balance: $10322.77 | Total PnL: $351.47
+  [RISK] Stop Loss HIT @ $111914.42
+  [LOG] Episode 3 detailed log saved:
+        - logs/episode_0003_20251118_193531.jsonl
+        - logs/episode_0003_summary.txt
+Balance: $10324.65
+Equity: $10335.48
+Position: None
+Total Trades: 119
+Win Rate: 28.57%
+Total PnL: $858.30
+--------------------------------------------------
+  [TRADE] Open SHORT @ $105676.50
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 0.2839 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $528.38 | TP: $104012.10 (+1.58%) | SL: $106310.56 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $106310.56
+          Gross PnL: $-180.00 | Fee: $12.07 | Net PnL: $-192.07
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $9798.92 | Total PnL: $-192.07
+  [RISK] Stop Loss HIT @ $106310.56
+  [TRADE] Open SHORT @ $107136.30
+          Margin: $9798.92 | Leverage: 3.0x
+          Position Size: 0.2744 | Notional: $29396.77
+          Fee: $11.76 (0.12% of margin)
+          ATR: $535.68 | TP: $105448.90 (+1.57%) | SL: $107779.11 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $107779.11
+          Gross PnL: $-176.38 | Fee: $11.83 | Net PnL: $-188.21
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $9601.89 | Total PnL: $-380.28
+  [RISK] Stop Loss HIT @ $107779.11
+  [BLOCKED] Cannot trade - must wait 1 more bars
+  [TRADE] Open SHORT @ $107561.20
+          Margin: $9601.89 | Leverage: 3.0x
+          Position Size: 0.2678 | Notional: $28805.68
+          Fee: $11.52 (0.12% of margin)
+          ATR: $556.13 | TP: $105809.40 (+1.63%) | SL: $108228.56 (-0.62%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $108228.56
+          Gross PnL: $-178.72 | Fee: $11.59 | Net PnL: $-190.32
+          PnL vs Margin: -1.98% | PnL vs Notional: -0.66%
+          Balance: $9400.06 | Total PnL: $-570.60
+  [RISK] Stop Loss HIT @ $108228.56
+  [TRADE] Open SHORT @ $108386.20
+          Margin: $9400.06 | Leverage: 3.0x
+          Position Size: 0.2602 | Notional: $28200.17
+          Fee: $11.28 (0.12% of margin)
+          ATR: $611.34 | TP: $106460.47 (+1.78%) | SL: $109119.81 (-0.68%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $109119.81
+          Gross PnL: $-190.87 | Fee: $11.36 | Net PnL: $-202.23
+          PnL vs Margin: -2.15% | PnL vs Notional: -0.72%
+          Balance: $9189.37 | Total PnL: $-772.83
+  [RISK] Stop Loss HIT @ $109119.81
+  [TRADE] Open SHORT @ $110132.40
+          Margin: $9189.37 | Leverage: 3.0x
+          Position Size: 0.2503 | Notional: $27568.10
+          Fee: $11.03 (0.12% of margin)
+          ATR: $771.33 | TP: $107702.71 (+2.21%) | SL: $111057.99 (-0.84%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $107702.71
+          Gross PnL: $608.19 | Fee: $10.78 | Net PnL: $597.41
+          PnL vs Margin: +6.50% | PnL vs Notional: +2.17%
+          Balance: $9794.88 | Total PnL: $-175.42
+  [WIN] Take Profit HIT @ $107702.71
+  [LOG] Episode 4 detailed log saved:
+        - logs/episode_0004_20251118_193538.jsonl
+        - logs/episode_0004_summary.txt
+Balance: $6522.82
+Equity: $6529.66
+Position: None
+Total Trades: 230
+Win Rate: 26.96%
+Total PnL: $-2578.35
+--------------------------------------------------
+  [TRADE] Open SHORT @ $102379.70
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 0.2930 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $798.70 | TP: $99863.80 (+2.46%) | SL: $103338.14 (-0.94%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $99863.80
+          Gross PnL: $737.23 | Fee: $11.71 | Net PnL: $725.52
+          PnL vs Margin: +7.26% | PnL vs Notional: +2.42%
+          Balance: $10725.43 | Total PnL: $725.52
+  [WIN] Take Profit HIT @ $99863.80
+  [TRADE] Open SHORT @ $99490.10
+          Margin: $10725.43 | Leverage: 3.0x
+          Position Size: 0.3234 | Notional: $32176.29
+          Fee: $12.87 (0.12% of margin)
+          ATR: $678.83 | TP: $97351.79 (+2.15%) | SL: $100304.70 (-0.82%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $100304.70
+          Gross PnL: $-263.45 | Fee: $12.98 | Net PnL: $-276.43
+          PnL vs Margin: -2.58% | PnL vs Notional: -0.86%
+          Balance: $10436.13 | Total PnL: $449.10
+  [RISK] Stop Loss HIT @ $100304.70
+  [BLOCKED] Cannot trade - must wait 1 more bars
+  [TRADE] Open SHORT @ $99782.00
+          Margin: $10436.13 | Leverage: 3.0x
+          Position Size: 0.3138 | Notional: $31308.40
+          Fee: $12.52 (0.12% of margin)
+          ATR: $761.14 | TP: $97384.42 (+2.40%) | SL: $100695.36 (-0.92%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $97384.42
+          Gross PnL: $752.28 | Fee: $12.22 | Net PnL: $740.06
+          PnL vs Margin: +7.09% | PnL vs Notional: +2.36%
+          Balance: $11166.79 | Total PnL: $1189.16
+  [WIN] Take Profit HIT @ $97384.42
+  [TRADE] Open SHORT @ $97050.50
+          Margin: $11166.79 | Leverage: 3.0x
+          Position Size: 0.3452 | Notional: $33500.37
+          Fee: $13.40 (0.12% of margin)
+          ATR: $849.02 | TP: $94376.08 (+2.76%) | SL: $98069.33 (-1.05%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $98069.33
+          Gross PnL: $-351.68 | Fee: $13.54 | Net PnL: $-365.22
+          PnL vs Margin: -3.27% | PnL vs Notional: -1.09%
+          Balance: $10791.51 | Total PnL: $823.93
+  [RISK] Stop Loss HIT @ $98069.33
+  [BLOCKED] Cannot trade - must wait 2 more bars
+  [BLOCKED] Cannot trade - must wait 1 more bars
+  [TRADE] Open SHORT @ $97971.60
+          Margin: $10791.51 | Leverage: 3.0x
+          Position Size: 0.3304 | Notional: $32374.54
+          Fee: $12.95 (0.12% of margin)
+          ATR: $1102.93 | TP: $93008.43 (+5.07%) | SL: $99625.99 (-1.69%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $93008.43
+          Gross PnL: $1640.07 | Fee: $12.29 | Net PnL: $1627.78
+          PnL vs Margin: +15.08% | PnL vs Notional: +5.03%
+          Balance: $12406.34 | Total PnL: $2451.71
+  [WIN] Take Profit HIT @ $93008.43
+  [LOG] Episode 5 detailed log saved:
+        - logs/episode_0005_20251118_193545.jsonl
+        - logs/episode_0005_summary.txt
+Balance: $3001.94
+Equity: $2969.23
+Position: short
+Total Trades: 263
+Win Rate: 26.62%
+Total PnL: $-5578.50
+--------------------------------------------------
+  [TRADE] Open SHORT @ $109396.90
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 0.2742 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $546.98 | TP: $107673.90 (+1.58%) | SL: $110053.28 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $110053.28
+          Gross PnL: $-180.00 | Fee: $12.07 | Net PnL: $-192.07
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $9798.93 | Total PnL: $-192.07
+  [RISK] Stop Loss HIT @ $110053.28
+  [TRADE] Open SHORT @ $109694.80
+          Margin: $9798.93 | Leverage: 3.0x
+          Position Size: 0.2680 | Notional: $29396.78
+          Fee: $11.76 (0.12% of margin)
+          ATR: $548.47 | TP: $107967.10 (+1.58%) | SL: $110352.97 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $107967.10
+          Gross PnL: $463.00 | Fee: $11.57 | Net PnL: $451.43
+          PnL vs Margin: +4.61% | PnL vs Notional: +1.54%
+          Balance: $10244.41 | Total PnL: $259.35
+  [WIN] Take Profit HIT @ $107967.10
+  [TRADE] Open SHORT @ $107720.50
+          Margin: $10244.41 | Leverage: 3.0x
+          Position Size: 0.2853 | Notional: $30733.23
+          Fee: $12.29 (0.12% of margin)
+          ATR: $567.08 | TP: $105934.18 (+1.66%) | SL: $108401.00 (-0.63%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $105934.18
+          Gross PnL: $509.65 | Fee: $12.09 | Net PnL: $497.56
+          PnL vs Margin: +4.86% | PnL vs Notional: +1.62%
+          Balance: $10735.80 | Total PnL: $756.91
+  [WIN] Take Profit HIT @ $105934.18
+  [TRADE] Open SHORT @ $105827.80
+          Margin: $10735.80 | Leverage: 3.0x
+          Position Size: 0.3043 | Notional: $32207.41
+          Fee: $12.88 (0.12% of margin)
+          ATR: $726.70 | TP: $103538.69 (+2.16%) | SL: $106699.84 (-0.82%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $103538.69
+          Gross PnL: $696.66 | Fee: $12.60 | Net PnL: $684.06
+          PnL vs Margin: +6.37% | PnL vs Notional: +2.12%
+          Balance: $11406.98 | Total PnL: $1440.97
+  [WIN] Take Profit HIT @ $103538.69
+  [TRADE] Open SHORT @ $103714.90
+          Margin: $11406.98 | Leverage: 3.0x
+          Position Size: 0.3300 | Notional: $34220.93
+          Fee: $13.69 (0.12% of margin)
+          ATR: $953.65 | TP: $100710.90 (+2.90%) | SL: $104859.28 (-1.10%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $104859.28
+          Gross PnL: $-377.59 | Fee: $13.84 | Net PnL: $-391.43
+          PnL vs Margin: -3.43% | PnL vs Notional: -1.14%
+          Balance: $11005.28 | Total PnL: $1049.54
+  [RISK] Stop Loss HIT @ $104859.28
+  [LOG] Episode 6 detailed log saved:
+        - logs/episode_0006_20251118_193553.jsonl
+        - logs/episode_0006_summary.txt
+Balance: $6702.31
+Equity: $6709.34
+Position: None
+Total Trades: 228
+Win Rate: 27.19%
+Total PnL: $-2370.09
+--------------------------------------------------
+  [TRADE] Open SHORT @ $108019.90
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 0.2777 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $540.10 | TP: $106318.59 (+1.57%) | SL: $108668.02 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $108668.02
+          Gross PnL: $-180.00 | Fee: $12.07 | Net PnL: $-192.07
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $9795.93 | Total PnL: $-192.07
+  [RISK] Stop Loss HIT @ $108668.02
+  [BLOCKED] Cannot trade - must wait 2 more bars
+  [BLOCKED] Cannot trade - must wait 1 more bars
+  [TRADE] Open SHORT @ $108526.50
+          Margin: $9795.93 | Leverage: 3.0x
+          Position Size: 0.2708 | Notional: $29387.78
+          Fee: $11.76 (0.12% of margin)
+          ATR: $672.94 | TP: $106406.73 (+1.95%) | SL: $109334.03 (-0.74%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $109334.03
+          Gross PnL: $-218.67 | Fee: $11.84 | Net PnL: $-230.51
+          PnL vs Margin: -2.35% | PnL vs Notional: -0.78%
+          Balance: $9556.60 | Total PnL: $-422.58
+  [RISK] Stop Loss HIT @ $109334.03
+  [TRADE] Open SHORT @ $109105.10
+          Margin: $9556.60 | Leverage: 3.0x
+          Position Size: 0.2628 | Notional: $28669.80
+          Fee: $11.47 (0.12% of margin)
+          ATR: $656.16 | TP: $107038.21 (+1.89%) | SL: $109892.49 (-0.72%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $109892.49
+          Gross PnL: $-206.90 | Fee: $11.55 | Net PnL: $-218.45
+          PnL vs Margin: -2.29% | PnL vs Notional: -0.76%
+          Balance: $9332.44 | Total PnL: $-641.04
+  [RISK] Stop Loss HIT @ $109892.49
+  [TRADE] Open SHORT @ $110286.00
+          Margin: $9332.44 | Leverage: 3.0x
+          Position Size: 0.2539 | Notional: $27997.33
+          Fee: $11.20 (0.12% of margin)
+          ATR: $724.71 | TP: $108003.15 (+2.07%) | SL: $111155.66 (-0.79%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $111155.66
+          Gross PnL: $-220.77 | Fee: $11.29 | Net PnL: $-232.06
+          PnL vs Margin: -2.49% | PnL vs Notional: -0.83%
+          Balance: $9091.98 | Total PnL: $-873.10
+  [RISK] Stop Loss HIT @ $111155.66
+  [TRADE] Open SHORT @ $111308.50
+          Margin: $9091.98 | Leverage: 3.0x
+          Position Size: 0.2450 | Notional: $27275.94
+          Fee: $10.91 (0.12% of margin)
+          ATR: $789.92 | TP: $108820.25 (+2.24%) | SL: $112256.41 (-0.85%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $112256.41
+          Gross PnL: $-232.28 | Fee: $11.00 | Net PnL: $-243.29
+          PnL vs Margin: -2.68% | PnL vs Notional: -0.89%
+          Balance: $8845.95 | Total PnL: $-1116.38
+  [RISK] Stop Loss HIT @ $112256.41
+  [LOG] Episode 7 detailed log saved:
+        - logs/episode_0007_20251118_193556.jsonl
+        - logs/episode_0007_summary.txt
+Balance: $9651.76
+Equity: $9661.88
+Position: None
+Total Trades: 112
+Win Rate: 27.68%
+Total PnL: $147.23
+--------------------------------------------------
+  [TRADE] Open SHORT @ $94291.30
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 0.3182 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $542.90 | TP: $92581.16 (+1.81%) | SL: $94942.78 (-0.69%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $94942.78
+          Gross PnL: $-207.28 | Fee: $12.08 | Net PnL: $-219.36
+          PnL vs Margin: -2.19% | PnL vs Notional: -0.73%
+          Balance: $9777.65 | Total PnL: $-219.36
+  [RISK] Stop Loss HIT @ $94942.78
+  [TRADE] Open SHORT @ $94910.80
+          Margin: $9777.65 | Leverage: 3.0x
+          Position Size: 0.3091 | Notional: $29332.95
+          Fee: $11.73 (0.12% of margin)
+          ATR: $484.73 | TP: $93383.90 (+1.61%) | SL: $95492.47 (-0.61%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $95492.47
+          Gross PnL: $-179.77 | Fee: $11.81 | Net PnL: $-191.58
+          PnL vs Margin: -1.96% | PnL vs Notional: -0.65%
+          Balance: $9574.34 | Total PnL: $-410.94
+  [RISK] Stop Loss HIT @ $95492.47
+  [TRADE] Open SHORT @ $96798.90
+          Margin: $9574.34 | Leverage: 3.0x
+          Position Size: 0.2967 | Notional: $28723.02
+          Fee: $11.49 (0.12% of margin)
+          ATR: $631.92 | TP: $94808.35 (+2.06%) | SL: $97557.20 (-0.78%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $97557.20
+          Gross PnL: $-225.01 | Fee: $11.58 | Net PnL: $-236.59
+          PnL vs Margin: -2.47% | PnL vs Notional: -0.82%
+          Balance: $9326.26 | Total PnL: $-647.53
+  [RISK] Stop Loss HIT @ $97557.20
+  [BLOCKED] Cannot trade - must wait 1 more bars
+  [TRADE] Open SHORT @ $96453.80
+          Margin: $9326.26 | Leverage: 3.0x
+          Position Size: 0.2901 | Notional: $27978.79
+          Fee: $11.19 (0.12% of margin)
+          ATR: $691.51 | TP: $94275.55 (+2.26%) | SL: $97283.61 (-0.86%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $97283.61
+          Gross PnL: $-240.71 | Fee: $11.29 | Net PnL: $-251.99
+          PnL vs Margin: -2.70% | PnL vs Notional: -0.90%
+          Balance: $9065.89 | Total PnL: $-899.52
+  [RISK] Stop Loss HIT @ $97283.61
+  [TRADE] Open SHORT @ $96889.00
+          Margin: $9065.89 | Leverage: 3.0x
+          Position Size: 0.2807 | Notional: $27197.67
+          Fee: $10.88 (0.12% of margin)
+          ATR: $484.44 | TP: $95363.00 (+1.57%) | SL: $97470.33 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $97470.33
+          Gross PnL: $-163.19 | Fee: $10.94 | Net PnL: $-174.13
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $8883.59 | Total PnL: $-1073.65
+  [RISK] Stop Loss HIT @ $97470.33
+  [LOG] Episode 8 detailed log saved:
+        - logs/episode_0008_20251118_193602.jsonl
+        - logs/episode_0008_summary.txt
+Balance: $2996.40
+Equity: $2996.40
+Position: None
+Total Trades: 193
+Win Rate: 23.32%
+Total PnL: $-6365.35
+--------------------------------------------------
+  [TRADE] Open SHORT @ $116002.00
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 0.2586 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $843.21 | TP: $113345.87 (+2.29%) | SL: $117013.86 (-0.87%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $117013.86
+          Gross PnL: $-261.68 | Fee: $12.10 | Net PnL: $-273.79
+          PnL vs Margin: -2.74% | PnL vs Notional: -0.91%
+          Balance: $9717.22 | Total PnL: $-273.79
+  [RISK] Stop Loss HIT @ $117013.86
+  [TRADE] Open SHORT @ $117183.30
+          Margin: $9717.22 | Leverage: 3.0x
+          Position Size: 0.2488 | Notional: $29151.67
+          Fee: $11.66 (0.12% of margin)
+          ATR: $767.91 | TP: $114764.37 (+2.06%) | SL: $118104.79 (-0.79%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $118104.79
+          Gross PnL: $-229.24 | Fee: $11.75 | Net PnL: $-240.99
+          PnL vs Margin: -2.48% | PnL vs Notional: -0.83%
+          Balance: $9470.43 | Total PnL: $-514.78
+  [RISK] Stop Loss HIT @ $118104.79
+  [TRADE] Open SHORT @ $117758.00
+          Margin: $9470.43 | Leverage: 3.0x
+          Position Size: 0.2413 | Notional: $28411.28
+          Fee: $11.36 (0.12% of margin)
+          ATR: $588.79 | TP: $115903.31 (+1.57%) | SL: $118464.55 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $118464.55
+          Gross PnL: $-170.47 | Fee: $11.43 | Net PnL: $-181.90
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $9285.72 | Total PnL: $-696.68
+  [RISK] Stop Loss HIT @ $118464.55
+  [TRADE] Open SHORT @ $118580.80
+          Margin: $9285.72 | Leverage: 3.0x
+          Position Size: 0.2349 | Notional: $27857.15
+          Fee: $11.14 (0.12% of margin)
+          ATR: $592.90 | TP: $116713.15 (+1.58%) | SL: $119292.28 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $119292.28
+          Gross PnL: $-167.14 | Fee: $11.21 | Net PnL: $-178.35
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $9096.22 | Total PnL: $-875.03
+  [RISK] Stop Loss HIT @ $119292.28
+  [BLOCKED] Cannot trade - must wait 2 more bars
+  [BLOCKED] Cannot trade - must wait 1 more bars
+  [TRADE] Open SHORT @ $118953.30
+          Margin: $9096.22 | Leverage: 3.0x
+          Position Size: 0.2294 | Notional: $27288.66
+          Fee: $10.92 (0.12% of margin)
+          ATR: $594.77 | TP: $117079.78 (+1.57%) | SL: $119667.02 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $119667.02
+          Gross PnL: $-163.73 | Fee: $10.98 | Net PnL: $-174.71
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $8910.59 | Total PnL: $-1049.75
+  [RISK] Stop Loss HIT @ $119667.02
+  [LOG] Episode 9 detailed log saved:
+        - logs/episode_0009_20251118_193607.jsonl
+        - logs/episode_0009_summary.txt
+Balance: $8737.77
+Equity: $8747.21
+Position: None
+Total Trades: 162
+Win Rate: 27.78%
+Total PnL: $-548.30
+--------------------------------------------------
+  [TRADE] Open SHORT @ $104530.50
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 0.2870 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $522.65 | TP: $102884.14 (+1.57%) | SL: $105157.68 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $105157.68
+          Gross PnL: $-180.00 | Fee: $12.07 | Net PnL: $-192.07
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $9801.92 | Total PnL: $-192.07
+  [RISK] Stop Loss HIT @ $105157.68
+  [TRADE] Open SHORT @ $105814.30
+          Margin: $9801.92 | Leverage: 3.0x
+          Position Size: 0.2779 | Notional: $29405.75
+          Fee: $11.76 (0.12% of margin)
+          ATR: $597.44 | TP: $103932.35 (+1.78%) | SL: $106531.23 (-0.68%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $106531.23
+          Gross PnL: $-199.23 | Fee: $11.84 | Net PnL: $-211.08
+          PnL vs Margin: -2.15% | PnL vs Notional: -0.72%
+          Balance: $9584.93 | Total PnL: $-403.15
+  [RISK] Stop Loss HIT @ $106531.23
+  [TRADE] Open SHORT @ $106556.10
+          Margin: $9584.93 | Leverage: 3.0x
+          Position Size: 0.2699 | Notional: $28754.80
+          Fee: $11.50 (0.12% of margin)
+          ATR: $532.78 | TP: $104877.84 (+1.58%) | SL: $107195.44 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $104877.84
+          Gross PnL: $452.89 | Fee: $11.32 | Net PnL: $441.57
+          PnL vs Margin: +4.61% | PnL vs Notional: +1.54%
+          Balance: $10023.55 | Total PnL: $38.42
+  [WIN] Take Profit HIT @ $104877.84
+  [TRADE] Open SHORT @ $104702.60
+          Margin: $10023.55 | Leverage: 3.0x
+          Position Size: 0.2872 | Notional: $30070.66
+          Fee: $12.03 (0.12% of margin)
+          ATR: $523.51 | TP: $103053.54 (+1.57%) | SL: $105330.82 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $105330.82
+          Gross PnL: $-180.42 | Fee: $12.10 | Net PnL: $-192.52
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $9819.00 | Total PnL: $-154.11
+  [RISK] Stop Loss HIT @ $105330.82
+  [BLOCKED] Cannot trade - must wait 1 more bars
+  [TRADE] Open SHORT @ $105000.70
+          Margin: $9819.00 | Leverage: 3.0x
+          Position Size: 0.2805 | Notional: $29457.01
+          Fee: $11.78 (0.12% of margin)
+          ATR: $525.00 | TP: $103346.94 (+1.57%) | SL: $105630.71 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $105630.71
+          Gross PnL: $-176.74 | Fee: $11.85 | Net PnL: $-188.60
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $9627.45 | Total PnL: $-342.70
+  [RISK] Stop Loss HIT @ $105630.71
+  [LOG] Episode 10 detailed log saved:
+        - logs/episode_0010_20251118_193614.jsonl
+        - logs/episode_0010_summary.txt
+Balance: $5590.20
+Equity: $5596.06
+Position: None
+Total Trades: 243
+Win Rate: 26.34%
+Total PnL: $-3538.25
+--------------------------------------------------
+  [TRADE] Open SHORT @ $82748.70
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 0.3625 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $867.66 | TP: $78844.21 (+4.72%) | SL: $84050.20 (-1.57%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $84050.20
+          Gross PnL: $-471.85 | Fee: $12.19 | Net PnL: $-484.04
+          PnL vs Margin: -4.84% | PnL vs Notional: -1.61%
+          Balance: $9506.99 | Total PnL: $-484.04
+  [RISK] Stop Loss HIT @ $84050.20
+  [BLOCKED] Cannot trade - must wait 1 more bars
+  [TRADE] Open SHORT @ $83800.10
+          Margin: $9506.99 | Leverage: 3.0x
+          Position Size: 0.3403 | Notional: $28520.98
+          Fee: $11.41 (0.12% of margin)
+          ATR: $930.03 | TP: $79614.97 (+4.99%) | SL: $85195.14 (-1.66%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $85195.14
+          Gross PnL: $-474.80 | Fee: $11.60 | Net PnL: $-486.39
+          PnL vs Margin: -5.12% | PnL vs Notional: -1.71%
+          Balance: $9014.84 | Total PnL: $-970.43
+  [RISK] Stop Loss HIT @ $85195.14
+  [TRADE] Open SHORT @ $84974.10
+          Margin: $9014.84 | Leverage: 3.0x
+          Position Size: 0.3183 | Notional: $27044.53
+          Fee: $10.82 (0.12% of margin)
+          ATR: $531.93 | TP: $83298.53 (+1.97%) | SL: $85612.41 (-0.75%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $85612.41
+          Gross PnL: $-203.15 | Fee: $10.90 | Net PnL: $-214.05
+          PnL vs Margin: -2.37% | PnL vs Notional: -0.79%
+          Balance: $8792.68 | Total PnL: $-1184.49
+  [RISK] Stop Loss HIT @ $85612.41
+  [TRADE] Open SHORT @ $85317.10
+          Margin: $8792.68 | Leverage: 3.0x
+          Position Size: 0.3092 | Notional: $26378.05
+          Fee: $10.55 (0.12% of margin)
+          ATR: $585.43 | TP: $83472.98 (+2.16%) | SL: $86019.62 (-0.82%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $86019.62
+          Gross PnL: $-217.20 | Fee: $10.64 | Net PnL: $-227.84
+          PnL vs Margin: -2.59% | PnL vs Notional: -0.86%
+          Balance: $8554.29 | Total PnL: $-1412.33
+  [RISK] Stop Loss HIT @ $86019.62
+  [TRADE] Open SHORT @ $85250.10
+          Margin: $8554.29 | Leverage: 3.0x
+          Position Size: 0.3010 | Notional: $25662.87
+          Fee: $10.27 (0.12% of margin)
+          ATR: $661.29 | TP: $83167.03 (+2.44%) | SL: $86043.65 (-0.93%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $83167.03
+          Gross PnL: $627.07 | Fee: $10.01 | Net PnL: $617.05
+          PnL vs Margin: +7.21% | PnL vs Notional: +2.40%
+          Balance: $9168.74 | Total PnL: $-795.27
+  [WIN] Take Profit HIT @ $83167.03
+Test Reward: -7.37 | Trades: 194.4 | Win%: 26.4 | Balance: $5,950
+
+[SAVE] Final model saved: /home/user/cryppo/checkpoints/final_agent.pth
+[INFO] Trade log saved: /home/user/cryppo/logs/training/train_trades_20251118_191719.json
+[INFO] Trade log saved: /home/user/cryppo/logs/training/test_trades_20251118_191719.json
+[INFO] Metrics saved: /home/user/cryppo/logs/training/metrics_20251118_191719.json
+[INFO] Logs saved: /home/user/cryppo/logs/training/training_20251118_191719.log
+
+[INFO] Detailed episode logs saved to: /home/user/cryppo/logs
+  - episode_XXXX_*.jsonl (step-by-step data in JSON Lines format)
+  - episode_XXXX_summary.txt (human-readable summary)
+
+[INFO] Detailed training logs closed and saved to: logs/training/detailed/
+
+[COMPLETE] Done!
+Exception ignored in: <function DetailedStepLogger.__del__ at 0x7ef649ca4d60>
+Traceback (most recent call last):
+  File "/home/user/cryppo/server/src/utils/detailed_logger.py", line 389, in __del__
+    self.close()
+  File "/home/user/cryppo/server/src/utils/detailed_logger.py", line 384, in close
+    self.analysis_log.write(final)
+ValueError: I/O operation on closed file.

@@ -67663,3 +67663,930 @@ Step 9 (Episode 10):
   Unrealized PnL: $0.04 (0.00%)
   Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=-0.0082
   Training Loss: 0.001999
+
+Step 904 (Episode 10):
+  Price: $9755.26 | Balance: $3,021.98
+  Action: SHORT (eps=0.150)
+  Q-values: HOLD=-0.2062, LONG=-0.2062, SHORT=-0.2035
+  Reason: Exploitation (Q=-0.2035 best)
+  Position: long | Size: 0.9282
+  Entry: $9781.63 | TP: $10058.00 | SL: $9676.35
+  Unrealized PnL: $7.82 (0.26%)
+  Reward Breakdown: trade=0.0000, explore=0.0000, penalty=0.0000, total=-0.0289
+  Training Loss: 0.002781
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $7236.01 (step 2625)
+Exit: $7280.58 (step 2635) via SL
+Duration: 10 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-196.86
+  Fees: $0.00
+  Net PnL: $-196.86
+  PnL vs Margin: -1.97%
+  PnL vs Notional: -0.66%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $7191.81 (step 2636)
+Exit: $7234.96 (step 2647) via SL
+Duration: 11 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-188.12
+  Fees: $0.00
+  Net PnL: $-188.12
+  PnL vs Margin: -1.92%
+  PnL vs Notional: -0.64%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - WIN ✓
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $7221.65 (step 2648)
+Exit: $7099.41 (step 2685) via TP
+Duration: 37 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $+476.01
+  Fees: $0.00
+  Net PnL: $+476.01
+  PnL vs Margin: +4.96%
+  PnL vs Notional: +1.65%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $6970.36 (step 2691)
+Exit: $7024.92 (step 2697) via SL
+Duration: 6 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-248.80
+  Fees: $0.00
+  Net PnL: $-248.80
+  PnL vs Margin: -2.47%
+  PnL vs Notional: -0.82%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $7215.59 (step 2698)
+Exit: $7334.51 (step 2702) via SL
+Duration: 4 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-497.41
+  Fees: $0.00
+  Net PnL: $-497.41
+  PnL vs Margin: -5.07%
+  PnL vs Notional: -1.69%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $7252.70 (step 2707)
+Exit: $7390.15 (step 2709) via SL
+Duration: 2 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-540.66
+  Fees: $0.00
+  Net PnL: $-540.66
+  PnL vs Margin: -5.81%
+  PnL vs Notional: -1.94%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $7315.05 (step 2713)
+Exit: $7428.00 (step 2742) via SL
+Duration: 29 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-416.32
+  Fees: $0.00
+  Net PnL: $-416.32
+  PnL vs Margin: -4.75%
+  PnL vs Notional: -1.58%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $7456.88 (step 2747)
+Exit: $7519.42 (step 2767) via SL
+Duration: 20 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-219.89
+  Fees: $0.00
+  Net PnL: $-219.89
+  PnL vs Margin: -2.64%
+  PnL vs Notional: -0.88%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $7538.65 (step 2768)
+Exit: $7602.27 (step 2778) via SL
+Duration: 10 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-215.21
+  Fees: $0.00
+  Net PnL: $-215.21
+  PnL vs Margin: -2.65%
+  PnL vs Notional: -0.88%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $7545.15 (step 2779)
+Exit: $7614.74 (step 2787) via SL
+Duration: 8 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-227.97
+  Fees: $0.00
+  Net PnL: $-227.97
+  PnL vs Margin: -2.89%
+  PnL vs Notional: -0.96%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $7757.39 (step 2788)
+Exit: $7830.76 (step 2789) via SL
+Duration: 1 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-226.58
+  Fees: $0.00
+  Net PnL: $-226.58
+  PnL vs Margin: -2.96%
+  PnL vs Notional: -0.99%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $7898.59 (step 2792)
+Exit: $7983.99 (step 2807) via SL
+Duration: 15 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-249.75
+  Fees: $0.00
+  Net PnL: $-249.75
+  PnL vs Margin: -3.36%
+  PnL vs Notional: -1.12%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $8077.71 (step 2808)
+Exit: $8173.38 (step 2809) via SL
+Duration: 1 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-263.40
+  Fees: $0.00
+  Net PnL: $-263.40
+  PnL vs Margin: -3.67%
+  PnL vs Notional: -1.22%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $8152.49 (step 2812)
+Exit: $8325.34 (step 2813) via SL
+Duration: 1 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-447.22
+  Fees: $0.00
+  Net PnL: $-447.22
+  PnL vs Margin: -6.48%
+  PnL vs Notional: -2.16%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $8302.62 (step 2816)
+Exit: $8523.23 (step 2961) via SL
+Duration: 145 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-521.51
+  Fees: $0.00
+  Net PnL: $-521.51
+  PnL vs Margin: -8.09%
+  PnL vs Notional: -2.70%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $8487.42 (step 2962)
+Exit: $8581.47 (step 2969) via SL
+Duration: 7 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-204.99
+  Fees: $0.00
+  Net PnL: $-204.99
+  PnL vs Margin: -3.45%
+  PnL vs Notional: -1.15%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $8592.33 (step 2970)
+Exit: $8735.32 (step 2971) via SL
+Duration: 1 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-293.53
+  Fees: $0.00
+  Net PnL: $-293.53
+  PnL vs Margin: -5.11%
+  PnL vs Notional: -1.70%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $8791.09 (step 2974)
+Exit: $8941.93 (step 3035) via SL
+Duration: 61 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-286.59
+  Fees: $0.00
+  Net PnL: $-286.59
+  PnL vs Margin: -5.27%
+  PnL vs Notional: -1.76%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $8944.50 (step 3036)
+Exit: $9033.97 (step 3039) via SL
+Duration: 3 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-161.04
+  Fees: $0.00
+  Net PnL: $-161.04
+  PnL vs Margin: -3.12%
+  PnL vs Notional: -1.04%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $8914.51 (step 3040)
+Exit: $9014.64 (step 3078) via SL
+Duration: 38 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-174.24
+  Fees: $0.00
+  Net PnL: $-174.24
+  PnL vs Margin: -3.49%
+  PnL vs Notional: -1.16%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: LONG | Leverage: 3.0x
+Entry: $9162.79 (step 3079)
+Exit: $9088.87 (step 3083) via SL
+Duration: 4 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-122.35
+  Fees: $0.00
+  Net PnL: $-122.35
+  PnL vs Margin: -2.54%
+  PnL vs Notional: -0.85%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: LONG | Leverage: 3.0x
+Entry: $9092.21 (step 3084)
+Exit: $9019.95 (step 3088) via SL
+Duration: 4 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-117.38
+  Fees: $0.00
+  Net PnL: $-117.38
+  PnL vs Margin: -2.50%
+  PnL vs Notional: -0.83%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: LONG | Leverage: 3.0x
+Entry: $8645.75 (step 3089)
+Exit: $8483.47 (step 3099) via SL
+Duration: 10 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-262.41
+  Fees: $0.00
+  Net PnL: $-262.41
+  PnL vs Margin: -5.75%
+  PnL vs Notional: -1.92%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $8705.85 (step 3100)
+Exit: $8878.88 (step 3287) via SL
+Duration: 187 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-261.37
+  Fees: $0.00
+  Net PnL: $-261.37
+  PnL vs Margin: -6.09%
+  PnL vs Notional: -2.03%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $8913.61 (step 3292)
+Exit: $9003.39 (step 3293) via SL
+Duration: 1 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-127.53
+  Fees: $0.00
+  Net PnL: $-127.53
+  PnL vs Margin: -3.14%
+  PnL vs Notional: -1.05%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9124.53 (step 3296)
+Exit: $9221.12 (step 3316) via SL
+Duration: 20 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-129.42
+  Fees: $0.00
+  Net PnL: $-129.42
+  PnL vs Margin: -3.30%
+  PnL vs Notional: -1.10%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9363.26 (step 3318)
+Exit: $9525.14 (step 3358) via SL
+Duration: 40 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-201.45
+  Fees: $0.00
+  Net PnL: $-201.45
+  PnL vs Margin: -5.31%
+  PnL vs Notional: -1.77%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - WIN ✓
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9508.05 (step 3359)
+Exit: $9247.97 (step 3378) via TP
+Duration: 19 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $+290.77
+  Fees: $0.00
+  Net PnL: $+290.77
+  PnL vs Margin: +8.09%
+  PnL vs Notional: +2.70%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: LONG | Leverage: 3.0x
+Entry: $9394.21 (step 3389)
+Exit: $9317.43 (step 3401) via SL
+Duration: 12 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-99.86
+  Fees: $0.00
+  Net PnL: $-99.86
+  PnL vs Margin: -2.57%
+  PnL vs Notional: -0.86%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9353.03 (step 3402)
+Exit: $9415.69 (step 3405) via SL
+Duration: 3 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-80.48
+  Fees: $0.00
+  Net PnL: $-80.48
+  PnL vs Margin: -2.13%
+  PnL vs Notional: -0.71%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - WIN ✓
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9389.27 (step 3406)
+Exit: $9225.38 (step 3417) via TP
+Duration: 11 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $+188.99
+  Fees: $0.00
+  Net PnL: $+188.99
+  PnL vs Margin: +5.12%
+  PnL vs Notional: +1.71%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9319.00 (step 3418)
+Exit: $9388.92 (step 3419) via SL
+Duration: 1 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-92.00
+  Fees: $0.00
+  Net PnL: $-92.00
+  PnL vs Margin: -2.37%
+  PnL vs Notional: -0.79%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9391.00 (step 3422)
+Exit: $9460.87 (step 3425) via SL
+Duration: 3 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-88.99
+  Fees: $0.00
+  Net PnL: $-88.99
+  PnL vs Margin: -2.35%
+  PnL vs Notional: -0.78%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9432.84 (step 3426)
+Exit: $9508.80 (step 3438) via SL
+Duration: 12 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-93.61
+  Fees: $0.00
+  Net PnL: $-93.61
+  PnL vs Margin: -2.54%
+  PnL vs Notional: -0.85%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: LONG | Leverage: 3.0x
+Entry: $9193.76 (step 3472)
+Exit: $9112.11 (step 3473) via SL
+Duration: 1 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-100.00
+  Fees: $0.00
+  Net PnL: $-100.00
+  PnL vs Margin: -2.78%
+  PnL vs Notional: -0.93%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9227.61 (step 3477)
+Exit: $9314.60 (step 3495) via SL
+Duration: 18 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-102.86
+  Fees: $0.00
+  Net PnL: $-102.86
+  PnL vs Margin: -2.95%
+  PnL vs Notional: -0.98%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9423.00 (step 3496)
+Exit: $9485.75 (step 3497) via SL
+Duration: 1 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-71.67
+  Fees: $0.00
+  Net PnL: $-71.67
+  PnL vs Margin: -2.12%
+  PnL vs Notional: -0.71%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9500.27 (step 3500)
+Exit: $9568.83 (step 3501) via SL
+Duration: 1 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-75.62
+  Fees: $0.00
+  Net PnL: $-75.62
+  PnL vs Margin: -2.29%
+  PnL vs Notional: -0.76%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9681.32 (step 3504)
+Exit: $9775.38 (step 3521) via SL
+Duration: 17 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-98.01
+  Fees: $0.00
+  Net PnL: $-98.01
+  PnL vs Margin: -3.04%
+  PnL vs Notional: -1.01%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+================================================================================
+TRADE #POS-000000 - LOSS ✗
+================================================================================
+Direction: SHORT | Leverage: 3.0x
+Entry: $9752.40 (step 3522)
+Exit: $9851.43 (step 3523) via SL
+Duration: 1 steps
+ATR at Entry: $0.00
+TP Target: $0.00 | SL: $0.00
+
+PnL Analysis:
+  Gross PnL: $-99.12
+  Fees: $0.00
+  Net PnL: $-99.12
+  PnL vs Margin: -3.17%
+  PnL vs Notional: -1.06%
+
+Balance: $0.00 → $0.00
+================================================================================
+
+
+
+################################################################################
+EPISODE 10 SUMMARY
+################################################################################
+
+Duration: 905 steps
+
+FINANCIAL RESULTS:
+  Initial Balance: $10,000.00
+  Final Balance: $3,021.98
+  Return: -69.78%
+  Total Reward: -8.68
+  Max Drawdown: 0.00%
+  Sharpe Ratio: 0.0000
+
+TRADING STATISTICS:
+  Total Trades: 40
+  Winning Trades: 3
+  Losing Trades: 37
+  Win Rate: 7.50%
+
+  Average Win: $318.59
+  Average Loss: $0.00
+  Risk/Reward Ratio: 1.51:1
+
+ACTION DISTRIBUTION:
+  HOLD: 244
+  LONG: 158
+  SHORT: 503
+
+LEARNING PROGRESS:
+  Training Loss: 0.002774
+  Epsilon: 0.150 → 0.150
+
+PROFITABILITY ANALYSIS:
+  Required Win Rate for RR 4.5:1: 18.18%
+  Actual Win Rate: 7.50%
+  Status: UNPROFITABLE ✗
+
+DIAGNOSIS:
+  ⚠️ Win rate below minimum (18%) - agent not finding good setups
+  ⚠️ Actual RR ratio below expected (4.5:1) - exits too early?
+  ⚠️ Too little HOLD (<30%) - overtrading?
+
+################################################################################
+
+
+
+================================================================================
+LOGGING SESSION ENDED - 2025-11-18 19:36:18
+Session ID: 20251118_191721
+Mode: TRAIN
+================================================================================
+
+Total Episodes Logged: 10
+
+Log Files:
+- logs/train/train_steps.jsonl
+- logs/train/train_trades.jsonl
+- logs/train/train_episodes.jsonl
+- logs/train/train_analysis.txt
+
+To analyze these logs:
+1. Check train_analysis.txt for human-readable summaries
+2. Parse train_episodes.jsonl for episode statistics
+3. Parse train_trades.jsonl for trade-by-trade analysis
+4. Parse train_steps.jsonl for detailed step analysis
+
+Look for patterns in:
+- When does the agent WIN vs LOSE?
+- What Q-values lead to profitable trades?
+- Is the agent learning (epsilon decay, loss decrease)?
+- Are TP/SL levels appropriate (check actual vs expected RR)?
+
+================================================================================

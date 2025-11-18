@@ -49,3 +49,26 @@
 2025-11-18 19:34:54 - Episode    9 | Reward:   -11.28 | Avg(10):    -2.37 | Loss: 0.0028 | Eps: 0.150 | Steps: 2576 | Trades: 115 | Win%:  20.0 | Balance: $2,985
 2025-11-18 19:34:54 - 
 [DEBUG] Episode 10 - Enabling detailed environment logging
+2025-11-18 19:35:20 - Episode   10 | Reward:    -8.68 | Avg(10):    -3.00 | Loss: 0.0028 | Eps: 0.150 | Steps:  905 | Trades: 40 | Win%:   7.5 | Balance: $3,022
+2025-11-18 19:35:20 - 
+============================================================
+2025-11-18 19:35:20 - [DONE] Training complete!
+2025-11-18 19:35:20 - ============================================================
+2025-11-18 19:35:20 - 
+[TEST] Final evaluation on test set...
+2025-11-18 19:35:20 - [DEBUG] Enabling detailed logging for test episodes...
+2025-11-18 19:36:18 - Test Reward: -7.37 | Trades: 194.4 | Win%: 26.4 | Balance: $5,950
+2025-11-18 19:36:18 - 
+[SAVE] Final model saved: /home/user/cryppo/checkpoints/final_agent.pth
+2025-11-18 19:36:18 - [INFO] Trade log saved: /home/user/cryppo/logs/training/train_trades_20251118_191719.json
+2025-11-18 19:36:18 - [INFO] Trade log saved: /home/user/cryppo/logs/training/test_trades_20251118_191719.json
+2025-11-18 19:36:18 - [INFO] Metrics saved: /home/user/cryppo/logs/training/metrics_20251118_191719.json
+2025-11-18 19:36:18 - [INFO] Logs saved: /home/user/cryppo/logs/training/training_20251118_191719.log
+2025-11-18 19:36:18 - 
+[INFO] Detailed episode logs saved to: /home/user/cryppo/logs
+2025-11-18 19:36:18 -   - episode_XXXX_*.jsonl (step-by-step data in JSON Lines format)
+2025-11-18 19:36:18 -   - episode_XXXX_summary.txt (human-readable summary)
+2025-11-18 19:36:18 - 
+[INFO] Detailed training logs closed and saved to: logs/training/detailed/
+2025-11-18 19:36:18 - 
+[COMPLETE] Done!

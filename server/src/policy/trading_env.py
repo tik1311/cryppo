@@ -308,11 +308,12 @@ class TradingEnv(gym.Env):
                 if high_price > self.highest_price_since_entry:
                     self.highest_price_since_entry = high_price
                     new_trailing_stop = high_price - trailing_distance
-                    # Only update if new trailing protects profit:
-                    # Must be: (1) better than current trailing, (2) better than SL, (3) above entry to protect profit
+                    # Only update if new trailing protects profit with buffer:
+                    # Must be: (1) better than current trailing, (2) better than SL, (3) above entry + 0.5x ATR for breathing room
+                    min_profit_buffer = atr * 0.5  # Need at least 0.5x ATR profit before trailing activates
                     if (new_trailing_stop > self.trailing_stop_loss and
                         new_trailing_stop > self.stop_loss and
-                        new_trailing_stop >= self.entry_price):
+                        new_trailing_stop >= self.entry_price + min_profit_buffer):
                         old_trailing = self.trailing_stop_loss
                         self.trailing_stop_loss = new_trailing_stop
                         if self.total_trades <= 5:
@@ -326,11 +327,12 @@ class TradingEnv(gym.Env):
                 if self.lowest_price_since_entry == 0 or low_price < self.lowest_price_since_entry:
                     self.lowest_price_since_entry = low_price
                     new_trailing_stop = low_price + trailing_distance
-                    # Only update if new trailing protects profit:
-                    # Must be: (1) better than current trailing, (2) better than SL, (3) below entry to protect profit
+                    # Only update if new trailing protects profit with buffer:
+                    # Must be: (1) better than current trailing, (2) better than SL, (3) below entry - 0.5x ATR for breathing room
+                    min_profit_buffer = atr * 0.5  # Need at least 0.5x ATR profit before trailing activates
                     if (new_trailing_stop < self.trailing_stop_loss and
                         new_trailing_stop < self.stop_loss and
-                        new_trailing_stop <= self.entry_price):
+                        new_trailing_stop <= self.entry_price - min_profit_buffer):
                         old_trailing = self.trailing_stop_loss
                         self.trailing_stop_loss = new_trailing_stop
                         if self.total_trades <= 5:

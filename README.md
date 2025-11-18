@@ -88,6 +88,7 @@ python cryppo.py check
 - Rich UI presents a numbered menu (system check, data ops, training, backtest, paper trading, model listing).
 - Each action asks for parameters with sensible defaults; behind the scenes it forwards the selections to `cryppo.py`.
 - Use `Ctrl+C` or select option `0` to exit.
+- Live paper trading (option 8) now loads the selected RL checkpoint, feeds it real 1m candles, and executes at most one action per closed bar with true-to-market TP/SL/trailing/liquidation logic.
 
 ---
 

@@ -9,7 +9,7 @@ import glob
 import os
 from pathlib import Path
 from typing import Optional, Tuple
-from .features import add_technical_indicators
+from .features import add_technical_indicators, normalize_features
 
 
 def get_project_root() -> Path:
@@ -201,25 +201,29 @@ def prepare_env_data(
         # Drop NaN values from indicator calculations
         df = df.dropna()
 
-    # Select features for environment
-    # Basic OHLCV + key indicators
-    feature_cols = [
-        'open', 'high', 'low', 'close', 'volume',
-        'returns', 'rsi', 'macd', 'macd_signal',
-        'bb_upper', 'bb_middle', 'bb_lower',
-        'atr', 'stoch_k', 'stoch_d',
-        'volume_ratio', 'volatility'
-    ] if add_indicators else ['open', 'high', 'low', 'close', 'volume']
+    price_cols = ['open', 'high', 'low', 'close', 'volume']
 
-    # Filter to available columns
+    # Select features for environment
+    if add_indicators:
+        indicator_cols = [
+            'returns', 'rsi', 'macd', 'macd_signal',
+            'bb_upper', 'bb_middle', 'bb_lower',
+            'atr', 'stoch_k', 'stoch_d',
+            'volume_ratio', 'volatility'
+        ]
+        feature_cols = price_cols + indicator_cols
+    else:
+        feature_cols = price_cols
+
     feature_cols = [col for col in feature_cols if col in df.columns]
 
-    # Extract features as numpy array
+    # Normalize only non-price features
+    if normalize and add_indicators:
+        indicator_norm_cols = [col for col in feature_cols if col not in price_cols]
+        df = normalize_features(df, indicator_norm_cols, method='minmax')
+
     data = df[feature_cols].values
-
-    # Handle any remaining NaN or inf values
     data = np.nan_to_num(data, nan=0.0, posinf=1e10, neginf=-1e10)
-
     return data.astype(np.float32)
 
 

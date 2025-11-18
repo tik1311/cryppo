@@ -343,36 +343,37 @@ class TradingEnv(gym.Env):
 
             exit_event = None
             exit_price = close_price
-            if self.position == 'long':
-                stop_candidates = []
-                # Only check trailing stop after holding for at least 1 bar
-                if self.bars_in_position > 1 and self.trailing_stop_loss > 0 and low_price <= self.trailing_stop_loss:
-                    stop_candidates.append(('trail', self.trailing_stop_loss))
-                if self.stop_loss > 0 and low_price <= self.stop_loss:
-                    stop_candidates.append(('sl', self.stop_loss))
-                tp_hit = self.take_profit > 0 and high_price >= self.take_profit
-                if stop_candidates:
-                    reason, level = max(stop_candidates, key=lambda x: x[1])
-                    exit_event = reason
-                    exit_price = level
-                elif tp_hit:
-                    exit_event = 'tp'
-                    exit_price = self.take_profit
-            else:
-                stop_candidates = []
-                # Only check trailing stop after holding for at least 1 bar
-                if self.bars_in_position > 1 and self.trailing_stop_loss > 0 and high_price >= self.trailing_stop_loss:
-                    stop_candidates.append(('trail', self.trailing_stop_loss))
-                if self.stop_loss > 0 and high_price >= self.stop_loss:
-                    stop_candidates.append(('sl', self.stop_loss))
-                tp_hit = self.take_profit > 0 and low_price <= self.take_profit
-                if stop_candidates:
-                    reason, level = min(stop_candidates, key=lambda x: x[1])
-                    exit_event = reason
-                    exit_price = level
-                elif tp_hit:
-                    exit_event = 'tp'
-                    exit_price = self.take_profit
+            # Don't check exits on the same bar we opened (bars_in_position == 1)
+            # This prevents positions from closing using the same candle's high/low that was used for entry
+            if self.bars_in_position > 1:
+                if self.position == 'long':
+                    stop_candidates = []
+                    if self.trailing_stop_loss > 0 and low_price <= self.trailing_stop_loss:
+                        stop_candidates.append(('trail', self.trailing_stop_loss))
+                    if self.stop_loss > 0 and low_price <= self.stop_loss:
+                        stop_candidates.append(('sl', self.stop_loss))
+                    tp_hit = self.take_profit > 0 and high_price >= self.take_profit
+                    if stop_candidates:
+                        reason, level = max(stop_candidates, key=lambda x: x[1])
+                        exit_event = reason
+                        exit_price = level
+                    elif tp_hit:
+                        exit_event = 'tp'
+                        exit_price = self.take_profit
+                else:
+                    stop_candidates = []
+                    if self.trailing_stop_loss > 0 and high_price >= self.trailing_stop_loss:
+                        stop_candidates.append(('trail', self.trailing_stop_loss))
+                    if self.stop_loss > 0 and high_price >= self.stop_loss:
+                        stop_candidates.append(('sl', self.stop_loss))
+                    tp_hit = self.take_profit > 0 and low_price <= self.take_profit
+                    if stop_candidates:
+                        reason, level = min(stop_candidates, key=lambda x: x[1])
+                        exit_event = reason
+                        exit_price = level
+                    elif tp_hit:
+                        exit_event = 'tp'
+                        exit_price = self.take_profit
 
             if exit_event:
                 trade_reward = self._close_position(exit_price)

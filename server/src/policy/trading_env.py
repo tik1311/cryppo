@@ -155,6 +155,7 @@ class TradingEnv(gym.Env):
         self.trailing_stop_loss = 0.0
         self.highest_price_since_entry = 0.0  # For LONG positions
         self.lowest_price_since_entry = 0.0   # For SHORT positions
+        self.bars_in_position = 0  # Number of bars held (prevent immediate trail stop)
 
         # Position duration tracking (to prevent holding too long or not trading)
         self.steps_in_position = 0  # How long current position held
@@ -305,6 +306,7 @@ class TradingEnv(gym.Env):
             self.steps_in_position = 0
 
         if self.position:
+            self.bars_in_position += 1
             atr = self._calculate_atr()
             trailing_distance = atr * self.trailing_distance_multiplier
 
@@ -341,7 +343,8 @@ class TradingEnv(gym.Env):
             exit_price = close_price
             if self.position == 'long':
                 stop_candidates = []
-                if self.trailing_stop_loss > 0 and low_price <= self.trailing_stop_loss:
+                # Only check trailing stop after holding for at least 1 bar
+                if self.bars_in_position > 1 and self.trailing_stop_loss > 0 and low_price <= self.trailing_stop_loss:
                     stop_candidates.append(('trail', self.trailing_stop_loss))
                 if self.stop_loss > 0 and low_price <= self.stop_loss:
                     stop_candidates.append(('sl', self.stop_loss))
@@ -355,7 +358,8 @@ class TradingEnv(gym.Env):
                     exit_price = self.take_profit
             else:
                 stop_candidates = []
-                if self.trailing_stop_loss > 0 and high_price >= self.trailing_stop_loss:
+                # Only check trailing stop after holding for at least 1 bar
+                if self.bars_in_position > 1 and self.trailing_stop_loss > 0 and high_price >= self.trailing_stop_loss:
                     stop_candidates.append(('trail', self.trailing_stop_loss))
                 if self.stop_loss > 0 and high_price >= self.stop_loss:
                     stop_candidates.append(('sl', self.stop_loss))
@@ -574,6 +578,7 @@ class TradingEnv(gym.Env):
             self.trailing_stop_loss = self.stop_loss  # Start at initial SL
             self.highest_price_since_entry = price
             self.lowest_price_since_entry = 0.0
+            self.bars_in_position = 0  # Reset bar counter
 
         else:  # SHORT
             # SHORT: TP below, SL above
@@ -585,6 +590,7 @@ class TradingEnv(gym.Env):
             self.trailing_stop_loss = self.stop_loss  # Start at initial SL
             self.highest_price_since_entry = 0.0
             self.lowest_price_since_entry = price
+            self.bars_in_position = 0  # Reset bar counter
 
         # Debug logging (only first 5 trades per episode)
         if self.total_trades < 5:
@@ -673,6 +679,7 @@ class TradingEnv(gym.Env):
         self.trailing_stop_loss = 0.0
         self.highest_price_since_entry = 0.0
         self.lowest_price_since_entry = 0.0
+        self.bars_in_position = 0
         self.current_position_id = None
 
         return pnl

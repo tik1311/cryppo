@@ -7,13 +7,13 @@
 *.env
 
 # Data files (but not client/src/app/data or client/src/lib)
-*.npz
-/data/
-!data/.gitkeep
-/data/npz/
-/data/raw/
-/data/processed/
-/data/indicators/
+# *.npz
+# /data/
+# !data/.gitkeep
+# /data/npz/
+# /data/raw/
+# /data/processed/
+# /data/indicators/
 /outputs/
 /logs/
 /checkpoints/
@@ -105,7 +105,7 @@ runs/
 temp/
 
 # Large files
-*.parquet
+# *.parquet
 *.csv
 *.h5
 *.hdf5
@@ -149,3 +149,5 @@ client/yarn.lock
 # Next.js build artifacts
 client/tsconfig.tsbuildinfo
 client/next-env.d.ts
+
+

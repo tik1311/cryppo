@@ -1,0 +1,74 @@
+2025-11-19 01:06:19 - ============================================================
+2025-11-19 01:06:19 - D3QN Crypto Futures Trading - Training
+2025-11-19 01:06:19 - ============================================================
+2025-11-19 01:06:19 - Symbol: BTCUSDT
+2025-11-19 01:06:19 - Timeframe: 1h
+2025-11-19 01:06:19 - Episodes: 10
+2025-11-19 01:06:19 - Initial Balance: $10,000.00
+2025-11-19 01:06:19 - Max Leverage: 1.5x
+2025-11-19 01:06:19 - Window Size: 72 candles
+2025-11-19 01:06:19 - Reward Type: sharpe
+2025-11-19 01:06:19 - ============================================================
+2025-11-19 01:06:19 - [INFO] Checkpoints will be saved to: C:\project\CRYPPO\cryppo\checkpoints
+2025-11-19 01:06:19 - 
+[DATA] Loading market data...
+2025-11-19 01:06:19 - [OK] Loaded 54,290 candles
+2025-11-19 01:06:19 -   Date range: 2019-09-08 17:00:00 to 2025-11-17 18:00:00
+2025-11-19 01:06:19 - 
+[PREP] Preparing data...
+2025-11-19 01:06:19 - [OK] Data shape: (54192, 17)
+2025-11-19 01:06:19 -   Features: 17
+2025-11-19 01:06:19 - [OK] Train: 37,934 | Val: 8,129 | Test: 8,129
+2025-11-19 01:06:19 - 
+[ENV] Creating environments...
+2025-11-19 01:06:19 - [OK] Train env: 37934 steps
+2025-11-19 01:06:19 - [OK] Val env: 8129 steps
+2025-11-19 01:06:19 - 
+[AGENT] Initializing D3QN agent...
+2025-11-19 01:06:21 - [OK] State dim: 1512
+2025-11-19 01:06:21 - [OK] Action dim: 3 (HOLD, LONG, SHORT, CLOSE)
+2025-11-19 01:06:21 - [OK] Device: cuda
+2025-11-19 01:06:21 - 
+[TRAIN] Starting training...
+2025-11-19 01:06:21 - ============================================================
+2025-11-19 01:06:21 - [INFO] Detailed logs will be saved to: logs/train/
+2025-11-19 01:06:21 - 
+[DEBUG] Episode 1 - Enabling detailed environment logging
+2025-11-19 01:08:21 - Episode    1 | Reward:    -6.90 | Avg(10):    -6.90 | Loss: 0.0019 | Eps: 0.150 | Steps: 10000 | Trades: 524 | Win%:  20.0 | Balance: $5,828
+2025-11-19 01:08:21 - 
+[DEBUG] Episode 2 - Enabling detailed environment logging
+2025-11-19 01:09:36 - Episode    2 | Reward:   -10.63 | Avg(10):    -8.77 | Loss: 0.0006 | Eps: 0.150 | Steps: 6027 | Trades: 299 | Win%:  18.1 | Balance: $2,979
+2025-11-19 01:11:02 - Episode    3 | Reward:   -10.32 | Avg(10):    -9.28 | Loss: 0.0005 | Eps: 0.150 | Steps: 7039 | Trades: 398 | Win%:  18.6 | Balance: $3,039
+2025-11-19 01:11:20 - Episode    4 | Reward:   -11.35 | Avg(10):    -9.80 | Loss: 0.0006 | Eps: 0.150 | Steps: 1470 | Trades: 117 | Win%:   8.5 | Balance: $2,993
+2025-11-19 01:12:09 - Episode    5 | Reward:   -14.25 | Avg(10):   -10.69 | Loss: 0.0005 | Eps: 0.150 | Steps: 3995 | Trades: 208 | Win%:  13.9 | Balance: $4,239
+2025-11-19 01:13:00 - Episode    6 | Reward:    -5.69 | Avg(10):    -9.86 | Loss: 0.0004 | Eps: 0.150 | Steps: 4289 | Trades: 206 | Win%:  20.4 | Balance: $7,549
+2025-11-19 01:13:56 - Episode    7 | Reward:    -7.56 | Avg(10):    -9.53 | Loss: 0.0005 | Eps: 0.150 | Steps: 4548 | Trades: 257 | Win%:  17.9 | Balance: $3,000
+2025-11-19 01:14:55 - Episode    8 | Reward:    -9.86 | Avg(10):    -9.57 | Loss: 0.0005 | Eps: 0.150 | Steps: 4740 | Trades: 203 | Win%:  18.7 | Balance: $2,964
+2025-11-19 01:14:55 - 
+[DEBUG] Episode 9 - Enabling detailed environment logging
+2025-11-19 01:16:02 - Episode    9 | Reward:    -8.48 | Avg(10):    -9.45 | Loss: 0.0005 | Eps: 0.150 | Steps: 5421 | Trades: 225 | Win%:  19.1 | Balance: $6,786
+2025-11-19 01:16:02 - 
+[DEBUG] Episode 10 - Enabling detailed environment logging
+2025-11-19 01:18:00 - Episode   10 | Reward:   -14.87 | Avg(10):    -9.99 | Loss: 0.0004 | Eps: 0.150 | Steps: 9610 | Trades: 459 | Win%:  19.0 | Balance: $6,965
+2025-11-19 01:18:00 - 
+============================================================
+2025-11-19 01:18:00 - [DONE] Training complete!
+2025-11-19 01:18:00 - ============================================================
+2025-11-19 01:18:00 - 
+[TEST] Final evaluation on test set...
+2025-11-19 01:18:00 - [DEBUG] Enabling detailed logging for test episodes...
+2025-11-19 01:19:10 - Test Reward: -6.49 | Trades: 250.0 | Win%: 17.3 | Balance: $4,973
+2025-11-19 01:19:10 - 
+[SAVE] Final model saved: C:\project\CRYPPO\cryppo\checkpoints\final_agent.pth
+2025-11-19 01:19:10 - [INFO] Trade log saved: C:\project\CRYPPO\cryppo\logs\training\train_trades_20251119_010619.json
+2025-11-19 01:19:10 - [INFO] Trade log saved: C:\project\CRYPPO\cryppo\logs\training\test_trades_20251119_010619.json
+2025-11-19 01:19:10 - [INFO] Metrics saved: C:\project\CRYPPO\cryppo\logs\training\metrics_20251119_010619.json
+2025-11-19 01:19:10 - [INFO] Logs saved: C:\project\CRYPPO\cryppo\logs\training\training_20251119_010619.log
+2025-11-19 01:19:10 - 
+[INFO] Detailed episode logs saved to: C:\project\CRYPPO\cryppo\logs
+2025-11-19 01:19:10 -   - episode_XXXX_*.jsonl (step-by-step data in JSON Lines format)
+2025-11-19 01:19:10 -   - episode_XXXX_summary.txt (human-readable summary)
+2025-11-19 01:19:10 - 
+[INFO] Detailed training logs closed and saved to: logs/training/detailed/
+2025-11-19 01:19:10 - 
+[COMPLETE] Done!

@@ -89,9 +89,10 @@ class TradingEnv(gym.Env):
         # REMOVED: CLOSE_POSITION (positions close automatically via TP/SL/Trailing)
         self.action_space = spaces.Discrete(3)
 
-        # Observation space: window of features + position info
-        # Position info: [is_in_position, entry_price_normalized, pnl_pct, hold_duration]
-        obs_shape = (window_size, self.n_features + 4)
+        # Observation space: window of features + position info + market regime
+        # Position info: [is_in_position, entry_price_normalized, pnl_pct, hold_duration,
+        #                 regime_bull, regime_bear, regime_sideways, regime_strength]
+        obs_shape = (window_size, self.n_features + 8)  # Changed from +4 to +8
         self.observation_space = spaces.Box(
             low=-np.inf,
             high=np.inf,
@@ -186,6 +187,10 @@ class TradingEnv(gym.Env):
         self.last_trade_step = -100  # Initialize far in past to allow first trade
         self.min_bars_between_trades = 8  # Minimum 8 hours between trades (reduces overtrading)
 
+        # Market regime detection
+        self.market_regime = 'sideways'  # 'bull', 'bear', or 'sideways'
+        self.regime_strength = 0.0  # 0-1, how strong the trend is
+
         return self._get_observation(), self._get_info()
 
     def _get_observation(self) -> np.ndarray:
@@ -212,8 +217,16 @@ class TradingEnv(gym.Env):
         pnl_pct = self._calculate_position_pnl() / self.balance if self.position else 0.0
         hold_duration_norm = self.hold_duration / 100.0  # Normalize hold duration
 
-        # Position info array repeated for each timestep
-        position_info = np.array([is_in_position, entry_price_norm, pnl_pct, hold_duration_norm])
+        # Market regime information (added for better market awareness)
+        regime_bull = 1.0 if self.market_regime == 'bull' else 0.0
+        regime_bear = 1.0 if self.market_regime == 'bear' else 0.0
+        regime_sideways = 1.0 if self.market_regime == 'sideways' else 0.0
+
+        # Position info array repeated for each timestep (now includes regime)
+        position_info = np.array([
+            is_in_position, entry_price_norm, pnl_pct, hold_duration_norm,
+            regime_bull, regime_bear, regime_sideways, self.regime_strength
+        ])
         position_info_tiled = np.tile(position_info, (self.window_size, 1))
 
         # Concatenate market data with position info
@@ -247,6 +260,12 @@ class TradingEnv(gym.Env):
         exploration_bonus = 0.0
         position_penalty = 0.0
 
+        # Update market regime detection
+        self.market_regime, self.regime_strength = self._detect_market_regime()
+
+        # Check volume confirmation (Phase 3.3)
+        volume_confirmed, volume_ratio = self._check_volume_confirmation()
+
         self.action_counts[action] = self.action_counts.get(action, 0) + 1
 
         action_names = ['HOLD', 'OPEN_LONG', 'OPEN_SHORT']
@@ -258,10 +277,16 @@ class TradingEnv(gym.Env):
             # Reward HOLD when not in position (better than overtrading!)
             if self.position is None:
                 exploration_bonus += 0.0005  # Small reward for patience
-            # Penalize excessive holding
-            if self.consecutive_holds > 20:
-                hold_penalty = -0.0005 * (self.consecutive_holds - 20)
+
+            # Action Masking: Penalize excessive holding (Phase 3.4)
+            # This prevents HOLD-only bias
+            if self.consecutive_holds > 50:
+                # Increasing penalty for excessive holding
+                hold_penalty = -0.001 * (self.consecutive_holds - 50)
                 exploration_bonus += hold_penalty
+            if self.consecutive_holds > 100:
+                # Heavy penalty to force action
+                exploration_bonus -= 0.01
         else:
             if self.consecutive_holds > 30:
                 exploration_bonus += 0.002
@@ -282,6 +307,18 @@ class TradingEnv(gym.Env):
                     self.last_trade_step = self.current_step  # Update last trade time
                     # Transaction cost penalty (discourages frequent trading)
                     position_penalty -= 0.002  # Penalize opening positions
+
+                    # Market regime bonus/penalty
+                    if self.market_regime == 'bull':
+                        exploration_bonus += 0.001 * self.regime_strength  # Bonus for LONG in bull market
+                    elif self.market_regime == 'bear':
+                        position_penalty -= 0.001 * self.regime_strength  # Penalty for LONG in bear market
+
+                    # Volume confirmation bonus/penalty (Phase 3.3)
+                    if volume_confirmed:
+                        exploration_bonus += 0.0005  # Bonus for trading with volume confirmation
+                    else:
+                        position_penalty -= 0.0003  # Light penalty for trading without volume
                 else:
                     # Blocked by minimum spacing rule
                     position_penalty -= 0.005  # Penalty for trying to trade too soon
@@ -300,6 +337,18 @@ class TradingEnv(gym.Env):
                     self.last_trade_step = self.current_step  # Update last trade time
                     # Transaction cost penalty (discourages frequent trading)
                     position_penalty -= 0.002  # Penalize opening positions
+
+                    # Market regime bonus/penalty
+                    if self.market_regime == 'bear':
+                        exploration_bonus += 0.001 * self.regime_strength  # Bonus for SHORT in bear market
+                    elif self.market_regime == 'bull':
+                        position_penalty -= 0.001 * self.regime_strength  # Penalty for SHORT in bull market
+
+                    # Volume confirmation bonus/penalty (Phase 3.3)
+                    if volume_confirmed:
+                        exploration_bonus += 0.0005  # Bonus for trading with volume confirmation
+                    else:
+                        position_penalty -= 0.0003  # Light penalty for trading without volume
                 else:
                     # Blocked by minimum spacing rule
                     position_penalty -= 0.005  # Penalty for trying to trade too soon
@@ -504,6 +553,92 @@ class TradingEnv(gym.Env):
 
         return float(atr)
 
+    def _check_volume_confirmation(self) -> tuple:
+        """
+        Check if current volume supports the trade (Phase 3.3)
+        High volume = strong signal, Low volume = weak signal
+
+        Returns:
+            (volume_confirmed, volume_ratio) where:
+            - volume_confirmed: True if volume is above average
+            - volume_ratio: current_volume / avg_volume (1.0 = average)
+        """
+        # Need enough data for volume average
+        lookback = 20  # Use 20 periods for volume average
+        if self.current_step < self.window_size + lookback:
+            return False, 1.0
+
+        # Get volume data (column 4 is volume)
+        start_idx = self.current_step - lookback
+        end_idx = self.current_step + 1
+        volumes = self.data[start_idx:end_idx, 4]
+
+        # Calculate average volume and current volume
+        avg_volume = np.mean(volumes[:-1])  # Average of last 20 bars (excluding current)
+        current_volume = volumes[-1]  # Current bar volume
+
+        # Volume ratio (1.0 = average, >1.0 = above average)
+        volume_ratio = current_volume / (avg_volume + 1e-8)  # Avoid division by zero
+
+        # Confirmed if current volume is at least 1.2x average (20% above)
+        volume_confirmed = volume_ratio >= 1.2
+
+        return volume_confirmed, float(volume_ratio)
+
+    def _detect_market_regime(self) -> tuple:
+        """
+        Detect market regime: bull, bear, or sideways
+        Uses moving averages and trend strength
+
+        Returns:
+            (regime, strength) where:
+            - regime: 'bull', 'bear', or 'sideways'
+            - strength: 0.0-1.0 (how strong the trend is)
+        """
+        # Need enough data for calculation
+        lookback = 50  # Use 50 periods for regime detection
+        if self.current_step < self.window_size + lookback:
+            return 'sideways', 0.0
+
+        # Get price data
+        start_idx = self.current_step - lookback
+        end_idx = self.current_step + 1
+        close_prices = self.data[start_idx:end_idx, 3]  # Close prices
+
+        # Calculate SMAs
+        sma_20 = np.mean(close_prices[-20:])
+        sma_50 = np.mean(close_prices[-50:])
+        current_price = close_prices[-1]
+
+        # Calculate trend strength (0-1)
+        # Based on distance between SMAs relative to price
+        sma_diff_pct = abs((sma_20 - sma_50) / current_price)
+        strength = min(sma_diff_pct / 0.02, 1.0)  # Normalize: 2% diff = max strength
+
+        # Determine regime
+        if sma_20 > sma_50 * 1.005:  # 20 SMA at least 0.5% above 50 SMA
+            if current_price > sma_20:
+                regime = 'bull'
+            else:
+                regime = 'sideways'  # Price below 20 SMA in uptrend = weak
+        elif sma_20 < sma_50 * 0.995:  # 20 SMA at least 0.5% below 50 SMA
+            if current_price < sma_20:
+                regime = 'bear'
+            else:
+                regime = 'sideways'  # Price above 20 SMA in downtrend = weak
+        else:
+            regime = 'sideways'
+
+        # Adjust strength based on volatility
+        atr = self._calculate_atr()
+        volatility_pct = atr / current_price
+        if volatility_pct > 0.03:  # High volatility (>3%)
+            strength *= 1.2  # Stronger signals in volatile markets
+
+        strength = min(strength, 1.0)  # Cap at 1.0
+
+        return regime, strength
+
     def _open_position(self, position_type: str, price: float):
         """
         Open a futures trading position with leverage
@@ -550,20 +685,35 @@ class TradingEnv(gym.Env):
             # Short: liquidated if price rises too much
             self.liquidation_price = price * (1 + margin_ratio * 0.9)
 
-        # ATR-BASED Stop Loss & Take Profit (dynamic, adapts to volatility!)
+        # ADAPTIVE TP/SL based on volatility (Phase 3.2)
         atr = self._calculate_atr()
+        volatility_pct = atr / price  # Calculate volatility as % of price
+
+        # Adjust TP/SL multipliers based on market volatility
+        if volatility_pct > 0.03:  # High volatility (>3%)
+            # Wider targets to capture big moves, wider SL to avoid noise
+            tp_mult = self.atr_tp_multiplier * 1.3  # 4.5 → 5.85x
+            sl_mult = self.atr_sl_multiplier * 1.5  # 1.5 → 2.25x
+        elif volatility_pct < 0.01:  # Low volatility (<1%)
+            # Tighter targets, tighter SL
+            tp_mult = self.atr_tp_multiplier * 0.7  # 4.5 → 3.15x
+            sl_mult = self.atr_sl_multiplier * 0.8  # 1.5 → 1.2x
+        else:  # Normal volatility (1-3%)
+            # Use default multipliers
+            tp_mult = self.atr_tp_multiplier
+            sl_mult = self.atr_sl_multiplier
 
         if position_type == 'long':
             # LONG: TP above, SL below
-            self.take_profit = price + (atr * self.atr_tp_multiplier)  # Entry + (ATR × 3.0)
-            self.stop_loss = price - (atr * self.atr_sl_multiplier)     # Entry - (ATR × 1.5)
+            self.take_profit = price + (atr * tp_mult)
+            self.stop_loss = price - (atr * sl_mult)
             self.break_even = price * (1 + self.fee_rate * 2)
             self.bars_in_position = 0  # Reset bar counter
 
         else:  # SHORT
             # SHORT: TP below, SL above
-            self.take_profit = price - (atr * self.atr_tp_multiplier)  # Entry - (ATR × 3.0)
-            self.stop_loss = price + (atr * self.atr_sl_multiplier)     # Entry + (ATR × 1.5)
+            self.take_profit = price - (atr * tp_mult)
+            self.stop_loss = price + (atr * sl_mult)
             self.break_even = price * (1 - self.fee_rate * 2)
             self.bars_in_position = 0  # Reset bar counter
 

@@ -731,15 +731,28 @@ def paper_trade(
         return
 
     console.print(f"\n[bold cyan]Paper trading {MODEL_REGISTRY[model_key]['label']} on {symbol} ({timeframe})[/bold cyan]")
+    console.print(f"[yellow]Note: Actions will occur at candle close only (timeframe: {timeframe})[/yellow]\n")
 
     import pandas as pd
     import ccxt
 
     exchange = ccxt.binance({"enableRateLimit": True})
-    limit = max(window_size * 2, steps * 5, 1000)
+
+    # Parse timeframe to seconds
+    timeframe_to_seconds = {
+        '1m': 60, '5m': 300, '15m': 900, '30m': 1800,
+        '1h': 3600, '4h': 14400, '1d': 86400
+    }
+    candle_duration = timeframe_to_seconds.get(timeframe, 60)
+
+    # Initial data fetch
+    limit = max(window_size * 2, 1000)
     candles = exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
     df = pd.DataFrame(candles, columns=["timestamp", "open", "high", "low", "close", "volume"])
     df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
+
+    # Track last candle timestamp
+    last_candle_timestamp = df["timestamp"].iloc[-1]
 
     with server_module_path():
         from src.data.loader import prepare_env_data
@@ -756,7 +769,8 @@ def paper_trade(
         initial_balance=initial_balance,
         max_leverage=max_leverage,
         window_size=window_size,
-        reward_type=reward_type
+        reward_type=reward_type,
+        streaming_mode=True  # Enable streaming mode for live paper trading
     )
     if model_key in {"sac", "td3"}:
         env = ContinuousActionWrapper(env)
@@ -806,25 +820,76 @@ def paper_trade(
         return Panel(table, border_style="bright_cyan", title="Paper Trading")
 
     with Live(render_panel(0, float(base_env.data[base_env.current_step, 3]), "HOLD", {"balance": initial_balance, "equity": initial_balance, "total_trades": 0}, 0.0), refresh_per_second=4) as live:
-        for idx in range(1, steps + 1):
-            action_raw = select_action(state)
-            env_action = action_to_env(model_key, action_raw)
-            action_idx = action_to_index(model_key, action_raw)
+        action_count = 0
+        candle_count = 0
 
-            state, reward, terminated, truncated, info = env.step(env_action)
-            last_info = info
-            total_reward += reward
-            equity_curve.append(info["equity"])
+        while action_count < steps:
+            # Fetch latest candles
+            try:
+                new_candles = exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
+                new_df = pd.DataFrame(new_candles, columns=["timestamp", "open", "high", "low", "close", "volume"])
+                new_df["timestamp"] = pd.to_datetime(new_df["timestamp"], unit="ms")
+                current_candle_timestamp = new_df["timestamp"].iloc[-1]
 
-            price_idx = min(base_env.current_step - 1, base_env.data.shape[0] - 1)
-            price = float(base_env.data[price_idx, 3])
+                # Check if new candle has formed
+                new_candle_formed = current_candle_timestamp > last_candle_timestamp
 
-            panel = render_panel(idx, price, ACTION_NAMES[action_idx], info, reward)
-            live.update(panel)
+                if new_candle_formed:
+                    candle_count += 1
+                    last_candle_timestamp = current_candle_timestamp
 
-            if terminated or truncated:
+                    # Log new candle detection
+                    if action_count == 0:
+                        console.print(f"[green]New candle detected at {current_candle_timestamp}[/green]")
+
+                    # Update environment data with new candles
+                    env_data = prepare_env_data(new_df, add_indicators=True, normalize=False)
+
+                    # Calculate how many new candles were added
+                    old_n_steps = base_env.n_steps
+                    new_n_steps = len(env_data)
+
+                    # Update environment data
+                    base_env.data = env_data
+                    base_env.n_steps = new_n_steps
+
+                    # Adjust current_step to point to the latest candle
+                    # Keep it at the end of the data for streaming
+                    if base_env.current_step >= old_n_steps - 1:
+                        base_env.current_step = new_n_steps - 1
+
+                    # Perform action only on new candle (one action per candle)
+                    action_raw = select_action(state)
+                    env_action = action_to_env(model_key, action_raw)
+                    action_idx = action_to_index(model_key, action_raw)
+
+                    state, reward, terminated, truncated, info = env.step(env_action)
+                    last_info = info
+                    total_reward += reward
+                    equity_curve.append(info["equity"])
+                    action_count += 1
+
+                    price_idx = min(base_env.current_step - 1, base_env.data.shape[0] - 1)
+                    price = float(base_env.data[price_idx, 3])
+
+                    panel = render_panel(action_count, price, ACTION_NAMES[action_idx], info, reward)
+                    live.update(panel)
+
+                    if terminated or truncated:
+                        break
+                else:
+                    # No new candle yet, just update display with current price
+                    price_idx = min(base_env.current_step - 1, base_env.data.shape[0] - 1)
+                    price = float(new_df["close"].iloc[-1])
+                    current_info = last_info or {"balance": initial_balance, "equity": initial_balance, "total_trades": 0}
+                    panel = render_panel(action_count, price, "WAITING", current_info, 0.0)
+                    live.update(panel)
+
+            except Exception as e:
+                console.print(f"\n[red]Error fetching data: {e}[/red]")
                 break
 
+            # Sleep for interval before next check
             time.sleep(max(0.1, interval))
 
     if not last_info:

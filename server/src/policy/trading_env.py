@@ -519,17 +519,34 @@ class TradingEnv(gym.Env):
         """
         Open a futures trading position with leverage
         Uses ATR-based TP/SL and initializes Trailing Stop Loss
+
+        Correct futures trading calculation:
+        - Margin = amount of balance used (we use 100% of balance)
+        - Position Value (Notional) = Margin × Leverage
+        - Position Size (Quantity) = Position Value / Entry Price
+        - Fee = Position Value × Fee Rate (NOT Margin × Leverage × Fee Rate)
         """
         self.position = position_type
         self.entry_price = price
         self.hold_duration = 0
         self.entry_step = self.current_step
 
-        # Calculate position size (use leverage)
+        # Calculate position size with leverage
         self.current_leverage = self.max_leverage
-        available_capital = self.balance * self.current_leverage
-        fee = available_capital * self.fee_rate
-        self.position_size = (available_capital - fee) / price
+
+        # Margin is the balance we're using (use 100% for now)
+        margin = self.balance
+
+        # Position value (notional value)
+        position_value = margin * self.current_leverage
+
+        # Position size in base currency (e.g., BTC)
+        self.position_size = position_value / price
+
+        # Calculate fee based on NOTIONAL VALUE (not margin)
+        # Fee = notional_value × fee_rate
+        notional_value = price * self.position_size
+        fee = notional_value * self.fee_rate
 
         # Deduct fee from balance
         self.balance -= fee
@@ -573,7 +590,11 @@ class TradingEnv(gym.Env):
         if self.total_trades < 5:
             tp_pct = abs((self.take_profit - price) / price * 100)
             sl_pct = abs((self.stop_loss - price) / price * 100)
-            print(f"  [TRADE] Open {position_type.upper()} #{self.current_position_id} @ ${price:.2f} | Size: {self.position_size:.4f} | Fee: ${fee:.2f}")
+            notional = price * self.position_size
+            print(f"  [TRADE] Open {position_type.upper()} @ ${price:.2f}")
+            print(f"          Margin: ${margin:.2f} | Leverage: {self.current_leverage:.1f}x")
+            print(f"          Position Size: {self.position_size:.4f} | Notional: ${notional:.2f}")
+            print(f"          Fee: ${fee:.2f} ({fee/margin*100:.2f}% of margin)")
             print(f"          ATR: ${atr:.2f} | TP: ${self.take_profit:.2f} (+{tp_pct:.2f}%) | SL: ${self.stop_loss:.2f} (-{sl_pct:.2f}%)")
             print(f"          Trailing SL: ${self.trailing_stop_loss:.2f}")
 
@@ -608,8 +629,16 @@ class TradingEnv(gym.Env):
 
         # Debug logging (only first 5 trades per episode)
         if self.total_trades <= 5:
-            pnl_pct = (pnl / (entry_price * self.position_size)) * 100
-            print(f"  [TRADE] Close #{position_id} @ ${price:.2f} | PnL: ${pnl:.2f} ({pnl_pct:+.2f}%) | Balance: ${self.balance:.2f}")
+            # Calculate PnL percentage based on margin used
+            # In futures, PnL% should be calculated against margin, not notional
+            margin_used = (entry_price * self.position_size) / self.current_leverage if self.current_leverage > 0 else entry_price * self.position_size
+            pnl_pct_vs_margin = (pnl / margin_used) * 100 if margin_used > 0 else 0
+            pnl_pct_vs_notional = (pnl / (entry_price * self.position_size)) * 100 if entry_price * self.position_size > 0 else 0
+
+            print(f"  [TRADE] Close {position_type.upper()} @ ${price:.2f}")
+            print(f"          Gross PnL: ${pnl + fee:.2f} | Fee: ${fee:.2f} | Net PnL: ${pnl:.2f}")
+            print(f"          PnL vs Margin: {pnl_pct_vs_margin:+.2f}% | PnL vs Notional: {pnl_pct_vs_notional:+.2f}%")
+            print(f"          Balance: ${self.balance:.2f} | Total PnL: ${self.total_pnl:.2f}")
 
         trade_record = {
             "position_id": position_id,
@@ -698,35 +727,42 @@ class TradingEnv(gym.Env):
         Calculate reward based on reward type
 
         Args:
-            trade_reward: Reward from closing a trade
+            trade_reward: Reward from closing a trade (in dollars)
 
         Returns:
-            Reward value
+            Reward value (normalized, typically between -1 and 1)
+
+        Note: Reduced amplification to prevent unrealistic profit expectations
         """
-        # Base reward from trading activity - AMPLIFIED for clear signal
+        # Base reward from trading activity
+        # Normalize by initial balance to get percentage return
         base_reward = 0.0
         if trade_reward != 0:
-            # Amplify trade reward so agent learns profit/loss clearly
-            base_reward = (trade_reward / self.initial_balance) * 5.0  # 5x amplification
+            # Convert trade PnL to percentage return
+            # Reduced from 5.0x to 2.0x to prevent over-optimization
+            base_reward = (trade_reward / self.initial_balance) * 2.0
 
         if self.reward_type == 'profit':
-            # Direct profit reward + small step reward
+            # Direct profit reward + step reward
             step_reward = (self.equity - self.equity_history[-2]) / self.initial_balance if len(self.equity_history) > 1 else 0.0
-            return base_reward + step_reward * 2.0  # Amplify step reward
+            # Reduced amplification from 2.0 to 1.0
+            return base_reward + step_reward * 1.0
 
         elif self.reward_type == 'return':
             # Percentage return
             if len(self.equity_history) < 2:
                 return base_reward
             step_return = (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
-            return base_reward + step_return * 5.0  # Amplify for clear signal
+            # Reduced amplification from 5.0 to 2.0
+            return base_reward + step_return * 2.0
 
         elif self.reward_type == 'sharpe':
             # Sharpe ratio (risk-adjusted return) + step reward
             step_reward = 0.0
             if len(self.equity_history) >= 2:
                 step_return = (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
-                step_reward = step_return * 5.0  # Reduced from 10 for stability
+                # Reduced amplification from 5.0 to 2.0 for more realistic learning
+                step_reward = step_return * 2.0
 
             # Calculate Sharpe only if we have enough data
             sharpe_reward = 0.0
@@ -735,7 +771,7 @@ class TradingEnv(gym.Env):
                 returns = np.diff(equity_window) / equity_window[:-1]
                 if len(returns) > 0 and np.std(returns) > 0:
                     sharpe = np.mean(returns) / (np.std(returns) + 1e-6)
-                    sharpe_reward = sharpe * 0.1  # Small sharpe component
+                    sharpe_reward = sharpe * 0.05  # Reduced from 0.1
 
             return base_reward + step_reward + sharpe_reward
 
@@ -744,7 +780,8 @@ class TradingEnv(gym.Env):
             step_reward = 0.0
             if len(self.equity_history) >= 2:
                 step_return = (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
-                step_reward = step_return * 10  # Scale up for learning
+                # Reduced amplification from 10 to 3.0
+                step_reward = step_return * 3.0
 
             sortino_reward = 0.0
             if len(self.equity_history) >= 10:
@@ -754,9 +791,9 @@ class TradingEnv(gym.Env):
 
                 if len(returns) > 0 and len(downside_returns) > 0:
                     sortino = np.mean(returns) / (np.std(downside_returns) + 1e-6)
-                    sortino_reward = sortino * 0.1
+                    sortino_reward = sortino * 0.05  # Reduced from 0.1
                 elif len(returns) > 0:
-                    sortino_reward = np.mean(returns) * 0.1
+                    sortino_reward = np.mean(returns) * 0.05
 
             return base_reward + step_reward + sortino_reward
 

@@ -28,7 +28,7 @@ class TradingEnv(gym.Env):
         1: OPEN_LONG (or close short and go long)
         2: OPEN_SHORT (or close long and go short)
 
-        NOTE: Positions can ONLY be closed by TP/SL/Trailing Stop.
+        NOTE: Positions can ONLY be closed by TP/SL (Take Profit / Stop Loss).
               No manual CLOSE action to prevent premature exits and ensure
               disciplined trading according to risk management rules.
 
@@ -52,7 +52,6 @@ class TradingEnv(gym.Env):
         atr_period: int = 14,  # ATR calculation period
         atr_sl_multiplier: float = 1.5,  # Stop Loss = Entry ± (ATR × 1.5) [INCREASED from 1.0]
         atr_tp_multiplier: float = 3.0,  # Take Profit = Entry ± (ATR × 3.0) [INCREASED from 2.0]
-        trailing_distance_multiplier: float = 1.0,  # Trailing distance = ATR × 1.0 [MUST be < SL (1.5x) to protect profit!]
         streaming_mode: bool = False
     ):
         """
@@ -69,7 +68,6 @@ class TradingEnv(gym.Env):
             atr_period: Period for ATR calculation (default 14)
             atr_sl_multiplier: Multiplier for Stop Loss calculation (default 1.5x ATR)
             atr_tp_multiplier: Multiplier for Take Profit calculation (default 3.0x ATR)
-            trailing_distance_multiplier: Multiplier for Trailing Stop distance (default 2.0x ATR - industry standard for crypto)
         """
         super().__init__()
 
@@ -83,7 +81,6 @@ class TradingEnv(gym.Env):
         self.atr_period = atr_period
         self.atr_sl_multiplier = atr_sl_multiplier
         self.atr_tp_multiplier = atr_tp_multiplier
-        self.trailing_distance_multiplier = trailing_distance_multiplier
 
         self.n_features = data.shape[1]
         self.n_steps = len(data)
@@ -155,11 +152,11 @@ class TradingEnv(gym.Env):
         self.funding_rate = 0.0001  # 0.01% default funding rate
         self.last_funding_time = 0
 
-        # Trailing Stop Loss tracking (NEW!)
-        self.trailing_stop_loss = 0.0
-        self.highest_price_since_entry = 0.0  # For LONG positions
-        self.lowest_price_since_entry = 0.0   # For SHORT positions
-        self.bars_in_position = 0  # Number of bars held (prevent immediate trail stop)
+        # Removed trailing stop logic - using only TP/SL now
+        # self.trailing_stop_loss = 0.0
+        # self.highest_price_since_entry = 0.0
+        # self.lowest_price_since_entry = 0.0
+        self.bars_in_position = 0  # Number of bars held (prevent same-candle exits)
 
         # Position duration tracking (to prevent holding too long or not trading)
         self.steps_in_position = 0  # How long current position held
@@ -301,62 +298,7 @@ class TradingEnv(gym.Env):
 
         if self.position:
             self.bars_in_position += 1
-            atr = self._calculate_atr()
-            trailing_distance = atr * self.trailing_distance_multiplier
-
-            if self.position == 'long':
-                if high_price > self.highest_price_since_entry:
-                    self.highest_price_since_entry = high_price
-                    new_trailing_stop = high_price - trailing_distance
-                    # Only update if new trailing protects profit with buffer:
-                    # Must be: (1) better than current trailing, (2) better than SL, (3) above entry + 0.5x ATR for breathing room
-                    min_profit_buffer = atr * 0.5  # Need at least 0.5x ATR profit before trailing activates
-                    if (new_trailing_stop > self.trailing_stop_loss and
-                        new_trailing_stop > self.stop_loss and
-                        new_trailing_stop >= self.entry_price + min_profit_buffer):
-                        old_trailing = self.trailing_stop_loss
-                        self.trailing_stop_loss = new_trailing_stop
-                        if self.total_trades <= 5:
-                            print(f"  [TRAIL] Stop updated: ${old_trailing:.2f} -> ${self.trailing_stop_loss:.2f} (price: ${high_price:.2f})")
-                # DISABLED break-even logic for LONG - it was causing premature exits
-                # if self.break_even and self.highest_price_since_entry >= self.break_even:
-                #     if self.stop_loss < self.break_even:
-                #         self.stop_loss = self.break_even
-                #     if self.trailing_stop_loss < self.break_even:
-                #         self.trailing_stop_loss = self.break_even
-            else:
-                if self.lowest_price_since_entry == 0 or low_price < self.lowest_price_since_entry:
-                    self.lowest_price_since_entry = low_price
-                    new_trailing_stop = low_price + trailing_distance
-                    # Only update if new trailing protects profit with buffer:
-                    # Must be: (1) better than current trailing, (2) better than SL, (3) below entry - 0.5x ATR for breathing room
-                    min_profit_buffer = atr * 0.5  # Need at least 0.5x ATR profit before trailing activates
-                    entry_threshold = self.entry_price - min_profit_buffer
-
-                    # Debug first few trades
-                    if self.total_trades <= 3:
-                        print(f"  [DEBUG] SHORT trailing check:")
-                        print(f"    Entry: ${self.entry_price:.2f} | Low: ${low_price:.2f}")
-                        print(f"    Profit: ${self.entry_price - low_price:.2f}")
-                        print(f"    New trailing: ${new_trailing_stop:.2f}")
-                        print(f"    Entry threshold: ${entry_threshold:.2f} (entry - 0.5x ATR)")
-                        print(f"    Check 1: new < current? ${new_trailing_stop:.2f} < ${self.trailing_stop_loss:.2f} = {new_trailing_stop < self.trailing_stop_loss}")
-                        print(f"    Check 2: new < SL? ${new_trailing_stop:.2f} < ${self.stop_loss:.2f} = {new_trailing_stop < self.stop_loss}")
-                        print(f"    Check 3: new <= threshold? ${new_trailing_stop:.2f} <= ${entry_threshold:.2f} = {new_trailing_stop <= entry_threshold}")
-
-                    if (new_trailing_stop < self.trailing_stop_loss and
-                        new_trailing_stop < self.stop_loss and
-                        new_trailing_stop <= entry_threshold):
-                        old_trailing = self.trailing_stop_loss
-                        self.trailing_stop_loss = new_trailing_stop
-                        if self.total_trades <= 5:
-                            print(f"  [TRAIL] Stop updated: ${old_trailing:.2f} -> ${self.trailing_stop_loss:.2f} (price: ${low_price:.2f})")
-                # DISABLED break-even logic for SHORT - it was causing premature exits (trailing moved to entry-0.12%)
-                # if self.break_even and self.lowest_price_since_entry <= self.break_even:
-                #     if self.stop_loss > self.break_even:
-                #         self.stop_loss = self.break_even
-                #     if self.trailing_stop_loss > self.break_even:
-                #         self.trailing_stop_loss = self.break_even
+            # REMOVED: Trailing stop logic - using only TP/SL now
 
             exit_event = None
             exit_price = close_price
@@ -364,31 +306,21 @@ class TradingEnv(gym.Env):
             # This prevents positions from closing using the same candle's high/low that was used for entry
             if self.bars_in_position > 1:
                 if self.position == 'long':
-                    stop_candidates = []
-                    if self.trailing_stop_loss > 0 and low_price <= self.trailing_stop_loss:
-                        stop_candidates.append(('trail', self.trailing_stop_loss))
+                    # Check Stop Loss
                     if self.stop_loss > 0 and low_price <= self.stop_loss:
-                        stop_candidates.append(('sl', self.stop_loss))
-                    tp_hit = self.take_profit > 0 and high_price >= self.take_profit
-                    if stop_candidates:
-                        reason, level = max(stop_candidates, key=lambda x: x[1])
-                        exit_event = reason
-                        exit_price = level
-                    elif tp_hit:
+                        exit_event = 'sl'
+                        exit_price = self.stop_loss
+                    # Check Take Profit (higher priority)
+                    elif self.take_profit > 0 and high_price >= self.take_profit:
                         exit_event = 'tp'
                         exit_price = self.take_profit
-                else:
-                    stop_candidates = []
-                    if self.trailing_stop_loss > 0 and high_price >= self.trailing_stop_loss:
-                        stop_candidates.append(('trail', self.trailing_stop_loss))
+                else:  # SHORT
+                    # Check Stop Loss
                     if self.stop_loss > 0 and high_price >= self.stop_loss:
-                        stop_candidates.append(('sl', self.stop_loss))
-                    tp_hit = self.take_profit > 0 and low_price <= self.take_profit
-                    if stop_candidates:
-                        reason, level = min(stop_candidates, key=lambda x: x[1])
-                        exit_event = reason
-                        exit_price = level
-                    elif tp_hit:
+                        exit_event = 'sl'
+                        exit_price = self.stop_loss
+                    # Check Take Profit (higher priority)
+                    elif self.take_profit > 0 and low_price <= self.take_profit:
                         exit_event = 'tp'
                         exit_price = self.take_profit
 
@@ -398,11 +330,7 @@ class TradingEnv(gym.Env):
                     trade_reward += 0.02
                     if self.total_trades <= 5:
                         print(f"  [WIN] Take Profit HIT @ ${exit_price:.2f}")
-                elif exit_event == 'trail':
-                    trade_reward -= 0.01
-                    if self.total_trades <= 5:
-                        print(f"  [TRAIL SL] Trailing Stop HIT @ ${exit_price:.2f}")
-                else:
+                elif exit_event == 'sl':
                     trade_reward -= 0.02
                     if self.total_trades <= 5:
                         print(f"  [RISK] Stop Loss HIT @ ${exit_price:.2f}")
@@ -463,9 +391,6 @@ class TradingEnv(gym.Env):
                 'unrealized_pnl': float(self._calculate_position_pnl()) if self.position else 0.0,
                 'take_profit': float(self.take_profit) if self.position else 0.0,
                 'stop_loss': float(self.stop_loss) if self.position else 0.0,
-                'trailing_stop_loss': float(self.trailing_stop_loss) if self.position else 0.0,
-                'highest_price': float(self.highest_price_since_entry) if self.position == 'long' else 0.0,
-                'lowest_price': float(self.lowest_price_since_entry) if self.position == 'short' else 0.0,
                 'trade_reward': float(trade_reward),
                 'exploration_bonus': float(exploration_bonus),
                 'position_penalty': float(position_penalty),
@@ -602,26 +527,16 @@ class TradingEnv(gym.Env):
 
         if position_type == 'long':
             # LONG: TP above, SL below
-            self.take_profit = price + (atr * self.atr_tp_multiplier)  # Entry + (ATR × 2.0)
-            self.stop_loss = price - (atr * self.atr_sl_multiplier)     # Entry - (ATR × 1.0)
+            self.take_profit = price + (atr * self.atr_tp_multiplier)  # Entry + (ATR × 3.0)
+            self.stop_loss = price - (atr * self.atr_sl_multiplier)     # Entry - (ATR × 1.5)
             self.break_even = price * (1 + self.fee_rate * 2)
-
-            # Initialize Trailing Stop Loss
-            self.trailing_stop_loss = self.stop_loss  # Start at initial SL
-            self.highest_price_since_entry = price
-            self.lowest_price_since_entry = 0.0
             self.bars_in_position = 0  # Reset bar counter
 
         else:  # SHORT
             # SHORT: TP below, SL above
-            self.take_profit = price - (atr * self.atr_tp_multiplier)  # Entry - (ATR × 2.0)
-            self.stop_loss = price + (atr * self.atr_sl_multiplier)     # Entry + (ATR × 1.0)
+            self.take_profit = price - (atr * self.atr_tp_multiplier)  # Entry - (ATR × 3.0)
+            self.stop_loss = price + (atr * self.atr_sl_multiplier)     # Entry + (ATR × 1.5)
             self.break_even = price * (1 - self.fee_rate * 2)
-
-            # Initialize Trailing Stop Loss
-            self.trailing_stop_loss = self.stop_loss  # Start at initial SL
-            self.highest_price_since_entry = 0.0
-            self.lowest_price_since_entry = price
             self.bars_in_position = 0  # Reset bar counter
 
         # Debug logging (only first 5 trades per episode)
@@ -634,7 +549,6 @@ class TradingEnv(gym.Env):
             print(f"          Position Size: {self.position_size:.4f} | Notional: ${notional:.2f}")
             print(f"          Fee: ${fee:.2f} ({fee/margin*100:.2f}% of margin)")
             print(f"          ATR: ${atr:.2f} | TP: ${self.take_profit:.2f} (+{tp_pct:.2f}%) | SL: ${self.stop_loss:.2f} (-{sl_pct:.2f}%)")
-            print(f"          Trailing SL: ${self.trailing_stop_loss:.2f}")
 
     def _close_position(self, price: float) -> float:
         """Close current position and return PnL"""
@@ -695,7 +609,7 @@ class TradingEnv(gym.Env):
         }
         self.trade_log.append(trade_record)
 
-        # Reset position AND trailing stop loss
+        # Reset position
         self.position = None
         self.entry_price = 0.0
         self.position_size = 0.0
@@ -706,11 +620,6 @@ class TradingEnv(gym.Env):
         self.stop_loss = 0.0
         self.break_even = 0.0
         self.steps_in_position = 0
-
-        # Reset trailing stop tracking
-        self.trailing_stop_loss = 0.0
-        self.highest_price_since_entry = 0.0
-        self.lowest_price_since_entry = 0.0
         self.bars_in_position = 0
         self.current_position_id = None
 

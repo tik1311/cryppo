@@ -46,3 +46,6 @@
 2025-11-18 19:33:41 - Episode    8 | Reward:    -3.93 | Avg(10):    -1.26 | Loss: 0.0030 | Eps: 0.150 | Steps: 6336 | Trades: 255 | Win%:  30.2 | Balance: $2,994
 2025-11-18 19:33:41 - 
 [DEBUG] Episode 9 - Enabling detailed environment logging
+2025-11-18 19:34:54 - Episode    9 | Reward:   -11.28 | Avg(10):    -2.37 | Loss: 0.0028 | Eps: 0.150 | Steps: 2576 | Trades: 115 | Win%:  20.0 | Balance: $2,985
+2025-11-18 19:34:54 - 
+[DEBUG] Episode 10 - Enabling detailed environment logging

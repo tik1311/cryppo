@@ -433,11 +433,28 @@ class TradingEnv(gym.Env):
         reward = self._calculate_reward(trade_reward) + position_penalty + exploration_bonus
 
         self.current_step += 1
+
+        # Episode termination logic with position-aware extension
         if not self.streaming_mode and self.current_step >= self.n_steps:
-            if self.position:
-                final_price = self.data[self.current_step - 1, CLOSE_IDX]
-                self._close_position(final_price)
-            truncated = True
+            # Calculate how many steps we've extended beyond original episode length
+            max_extension = 500  # Maximum bars to extend waiting for TP/SL
+            extended_steps = self.current_step - self.n_steps
+
+            # If we have open position and haven't exceeded max extension, keep going
+            if self.position and extended_steps < max_extension and self.current_step < len(self.data):
+                # Continue episode to wait for TP/SL to close position naturally
+                truncated = False
+                if self.total_trades < 5 and extended_steps == 0:
+                    print(f"  [EXTEND] Episode extended to wait for position TP/SL (max {max_extension} bars)")
+            else:
+                # Either no position, exceeded max extension, or ran out of data
+                if self.position:
+                    # Force close at current price if max extension reached
+                    final_price = self.data[min(self.current_step - 1, len(self.data) - 1), CLOSE_IDX]
+                    self._close_position(final_price)
+                    if self.total_trades < 5:
+                        print(f"  [FORCE CLOSE] Position closed after {extended_steps} extension bars")
+                truncated = True
 
         if self.equity <= self.initial_balance * 0.3:
             terminated = True

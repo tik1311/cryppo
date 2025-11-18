@@ -185,7 +185,7 @@ class TradingEnv(gym.Env):
 
         # Anti-overtrading: Track last trade to enforce minimum spacing
         self.last_trade_step = -100  # Initialize far in past to allow first trade
-        self.min_bars_between_trades = 8  # Minimum 8 hours between trades (reduces overtrading)
+        self.min_bars_between_trades = 4  # Minimum 4 hours between trades (Part A: reduced from 8)
 
         # Market regime detection
         self.market_regime = 'sideways'  # 'bull', 'bear', or 'sideways'
@@ -276,7 +276,7 @@ class TradingEnv(gym.Env):
             self.consecutive_holds += 1
             # Reward HOLD when not in position (better than overtrading!)
             if self.position is None:
-                exploration_bonus += 0.0005  # Small reward for patience
+                exploration_bonus += 0.0001  # Small reward for patience (Part A: reduced from 0.0005)
 
             # Action Masking: Penalize excessive holding (Phase 3.4)
             # This prevents HOLD-only bias
@@ -306,7 +306,7 @@ class TradingEnv(gym.Env):
                     self._open_position('long', close_price)
                     self.last_trade_step = self.current_step  # Update last trade time
                     # Transaction cost penalty (discourages frequent trading)
-                    position_penalty -= 0.002  # Penalize opening positions
+                    position_penalty -= 0.0005  # Penalize opening positions (Part A: reduced from 0.002)
 
                     # Market regime bonus/penalty
                     if self.market_regime == 'bull':
@@ -321,7 +321,7 @@ class TradingEnv(gym.Env):
                         position_penalty -= 0.0003  # Light penalty for trading without volume
                 else:
                     # Blocked by minimum spacing rule
-                    position_penalty -= 0.005  # Penalty for trying to trade too soon
+                    position_penalty -= 0.0005  # Penalty for trying to trade too soon (Part A: reduced from 0.005)
                     if self.total_trades < 5:
                         print(f"  [BLOCKED] Cannot trade - must wait {self.min_bars_between_trades - bars_since_last_trade} more bars")
             else:
@@ -336,7 +336,7 @@ class TradingEnv(gym.Env):
                     self._open_position('short', close_price)
                     self.last_trade_step = self.current_step  # Update last trade time
                     # Transaction cost penalty (discourages frequent trading)
-                    position_penalty -= 0.002  # Penalize opening positions
+                    position_penalty -= 0.0005  # Penalize opening positions (Part A: reduced from 0.002)
 
                     # Market regime bonus/penalty
                     if self.market_regime == 'bear':
@@ -351,7 +351,7 @@ class TradingEnv(gym.Env):
                         position_penalty -= 0.0003  # Light penalty for trading without volume
                 else:
                     # Blocked by minimum spacing rule
-                    position_penalty -= 0.005  # Penalty for trying to trade too soon
+                    position_penalty -= 0.0005  # Penalty for trying to trade too soon (Part A: reduced from 0.005)
                     if self.total_trades < 5:
                         print(f"  [BLOCKED] Cannot trade - must wait {self.min_bars_between_trades - bars_since_last_trade} more bars")
             else:
@@ -865,8 +865,8 @@ class TradingEnv(gym.Env):
         base_reward = 0.0
         if trade_reward != 0:
             # Convert trade PnL to percentage return
-            # Reduced from 5.0x to 2.0x to prevent over-optimization
-            base_reward = (trade_reward / self.initial_balance) * 2.0
+            # Part A: Increased to 3.0x to better reward winning trades (was 2.0x)
+            base_reward = (trade_reward / self.initial_balance) * 3.0
 
         if self.reward_type == 'profit':
             # Direct profit reward + step reward

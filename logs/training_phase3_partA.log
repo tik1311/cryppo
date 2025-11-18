@@ -1,0 +1,1281 @@
+[DEBUG] Python executable: /usr/local/bin/python
+[DEBUG] Python path: ['/home/user/cryppo/server/src/training', '/usr/lib/python311.zip', '/usr/lib/python3.11']...
+[DEBUG] Current working directory: /home/user/cryppo
+[DEBUG] Importing D3QNAgent...
+[DEBUG] [OK] D3QNAgent imported successfully
+[DEBUG] Importing TradingEnv...
+[DEBUG] [OK] TradingEnv imported successfully
+[DEBUG] Importing data loader functions...
+[DEBUG] [OK] Data loader functions imported successfully
+[DEBUG] Importing BacktestEngine...
+[DEBUG] [OK] BacktestEngine imported successfully
+[DEBUG] Importing DetailedStepLogger...
+[DEBUG] [OK] DetailedStepLogger imported successfully
+[DEBUG] All imports successful!
+============================================================
+D3QN Crypto Futures Trading - Training
+============================================================
+Symbol: BTCUSDT
+Timeframe: 1h
+Episodes: 10
+Initial Balance: $10,000.00
+Max Leverage: 3.0x
+Window Size: 72 candles
+Reward Type: sharpe
+============================================================
+[INFO] Checkpoints will be saved to: /home/user/cryppo/checkpoints
+
+[DATA] Loading market data...
+[DEBUG] Looking for data in: /home/user/cryppo/data
+[DEBUG] Pattern: BTCUSDT_1h*.parquet
+[INFO] Found 1 data file(s) for BTCUSDT 1h
+  - /home/user/cryppo/data/BTCUSDT_1h_2019-01-01_2025-11-18.parquet
+  [INFO] Loading: /home/user/cryppo/data/BTCUSDT_1h_2019-01-01_2025-11-18.parquet
+    [DEBUG] Timestamp found in index, resetting to column
+  [DEBUG] Columns before mapping: ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+  [DEBUG] Columns after mapping: ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+  [OK] Data loaded successfully!
+    - Shape: (54290, 6)
+    - Date range: 2019-09-08 17:00:00 to 2025-11-17 18:00:00
+    - Columns: ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+
+[OK] Loaded 54,290 candles
+  Date range: 2019-09-08 17:00:00 to 2025-11-17 18:00:00
+
+[PREP] Preparing data...
+[OK] Data shape: (54192, 17)
+  Features: 17
+[OK] Train: 37,934 | Val: 8,129 | Test: 8,129
+
+[ENV] Creating environments...
+[OK] Train env: 37934 steps
+[OK] Val env: 8129 steps
+
+[AGENT] Initializing D3QN agent...
+[OK] State dim: 1800
+[OK] Action dim: 3 (HOLD, LONG, SHORT, CLOSE)
+[OK] Device: cpu
+
+[TRAIN] Starting training...
+============================================================
+[INFO] Detailed logs will be saved to: logs/train/
+
+[DEBUG] Episode 1 - Enabling detailed environment logging
+  [TRADE] Open SHORT @ $7186.76
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 4.1743 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $50.63 | TP: $7027.27 (+2.22%) | SL: $7247.52 (-0.85%)
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $7247.52
+          Gross PnL: $-253.62 | Fee: $12.10 | Net PnL: $-265.72
+          PnL vs Margin: -2.66% | PnL vs Notional: -0.89%
+          Balance: $9725.29 | Total PnL: $-265.72
+  [RISK] Stop Loss HIT @ $7247.52
+  [TRADE] Open LONG @ $7242.42
+          Margin: $9725.29 | Leverage: 3.0x
+          Position Size: 4.0285 | Notional: $29175.86
+          Fee: $11.67 (0.12% of margin)
+          ATR: $58.65 | TP: $7427.17 (+2.55%) | SL: $7172.04 (-0.97%)
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $7172.04
+          Gross PnL: $-283.53 | Fee: $11.56 | Net PnL: $-295.09
+          PnL vs Margin: -3.03% | PnL vs Notional: -1.01%
+          Balance: $9415.62 | Total PnL: $-560.81
+  [RISK] Stop Loss HIT @ $7172.04
+  [TRADE] Open LONG @ $7150.69
+          Margin: $9415.62 | Leverage: 3.0x
+          Position Size: 3.9502 | Notional: $28246.85
+          Fee: $11.30 (0.12% of margin)
+          ATR: $47.92 | TP: $7301.64 (+2.11%) | SL: $7093.18 (-0.80%)
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $7093.18
+          Gross PnL: $-227.16 | Fee: $11.21 | Net PnL: $-238.37
+          PnL vs Margin: -2.53% | PnL vs Notional: -0.84%
+          Balance: $9163.12 | Total PnL: $-799.18
+  [RISK] Stop Loss HIT @ $7093.18
+  [TRADE] Open LONG @ $7104.59
+          Margin: $9163.12 | Leverage: 3.0x
+          Position Size: 3.8692 | Notional: $27489.36
+          Fee: $11.00 (0.12% of margin)
+          ATR: $46.24 | TP: $7250.25 (+2.05%) | SL: $7049.10 (-0.78%)
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $7049.10
+          Gross PnL: $-214.71 | Fee: $10.91 | Net PnL: $-225.62
+          PnL vs Margin: -2.46% | PnL vs Notional: -0.82%
+          Balance: $8920.98 | Total PnL: $-1024.80
+  [RISK] Stop Loss HIT @ $7049.10
+  [TRADE] Open LONG @ $6964.20
+          Margin: $8920.98 | Leverage: 3.0x
+          Position Size: 3.8429 | Notional: $26762.94
+          Fee: $10.71 (0.12% of margin)
+          ATR: $56.04 | TP: $7140.72 (+2.53%) | SL: $6896.96 (-0.97%)
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $6896.96
+          Gross PnL: $-258.42 | Fee: $10.60 | Net PnL: $-269.02
+          PnL vs Margin: -3.02% | PnL vs Notional: -1.01%
+          Balance: $8638.58 | Total PnL: $-1293.81
+  [RISK] Stop Loss HIT @ $6896.96
+Episode    1 | Reward:    -3.28 | Avg(10):    -3.28 | Loss: 0.0010 | Eps: 0.150 | Steps: 7282 | Trades: 274 | Win%:  31.4 | Balance: $3,629
+
+[DEBUG] Episode 2 - Enabling detailed environment logging
+  [LOG] Episode 2 detailed log saved:
+        - logs/episode_0002_20251118_191933.jsonl
+        - logs/episode_0002_summary.txt
+Balance: $3628.87
+Equity: $2972.99
+Position: short
+Total Trades: 274
+Win Rate: 31.39%
+Total PnL: $-3457.86
+--------------------------------------------------
+  [TRADE] Open SHORT @ $9274.38
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 3.2347 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $371.86 | TP: $7098.99 (+23.46%) | SL: $10111.07 (-9.02%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $7098.99
+          Gross PnL: $7036.76 | Fee: $9.19 | Net PnL: $7027.57
+          PnL vs Margin: +70.28% | PnL vs Notional: +23.43%
+          Balance: $17245.19 | Total PnL: $7027.57
+  [WIN] Take Profit HIT @ $7098.99
+  [TRADE] Open SHORT @ $7097.18
+          Margin: $17245.19 | Leverage: 3.0x
+          Position Size: 7.2896 | Notional: $51735.56
+          Fee: $20.69 (0.12% of margin)
+          ATR: $127.88 | TP: $6521.73 (+8.11%) | SL: $7289.00 (-2.70%)
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $7289.00
+          Gross PnL: $-1398.26 | Fee: $21.25 | Net PnL: $-1419.51
+          PnL vs Margin: -8.23% | PnL vs Notional: -2.74%
+          Balance: $15815.47 | Total PnL: $5608.06
+  [RISK] Stop Loss HIT @ $7289.00
+  [TRADE] Open LONG @ $7307.59
+          Margin: $15815.47 | Leverage: 3.0x
+          Position Size: 6.4928 | Notional: $47446.41
+          Fee: $18.98 (0.12% of margin)
+          ATR: $176.90 | TP: $8103.64 (+10.89%) | SL: $7042.24 (-3.63%)
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $7042.24
+          Gross PnL: $-1722.85 | Fee: $18.29 | Net PnL: $-1741.14
+          PnL vs Margin: -11.01% | PnL vs Notional: -3.67%
+          Balance: $14031.91 | Total PnL: $3866.93
+  [RISK] Stop Loss HIT @ $7042.24
+  [TRADE] Open LONG @ $6979.96
+          Margin: $14031.91 | Leverage: 3.0x
+          Position Size: 6.0309 | Notional: $42095.73
+          Fee: $16.84 (0.12% of margin)
+          ATR: $94.43 | TP: $7404.90 (+6.09%) | SL: $6838.31 (-2.03%)
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $6838.31
+          Gross PnL: $-854.26 | Fee: $16.50 | Net PnL: $-870.76
+          PnL vs Margin: -6.21% | PnL vs Notional: -2.07%
+          Balance: $13140.08 | Total PnL: $2996.17
+  [RISK] Stop Loss HIT @ $6838.31
+  [TRADE] Open LONG @ $6710.71
+          Margin: $13140.08 | Leverage: 3.0x
+          Position Size: 5.8742 | Notional: $39420.23
+          Fee: $15.77 (0.12% of margin)
+          ATR: $123.16 | TP: $7264.91 (+8.26%) | SL: $6525.98 (-2.75%)
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $6525.98
+          Gross PnL: $-1085.17 | Fee: $15.33 | Net PnL: $-1100.51
+          PnL vs Margin: -8.38% | PnL vs Notional: -2.79%
+          Balance: $12019.89 | Total PnL: $1895.66
+  [RISK] Stop Loss HIT @ $6525.98
+Episode    2 | Reward:    -6.40 | Avg(10):    -4.84 | Loss: 0.0005 | Eps: 0.150 | Steps: 2718 | Trades: 79 | Win%:  20.3 | Balance: $2,941
+  [LOG] Episode 3 detailed log saved:
+        - logs/episode_0003_20251118_192028.jsonl
+        - logs/episode_0003_summary.txt
+Balance: $2941.49
+Equity: $2941.49
+Position: None
+Total Trades: 79
+Win Rate: 20.25%
+Total PnL: $-6709.68
+--------------------------------------------------
+  [TRADE] Open SHORT @ $30787.00
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 0.9744 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $153.93 | TP: $30302.10 (+1.57%) | SL: $30971.72 (-0.60%)
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $30302.10
+          Gross PnL: $472.50 | Fee: $11.81 | Net PnL: $460.69
+          PnL vs Margin: +4.61% | PnL vs Notional: +1.54%
+          Balance: $10454.66 | Total PnL: $460.69
+  [WIN] Take Profit HIT @ $30302.10
+  [TRADE] Open SHORT @ $30406.20
+          Margin: $10454.66 | Leverage: 3.0x
+          Position Size: 1.0315 | Notional: $31363.97
+          Fee: $12.55 (0.12% of margin)
+          ATR: $152.03 | TP: $29927.30 (+1.57%) | SL: $30588.64 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $30588.64
+          Gross PnL: $-188.18 | Fee: $12.62 | Net PnL: $-200.80
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $10247.59 | Total PnL: $259.88
+  [RISK] Stop Loss HIT @ $30588.64
+  [TRADE] Open SHORT @ $30679.90
+          Margin: $10247.59 | Leverage: 3.0x
+          Position Size: 1.0020 | Notional: $30742.77
+          Fee: $12.30 (0.12% of margin)
+          ATR: $153.40 | TP: $30196.69 (+1.58%) | SL: $30863.98 (-0.60%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $30863.98
+          Gross PnL: $-184.46 | Fee: $12.37 | Net PnL: $-196.83
+          PnL vs Margin: -1.92% | PnL vs Notional: -0.64%
+          Balance: $10038.46 | Total PnL: $63.06
+  [RISK] Stop Loss HIT @ $30863.98
+  [BLOCKED] Cannot trade - must wait 1 more bars
+  [TRADE] Open SHORT @ $31222.20
+          Margin: $10038.46 | Leverage: 3.0x
+          Position Size: 0.9646 | Notional: $30115.39
+          Fee: $12.05 (0.12% of margin)
+          ATR: $201.29 | TP: $30588.15 (+2.03%) | SL: $31463.74 (-0.77%)
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $30588.15
+          Gross PnL: $611.57 | Fee: $11.80 | Net PnL: $599.77
+          PnL vs Margin: +5.97% | PnL vs Notional: +1.99%
+          Balance: $10629.16 | Total PnL: $662.83
+  [WIN] Take Profit HIT @ $30588.15
+  [TRADE] Open LONG @ $30196.60
+          Margin: $10629.16 | Leverage: 3.0x
+          Position Size: 1.0560 | Notional: $31887.49
+          Fee: $12.75 (0.12% of margin)
+          ATR: $300.94 | TP: $31144.57 (+3.14%) | SL: $29835.47 (-1.20%)
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $29835.47
+          Gross PnL: $-381.35 | Fee: $12.60 | Net PnL: $-393.96
+          PnL vs Margin: -3.71% | PnL vs Notional: -1.24%
+          Balance: $10219.25 | Total PnL: $268.87
+  [RISK] Stop Loss HIT @ $29835.47
+Episode    3 | Reward:     1.15 | Avg(10):    -2.84 | Loss: 0.0004 | Eps: 0.150 | Steps: 4549 | Trades: 198 | Win%:  32.3 | Balance: $11,237
+  [TRADE] Open SHORT @ $28252.00
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 1.0619 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $146.26 | TP: $27791.27 (+1.63%) | SL: $28427.52 (-0.62%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $28427.52
+          Gross PnL: $-186.38 | Fee: $12.07 | Net PnL: $-198.45
+          PnL vs Margin: -1.98% | PnL vs Notional: -0.66%
+          Balance: $9792.55 | Total PnL: $-198.45
+  [RISK] Stop Loss HIT @ $28427.52
+  [TRADE] Open LONG @ $29154.00
+          Margin: $9792.55 | Leverage: 3.0x
+          Position Size: 1.0077 | Notional: $29377.66
+          Fee: $11.75 (0.12% of margin)
+          ATR: $175.34 | TP: $29706.31 (+1.89%) | SL: $28943.60 (-0.72%)
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $29706.31
+          Gross PnL: $556.54 | Fee: $11.97 | Net PnL: $544.57
+          PnL vs Margin: +5.56% | PnL vs Notional: +1.85%
+          Balance: $10322.43 | Total PnL: $346.12
+  [WIN] Take Profit HIT @ $29706.31
+  [TRADE] Open SHORT @ $29623.10
+          Margin: $10322.43 | Leverage: 3.0x
+          Position Size: 1.0454 | Notional: $30967.30
+          Fee: $12.39 (0.12% of margin)
+          ATR: $251.69 | TP: $28830.27 (+2.68%) | SL: $29925.13 (-1.02%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $29925.13
+          Gross PnL: $-315.74 | Fee: $12.51 | Net PnL: $-328.25
+          PnL vs Margin: -3.18% | PnL vs Notional: -1.06%
+          Balance: $9981.80 | Total PnL: $17.87
+  [RISK] Stop Loss HIT @ $29925.13
+  [BLOCKED] Cannot trade - must wait 1 more bars
+  [TRADE] Open LONG @ $30105.80
+          Margin: $9981.80 | Leverage: 3.0x
+          Position Size: 0.9947 | Notional: $29945.39
+          Fee: $11.98 (0.12% of margin)
+          ATR: $363.55 | TP: $31741.77 (+5.43%) | SL: $29560.48 (-1.81%)
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $29560.48
+          Gross PnL: $-542.42 | Fee: $11.76 | Net PnL: $-554.18
+          PnL vs Margin: -5.55% | PnL vs Notional: -1.85%
+          Balance: $9355.60 | Total PnL: $-536.31
+  [RISK] Stop Loss HIT @ $29560.48
+  [TRADE] Open SHORT @ $29520.00
+          Margin: $9355.60 | Leverage: 3.0x
+          Position Size: 0.9508 | Notional: $28066.79
+          Fee: $11.23 (0.12% of margin)
+          ATR: $194.51 | TP: $28907.28 (+2.08%) | SL: $29753.42 (-0.79%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $29753.42
+          Gross PnL: $-221.93 | Fee: $11.32 | Net PnL: $-233.24
+          PnL vs Margin: -2.49% | PnL vs Notional: -0.83%
+          Balance: $9116.73 | Total PnL: $-769.55
+  [RISK] Stop Loss HIT @ $29753.42
+Episode    4 | Reward:     3.58 | Avg(10):    -1.23 | Loss: 0.0003 | Eps: 0.150 | Steps: 6605 | Trades: 294 | Win%:  31.6 | Balance: $17,924
+  [TRADE] Open LONG @ $8722.63
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 3.4393 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $87.45 | TP: $9116.15 (+4.51%) | SL: $8591.46 (-1.50%)
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $8591.46
+          Gross PnL: $-451.15 | Fee: $11.82 | Net PnL: $-462.97
+          PnL vs Margin: -4.63% | PnL vs Notional: -1.54%
+          Balance: $9522.04 | Total PnL: $-462.97
+  [RISK] Stop Loss HIT @ $8591.46
+  [TRADE] Open SHORT @ $8657.77
+          Margin: $9522.04 | Leverage: 3.0x
+          Position Size: 3.2995 | Notional: $28566.11
+          Fee: $11.43 (0.12% of margin)
+          ATR: $65.60 | TP: $8451.12 (+2.39%) | SL: $8736.49 (-0.91%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $8736.49
+          Gross PnL: $-259.75 | Fee: $11.53 | Net PnL: $-271.28
+          PnL vs Margin: -2.85% | PnL vs Notional: -0.95%
+          Balance: $9247.89 | Total PnL: $-734.25
+  [RISK] Stop Loss HIT @ $8736.49
+  [TRADE] Open LONG @ $8617.43
+          Margin: $9247.89 | Leverage: 3.0x
+          Position Size: 3.2195 | Notional: $27743.68
+          Fee: $11.10 (0.12% of margin)
+          ATR: $82.12 | TP: $8876.10 (+3.00%) | SL: $8518.89 (-1.14%)
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $8518.89
+          Gross PnL: $-317.25 | Fee: $10.97 | Net PnL: $-328.22
+          PnL vs Margin: -3.55% | PnL vs Notional: -1.18%
+          Balance: $8908.57 | Total PnL: $-1062.47
+  [RISK] Stop Loss HIT @ $8518.89
+  [TRADE] Open SHORT @ $8506.88
+          Margin: $8908.57 | Leverage: 3.0x
+          Position Size: 3.1417 | Notional: $26725.72
+          Fee: $10.69 (0.12% of margin)
+          ATR: $81.32 | TP: $8250.72 (+3.01%) | SL: $8604.46 (-1.15%)
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $8604.46
+          Gross PnL: $-306.58 | Fee: $10.81 | Net PnL: $-317.39
+          PnL vs Margin: -3.56% | PnL vs Notional: -1.19%
+          Balance: $8583.18 | Total PnL: $-1379.86
+  [RISK] Stop Loss HIT @ $8604.46
+  [TRADE] Open LONG @ $8648.07
+          Margin: $8583.18 | Leverage: 3.0x
+          Position Size: 2.9775 | Notional: $25749.54
+          Fee: $10.30 (0.12% of margin)
+          ATR: $76.54 | TP: $8889.18 (+2.79%) | SL: $8556.22 (-1.06%)
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $8889.18
+          Gross PnL: $717.90 | Fee: $10.59 | Net PnL: $707.32
+          PnL vs Margin: +8.24% | PnL vs Notional: +2.75%
+          Balance: $9277.59 | Total PnL: $-672.55
+  [WIN] Take Profit HIT @ $8889.18
+Episode    5 | Reward:    -2.80 | Avg(10):    -1.55 | Loss: 0.0004 | Eps: 0.150 | Steps:  509 | Trades: 26 | Win%:  34.6 | Balance: $3,322
+  [TRADE] Open SHORT @ $46002.60
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 0.6521 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $312.30 | TP: $45018.86 (+2.14%) | SL: $46377.36 (-0.81%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $46377.36
+          Gross PnL: $-244.40 | Fee: $12.10 | Net PnL: $-256.49
+          PnL vs Margin: -2.56% | PnL vs Notional: -0.85%
+          Balance: $9734.50 | Total PnL: $-256.49
+  [RISK] Stop Loss HIT @ $46377.36
+  [TRADE] Open LONG @ $46442.60
+          Margin: $9734.50 | Leverage: 3.0x
+          Position Size: 0.6288 | Notional: $29203.50
+          Fee: $11.68 (0.12% of margin)
+          ATR: $405.32 | TP: $47719.36 (+2.75%) | SL: $45956.22 (-1.05%)
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $45956.22
+          Gross PnL: $-305.84 | Fee: $11.56 | Net PnL: $-317.40
+          PnL vs Margin: -3.26% | PnL vs Notional: -1.09%
+          Balance: $9399.55 | Total PnL: $-573.90
+  [RISK] Stop Loss HIT @ $45956.22
+  [TRADE] Open LONG @ $45740.50
+          Margin: $9399.55 | Leverage: 3.0x
+          Position Size: 0.6165 | Notional: $28198.65
+          Fee: $11.28 (0.12% of margin)
+          ATR: $288.70 | TP: $46649.90 (+1.99%) | SL: $45394.06 (-0.76%)
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $45394.06
+          Gross PnL: $-213.58 | Fee: $11.19 | Net PnL: $-224.77
+          PnL vs Margin: -2.39% | PnL vs Notional: -0.80%
+          Balance: $9160.66 | Total PnL: $-798.67
+  [RISK] Stop Loss HIT @ $45394.06
+  [TRADE] Open SHORT @ $44980.00
+          Margin: $9160.66 | Leverage: 3.0x
+          Position Size: 0.6110 | Notional: $27481.99
+          Fee: $10.99 (0.12% of margin)
+          ATR: $465.76 | TP: $42884.09 (+4.66%) | SL: $45678.64 (-1.55%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $42884.09
+          Gross PnL: $1280.56 | Fee: $10.48 | Net PnL: $1270.08
+          PnL vs Margin: +13.86% | PnL vs Notional: +4.62%
+          Balance: $10427.92 | Total PnL: $471.41
+  [WIN] Take Profit HIT @ $42884.09
+  [TRADE] Open LONG @ $43356.20
+          Margin: $10427.92 | Leverage: 3.0x
+          Position Size: 0.7216 | Notional: $31283.77
+          Fee: $12.51 (0.12% of margin)
+          ATR: $597.14 | TP: $46043.31 (+6.20%) | SL: $42460.50 (-2.07%)
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $42460.50
+          Gross PnL: $-646.30 | Fee: $12.25 | Net PnL: $-658.55
+          PnL vs Margin: -6.32% | PnL vs Notional: -2.11%
+          Balance: $9741.18 | Total PnL: $-187.14
+  [RISK] Stop Loss HIT @ $42460.50
+Episode    6 | Reward:    -8.01 | Avg(10):    -2.62 | Loss: 0.0005 | Eps: 0.150 | Steps: 4988 | Trades: 225 | Win%:  23.6 | Balance: $3,061
+  [TRADE] Open LONG @ $9465.90
+          Margin: $10000.00 | Leverage: 3.0x
+          Position Size: 3.1693 | Notional: $30000.00
+          Fee: $12.00 (0.12% of margin)
+          ATR: $134.46 | TP: $10070.96 (+6.39%) | SL: $9264.21 (-2.13%)
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $9264.21
+          Gross PnL: $-639.20 | Fee: $11.74 | Net PnL: $-650.95
+          PnL vs Margin: -6.51% | PnL vs Notional: -2.17%
+          Balance: $9334.07 | Total PnL: $-650.95
+  [RISK] Stop Loss HIT @ $9264.21
+  [TRADE] Open LONG @ $9325.59
+          Margin: $9334.07 | Leverage: 3.0x
+          Position Size: 3.0027 | Notional: $28002.21
+          Fee: $11.20 (0.12% of margin)
+          ATR: $97.41 | TP: $9763.92 (+4.70%) | SL: $9179.48 (-1.57%)
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have LONG position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have LONG position. Wait for TP/SL!
+  [TRADE] Close LONG @ $9763.92
+          Gross PnL: $1316.18 | Fee: $11.73 | Net PnL: $1304.46
+          PnL vs Margin: +13.98% | PnL vs Notional: +4.66%
+          Balance: $10618.80 | Total PnL: $653.51
+  [WIN] Take Profit HIT @ $9763.92
+  [TRADE] Open SHORT @ $9738.34
+          Margin: $10618.80 | Leverage: 3.0x
+          Position Size: 3.2712 | Notional: $31856.41
+          Fee: $12.74 (0.12% of margin)
+          ATR: $91.88 | TP: $9448.93 (+2.97%) | SL: $9848.59 (-1.13%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $9848.59
+          Gross PnL: $-360.66 | Fee: $12.89 | Net PnL: $-373.54
+          PnL vs Margin: -3.52% | PnL vs Notional: -1.17%
+          Balance: $10232.52 | Total PnL: $279.97
+  [RISK] Stop Loss HIT @ $9848.59
+  [BLOCKED] Cannot trade - must wait 1 more bars
+  [TRADE] Open SHORT @ $9757.33
+          Margin: $10232.52 | Leverage: 3.0x
+          Position Size: 3.1461 | Notional: $30697.55
+          Fee: $12.28 (0.12% of margin)
+          ATR: $90.49 | TP: $9472.28 (+2.92%) | SL: $9865.92 (-1.11%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $9865.92
+          Gross PnL: $-341.64 | Fee: $12.42 | Net PnL: $-354.06
+          PnL vs Margin: -3.46% | PnL vs Notional: -1.15%
+          Balance: $9869.26 | Total PnL: $-74.09
+  [RISK] Stop Loss HIT @ $9865.92
+  [TRADE] Open SHORT @ $9869.30
+          Margin: $9869.26 | Leverage: 3.0x
+          Position Size: 3.0000 | Notional: $29607.77
+          Fee: $11.84 (0.12% of margin)
+          ATR: $101.48 | TP: $9412.64 (+4.63%) | SL: $10021.52 (-1.54%)
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_LONG - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [BLOCKED] Cannot OPEN_SHORT - already have SHORT position. Wait for TP/SL!
+  [TRADE] Close SHORT @ $9412.64
+          Gross PnL: $1369.97 | Fee: $11.30 | Net PnL: $1358.68
+          PnL vs Margin: +13.77% | PnL vs Notional: +4.59%
+          Balance: $11239.36 | Total PnL: $1284.59
+  [WIN] Take Profit HIT @ $9412.64

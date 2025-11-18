@@ -29,6 +29,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.monitor import Monitor
 
 from src.policy.trading_env import TradingEnv
+from src.policy.wrappers import ContinuousActionWrapper
 from src.data.loader import load_market_data, prepare_env_data, split_train_test, create_sample_data
 
 
@@ -220,6 +221,7 @@ def train_sac(
             window_size=window_size,
             reward_type=reward_type
         )
+        env = ContinuousActionWrapper(env)
         env = Monitor(env)
         return env
 

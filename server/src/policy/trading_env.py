@@ -6,7 +6,17 @@ Based on Gymnasium (OpenAI Gym)
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any, Optional, List
+import json
+from pathlib import Path
+from datetime import datetime
+
+
+OPEN_IDX = 0
+HIGH_IDX = 1
+LOW_IDX = 2
+CLOSE_IDX = 3
+VOLUME_IDX = 4
 
 
 class TradingEnv(gym.Env):
@@ -32,9 +42,15 @@ class TradingEnv(gym.Env):
         data: np.ndarray,
         initial_balance: float = 10000.0,
         fee_rate: float = 0.0004,
-        max_leverage: float = 3.0,
+        max_leverage: float = 1.5,  # REDUCED from 3.0 - lower risk, prevent -78% losses
         window_size: int = 72,
-        reward_type: str = 'sharpe'
+        reward_type: str = 'sharpe',
+        min_episode_length: int = 1200,  # Minimum steps per episode (20-30% more than avg ~1000)
+        atr_period: int = 14,  # ATR calculation period
+        atr_sl_multiplier: float = 1.0,  # Stop Loss = Entry ± (ATR × 1.0)
+        atr_tp_multiplier: float = 2.0,  # Take Profit = Entry ± (ATR × 2.0)
+        trailing_distance_multiplier: float = 0.5,  # Trailing distance = ATR × 0.5
+        streaming_mode: bool = False
     ):
         """
         Initialize Trading Environment
@@ -46,6 +62,11 @@ class TradingEnv(gym.Env):
             max_leverage: Maximum leverage allowed
             window_size: Number of historical timesteps in observation
             reward_type: Type of reward ('profit', 'sharpe', 'sortino')
+            min_episode_length: Minimum steps per episode (ensures 20-30% longer episodes)
+            atr_period: Period for ATR calculation (default 14)
+            atr_sl_multiplier: Multiplier for Stop Loss calculation
+            atr_tp_multiplier: Multiplier for Take Profit calculation
+            trailing_distance_multiplier: Multiplier for Trailing Stop distance
         """
         super().__init__()
 
@@ -55,6 +76,11 @@ class TradingEnv(gym.Env):
         self.max_leverage = max_leverage
         self.window_size = window_size
         self.reward_type = reward_type
+        self.min_episode_length = min_episode_length
+        self.atr_period = atr_period
+        self.atr_sl_multiplier = atr_sl_multiplier
+        self.atr_tp_multiplier = atr_tp_multiplier
+        self.trailing_distance_multiplier = trailing_distance_multiplier
 
         self.n_features = data.shape[1]
         self.n_steps = len(data)
@@ -72,6 +98,14 @@ class TradingEnv(gym.Env):
             dtype=np.float32
         )
 
+        # Detailed logging setup
+        self.episode_count = 0
+        self.step_log = []  # Store every step details
+        self.enable_detailed_logging = False  # Enable for last episode
+        self.log_dir = Path("logs")
+        self.log_dir.mkdir(exist_ok=True, parents=True)
+
+        self.streaming_mode = streaming_mode
         # Episode state
         self.reset()
 
@@ -79,7 +113,30 @@ class TradingEnv(gym.Env):
         """Reset environment to initial state"""
         super().reset(seed=seed)
 
-        self.current_step = self.window_size
+        # Save detailed log of previous episode (if any)
+        if hasattr(self, 'step_log') and len(self.step_log) > 0:
+            self._save_episode_log()
+
+        # Increment episode counter
+        self.episode_count += 1
+        self.step_log = []  # Reset step log for new episode
+
+        start_index = None
+        if options and "start_index" in options:
+            start_index = int(options["start_index"])
+
+        if self.streaming_mode and start_index is None:
+            start_index = self.window_size
+
+        if start_index is not None:
+            self.current_step = int(np.clip(start_index, self.window_size, self.n_steps - 1))
+        else:
+            max_start = len(self.data) - self.window_size - self.min_episode_length
+            if max_start > self.window_size:
+                self.current_step = np.random.randint(self.window_size, max_start)
+            else:
+                self.current_step = self.window_size
+
         self.balance = self.initial_balance
         self.equity = self.initial_balance
         self.position = None  # None, 'long', or 'short'
@@ -93,6 +150,11 @@ class TradingEnv(gym.Env):
         self.break_even = 0.0
         self.funding_rate = 0.0001  # 0.01% default funding rate
         self.last_funding_time = 0
+
+        # Trailing Stop Loss tracking (NEW!)
+        self.trailing_stop_loss = 0.0
+        self.highest_price_since_entry = 0.0  # For LONG positions
+        self.lowest_price_since_entry = 0.0   # For SHORT positions
 
         # Position duration tracking (to prevent holding too long or not trading)
         self.steps_in_position = 0  # How long current position held
@@ -108,6 +170,15 @@ class TradingEnv(gym.Env):
         self.total_trades = 0
         self.winning_trades = 0
         self.total_pnl = 0.0
+        self.trade_log: List[Dict[str, Any]] = []
+        self.position_id_counter = 0
+        self.current_position_id = None
+        self.entry_step = 0
+
+        # Action diversity tracking (for exploration bonus)
+        self.action_counts = {0: 0, 1: 0, 2: 0, 3: 0}
+        self.consecutive_holds = 0
+        self.last_action = -1
 
         return self._get_observation(), self._get_info()
 
@@ -118,13 +189,16 @@ class TradingEnv(gym.Env):
         Returns:
             State tensor [window_size, n_features + position_info]
         """
+        # Ensure we don't go beyond data bounds
+        current_idx = min(self.current_step, self.n_steps - 1)
+
         # Get market data window
-        start_idx = self.current_step - self.window_size
-        end_idx = self.current_step
+        start_idx = current_idx - self.window_size
+        end_idx = current_idx
         market_data = self.data[start_idx:end_idx]
 
         # Current price for normalization
-        current_price = self.data[self.current_step, 3]  # Close price (index 3)
+        current_price = self.data[current_idx, 3]  # Close price (index 3)
 
         # Position information
         is_in_position = 1.0 if self.position is not None else 0.0
@@ -153,71 +227,165 @@ class TradingEnv(gym.Env):
         }
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, dict]:
-        """
-        Execute one time step (Futures Trading)
+        """Execute a single timestep using OHLC data"""
+        terminated = False
+        truncated = False
 
-        Args:
-            action: 0=HOLD, 1=OPEN_LONG, 2=OPEN_SHORT, 3=CLOSE_POSITION
+        prices = self.data[self.current_step]
+        open_price = float(prices[OPEN_IDX])
+        high_price = float(prices[HIGH_IDX])
+        low_price = float(prices[LOW_IDX])
+        close_price = float(prices[CLOSE_IDX])
 
-        Returns:
-            (observation, reward, terminated, truncated, info)
-        """
-        # Get current price
-        current_price = self.data[self.current_step, 3]  # Close price
-
-        # Execute action
         trade_reward = 0.0
+        exploration_bonus = 0.0
+        position_penalty = 0.0
 
-        if action == 1:  # OPEN_LONG
+        self.action_counts[action] = self.action_counts.get(action, 0) + 1
+
+        action_names = ['HOLD', 'OPEN_LONG', 'OPEN_SHORT', 'CLOSE']
+        if self.current_step - self.window_size < 3:
+            print(f"  [ACTION] Step {self.current_step}: {action_names[action]} | Pos: {self.position or 'None'}")
+
+        if action == 0:
+            self.consecutive_holds += 1
+            if self.consecutive_holds > 20:
+                hold_penalty = -0.0005 * (self.consecutive_holds - 20)
+                exploration_bonus += hold_penalty
+        else:
+            if self.consecutive_holds > 30:
+                exploration_bonus += 0.002
+            self.consecutive_holds = 0
+
+        total_actions = sum(self.action_counts.values())
+        if total_actions > 100:
+            action_freq = self.action_counts[action] / total_actions
+            if action_freq < 0.10:
+                exploration_bonus += 0.0002
+
+        if action == 1:
             if self.position is None:
-                self._open_position('long', current_price)
-            elif self.position == 'short':
-                trade_reward = self._close_position(current_price)
-                self._open_position('long', current_price)
-
-        elif action == 2:  # OPEN_SHORT
+                self._open_position('long', close_price)
+                exploration_bonus += 0.001
+            else:
+                position_penalty -= 0.01
+                if self.total_trades < 5:
+                    print(f"  [BLOCKED] Cannot OPEN_LONG - already have {self.position.upper()} position. Must CLOSE first!")
+        elif action == 2:
             if self.position is None:
-                self._open_position('short', current_price)
-            elif self.position == 'long':
-                trade_reward = self._close_position(current_price)
-                self._open_position('short', current_price)
-
-        elif action == 3:  # CLOSE_POSITION
+                self._open_position('short', close_price)
+                exploration_bonus += 0.001
+            else:
+                position_penalty -= 0.01
+                if self.total_trades < 5:
+                    print(f"  [BLOCKED] Cannot OPEN_SHORT - already have {self.position.upper()} position. Must CLOSE first!")
+        elif action == 3:
             if self.position is not None:
-                trade_reward = self._close_position(current_price)
+                profit_pct = self._calculate_position_pnl() / self.balance if self.balance > 0 else 0.0
+                trade_reward = self._close_position(close_price)
+                if abs(profit_pct) < 0.005:
+                    exploration_bonus -= 0.005
+                    if self.total_trades <= 5:
+                        print(f"  [EARLY CLOSE] Closed at {profit_pct*100:+.2f}% (penalty applied)")
+            else:
+                position_penalty -= 0.005
 
-        # Apply funding rate every 8 hours (simulated)
         if self.position and self.current_step % 8 == 0:
-            funding_fee = self._apply_funding_rate(current_price)
+            funding_fee = self._apply_funding_rate(close_price)
             self.balance -= funding_fee
 
-        # Track position duration
         position_penalty = 0.0
         if self.position:
             self.steps_in_position += 1
             self.steps_without_position = 0
-
-            # Penalty for holding position too long (> 3 days)
             if self.steps_in_position > self.max_position_duration:
-                position_penalty -= 0.01 * (self.steps_in_position - self.max_position_duration)
+                position_penalty = -0.001
         else:
             self.steps_without_position += 1
             self.steps_in_position = 0
 
-            # Penalty for not trading too long (> 3 days) - prevent lazy trading
-            if self.steps_without_position > self.max_no_position_duration:
-                position_penalty -= 0.005 * (self.steps_without_position - self.max_no_position_duration)
+        if self.position:
+            atr = self._calculate_atr()
+            trailing_distance = atr * self.trailing_distance_multiplier
 
-        # Auto-close if position held too long
-        if self.position and self.steps_in_position >= self.max_position_duration * 1.2:  # 20% grace period
-            trade_reward = self._close_position(current_price)
-            trade_reward -= 0.1  # Extra penalty for forced close
+            if self.position == 'long':
+                if high_price > self.highest_price_since_entry:
+                    self.highest_price_since_entry = high_price
+                    new_trailing_stop = high_price - trailing_distance
+                    if new_trailing_stop > self.trailing_stop_loss:
+                        old_trailing = self.trailing_stop_loss
+                        self.trailing_stop_loss = new_trailing_stop
+                        if self.total_trades <= 5:
+                            print(f"  [TRAIL] Stop updated: ${old_trailing:.2f} -> ${self.trailing_stop_loss:.2f} (price: ${high_price:.2f})")
+                if self.break_even and self.highest_price_since_entry >= self.break_even:
+                    if self.stop_loss < self.break_even:
+                        self.stop_loss = self.break_even
+                    if self.trailing_stop_loss < self.break_even:
+                        self.trailing_stop_loss = self.break_even
+            else:
+                if self.lowest_price_since_entry == 0 or low_price < self.lowest_price_since_entry:
+                    self.lowest_price_since_entry = low_price
+                    new_trailing_stop = low_price + trailing_distance
+                    if new_trailing_stop < self.trailing_stop_loss or self.trailing_stop_loss == self.stop_loss:
+                        old_trailing = self.trailing_stop_loss
+                        self.trailing_stop_loss = new_trailing_stop
+                        if self.total_trades <= 5:
+                            print(f"  [TRAIL] Stop updated: ${old_trailing:.2f} -> ${self.trailing_stop_loss:.2f} (price: ${low_price:.2f})")
+                if self.break_even and self.lowest_price_since_entry <= self.break_even:
+                    if self.stop_loss > self.break_even:
+                        self.stop_loss = self.break_even
+                    if self.trailing_stop_loss > self.break_even:
+                        self.trailing_stop_loss = self.break_even
 
-        # Check liquidation BEFORE updating equity
-        if self.position and self._check_liquidation(current_price):
-            # Liquidated! Force close with total loss
-            trade_reward = -self.balance * 0.9  # Lose 90% of balance
-            self.balance *= 0.1  # Keep only 10%
+            exit_event = None
+            exit_price = close_price
+            if self.position == 'long':
+                stop_candidates = []
+                if self.trailing_stop_loss > 0 and low_price <= self.trailing_stop_loss:
+                    stop_candidates.append(('trail', self.trailing_stop_loss))
+                if self.stop_loss > 0 and low_price <= self.stop_loss:
+                    stop_candidates.append(('sl', self.stop_loss))
+                tp_hit = self.take_profit > 0 and high_price >= self.take_profit
+                if stop_candidates:
+                    reason, level = max(stop_candidates, key=lambda x: x[1])
+                    exit_event = reason
+                    exit_price = level
+                elif tp_hit:
+                    exit_event = 'tp'
+                    exit_price = self.take_profit
+            else:
+                stop_candidates = []
+                if self.trailing_stop_loss > 0 and high_price >= self.trailing_stop_loss:
+                    stop_candidates.append(('trail', self.trailing_stop_loss))
+                if self.stop_loss > 0 and high_price >= self.stop_loss:
+                    stop_candidates.append(('sl', self.stop_loss))
+                tp_hit = self.take_profit > 0 and low_price <= self.take_profit
+                if stop_candidates:
+                    reason, level = min(stop_candidates, key=lambda x: x[1])
+                    exit_event = reason
+                    exit_price = level
+                elif tp_hit:
+                    exit_event = 'tp'
+                    exit_price = self.take_profit
+
+            if exit_event:
+                trade_reward = self._close_position(exit_price)
+                if exit_event == 'tp':
+                    trade_reward += 0.02
+                    if self.total_trades <= 5:
+                        print(f"  [WIN] Take Profit HIT @ ${exit_price:.2f}")
+                elif exit_event == 'trail':
+                    trade_reward -= 0.01
+                    if self.total_trades <= 5:
+                        print(f"  [TRAIL SL] Trailing Stop HIT @ ${exit_price:.2f}")
+                else:
+                    trade_reward -= 0.02
+                    if self.total_trades <= 5:
+                        print(f"  [RISK] Stop Loss HIT @ ${exit_price:.2f}")
+
+        if self.position and self._check_liquidation(low_price, high_price):
+            trade_reward = -self.balance * 0.9
+            self.balance *= 0.1
             self.position = None
             self.entry_price = 0.0
             self.position_size = 0.0
@@ -226,7 +394,6 @@ class TradingEnv(gym.Env):
             self.steps_in_position = 0
             terminated = True
 
-        # Update equity
         if self.position:
             self.equity = self.balance + self._calculate_position_pnl()
             self.hold_duration += 1
@@ -234,42 +401,129 @@ class TradingEnv(gym.Env):
             self.equity = self.balance
 
         self.equity_history.append(self.equity)
+        reward = self._calculate_reward(trade_reward) + position_penalty + exploration_bonus
 
-        # Calculate reward with position penalty
-        reward = self._calculate_reward(trade_reward) + position_penalty
-
-        # Move to next step
         self.current_step += 1
-
-        # Check if episode is done
-        terminated = False
-        truncated = False
-
-        if self.current_step >= self.n_steps - 1:
-            # End of data
+        if not self.streaming_mode and self.current_step >= self.n_steps:
             if self.position:
-                self._close_position(current_price)
+                final_price = self.data[self.current_step - 1, CLOSE_IDX]
+                self._close_position(final_price)
             truncated = True
 
         if self.equity <= self.initial_balance * 0.3:
-            # Exceeded max drawdown (70%)
             terminated = True
 
-        # Get new observation (only if not done)
         if truncated or terminated:
-            # Return last valid observation if episode ended
-            observation = self._get_observation() if self.current_step < self.n_steps else np.zeros(self.observation_space.shape, dtype=np.float32)
+            if self.current_step >= self.n_steps:
+                observation = np.zeros(self.observation_space.shape, dtype=np.float32)
+            else:
+                observation = self._get_observation()
         else:
             observation = self._get_observation()
+
         info = self._get_info()
+
+        if self.enable_detailed_logging:
+            step_data = {
+                'episode': self.episode_count,
+                'step': self.current_step - self.window_size,
+                'global_step': self.current_step,
+                'action': int(action),
+                'action_name': ['HOLD', 'LONG', 'SHORT', 'CLOSE'][action],
+                'price': float(close_price),
+                'position': self.position,
+                'position_size': float(self.position_size) if self.position else 0.0,
+                'entry_price': float(self.entry_price) if self.position else 0.0,
+                'balance': float(self.balance),
+                'equity': float(self.equity),
+                'unrealized_pnl': float(self._calculate_position_pnl()) if self.position else 0.0,
+                'take_profit': float(self.take_profit) if self.position else 0.0,
+                'stop_loss': float(self.stop_loss) if self.position else 0.0,
+                'trailing_stop_loss': float(self.trailing_stop_loss) if self.position else 0.0,
+                'highest_price': float(self.highest_price_since_entry) if self.position == 'long' else 0.0,
+                'lowest_price': float(self.lowest_price_since_entry) if self.position == 'short' else 0.0,
+                'trade_reward': float(trade_reward),
+                'exploration_bonus': float(exploration_bonus),
+                'position_penalty': float(position_penalty),
+                'total_reward': float(reward),
+                'total_trades': int(self.total_trades),
+                'win_rate': float(info['win_rate']),
+                'consecutive_holds': int(self.consecutive_holds),
+                'terminated': terminated,
+                'truncated': truncated,
+            }
+            self.step_log.append(step_data)
 
         return observation, reward, terminated, truncated, info
 
+
+    def _calculate_atr(self, period: Optional[int] = None) -> float:
+        """
+        Calculate Average True Range (ATR) at current step
+
+        ATR measures market volatility using the 14-period average of true ranges.
+        True Range = max(high - low, abs(high - prev_close), abs(low - prev_close))
+
+        Args:
+            period: ATR period (default: use self.atr_period)
+
+        Returns:
+            ATR value in price units
+        """
+        if period is None:
+            period = self.atr_period
+
+        # Need at least period+1 candles for ATR
+        if self.current_step < self.window_size + period:
+            # Not enough data, use simple price range as fallback
+            recent_data = self.data[max(0, self.current_step - 20):self.current_step + 1]
+            if len(recent_data) > 1:
+                high_col = 1  # High price column
+                low_col = 2   # Low price column
+                price_range = np.max(recent_data[:, high_col]) - np.min(recent_data[:, low_col])
+                return price_range / len(recent_data)
+            else:
+                # Ultimate fallback: 1% of current price
+                current_price = self.data[self.current_step, 3]
+                return current_price * 0.01
+
+        # Get OHLC data for ATR calculation
+        start_idx = self.current_step - period
+        end_idx = self.current_step + 1
+
+        high = self.data[start_idx:end_idx, 1]   # High price (column 1)
+        low = self.data[start_idx:end_idx, 2]    # Low price (column 2)
+        close = self.data[start_idx:end_idx, 3]  # Close price (column 3)
+
+        # Calculate True Range
+        tr_list = []
+        for i in range(1, len(high)):
+            tr = max(
+                high[i] - low[i],                    # Current high - current low
+                abs(high[i] - close[i-1]),           # Current high - previous close
+                abs(low[i] - close[i-1])             # Current low - previous close
+            )
+            tr_list.append(tr)
+
+        # ATR = average of true ranges
+        if len(tr_list) > 0:
+            atr = np.mean(tr_list)
+        else:
+            # Fallback
+            current_price = close[-1]
+            atr = current_price * 0.01
+
+        return float(atr)
+
     def _open_position(self, position_type: str, price: float):
-        """Open a futures trading position with leverage"""
+        """
+        Open a futures trading position with leverage
+        Uses ATR-based TP/SL and initializes Trailing Stop Loss
+        """
         self.position = position_type
         self.entry_price = price
         self.hold_duration = 0
+        self.entry_step = self.current_step
 
         # Calculate position size (use leverage)
         self.current_leverage = self.max_leverage
@@ -290,26 +544,54 @@ class TradingEnv(gym.Env):
             # Short: liquidated if price rises too much
             self.liquidation_price = price * (1 + margin_ratio * 0.9)
 
-        # Set TP/SL/BE (example: 2% TP, 1% SL)
+        # ATR-BASED Stop Loss & Take Profit (dynamic, adapts to volatility!)
+        atr = self._calculate_atr()
+
         if position_type == 'long':
-            self.take_profit = price * 1.02  # 2% profit
-            self.stop_loss = price * 0.99    # 1% loss
-            self.break_even = price * (1 + self.fee_rate * 2)  # 2x fee to break even
-        else:
-            self.take_profit = price * 0.98
-            self.stop_loss = price * 1.01
+            # LONG: TP above, SL below
+            self.take_profit = price + (atr * self.atr_tp_multiplier)  # Entry + (ATR × 2.0)
+            self.stop_loss = price - (atr * self.atr_sl_multiplier)     # Entry - (ATR × 1.0)
+            self.break_even = price * (1 + self.fee_rate * 2)
+
+            # Initialize Trailing Stop Loss
+            self.trailing_stop_loss = self.stop_loss  # Start at initial SL
+            self.highest_price_since_entry = price
+            self.lowest_price_since_entry = 0.0
+
+        else:  # SHORT
+            # SHORT: TP below, SL above
+            self.take_profit = price - (atr * self.atr_tp_multiplier)  # Entry - (ATR × 2.0)
+            self.stop_loss = price + (atr * self.atr_sl_multiplier)     # Entry + (ATR × 1.0)
             self.break_even = price * (1 - self.fee_rate * 2)
+
+            # Initialize Trailing Stop Loss
+            self.trailing_stop_loss = self.stop_loss  # Start at initial SL
+            self.highest_price_since_entry = 0.0
+            self.lowest_price_since_entry = price
+
+        # Debug logging (only first 5 trades per episode)
+        if self.total_trades < 5:
+            tp_pct = abs((self.take_profit - price) / price * 100)
+            sl_pct = abs((self.stop_loss - price) / price * 100)
+            print(f"  [TRADE] Open {position_type.upper()} #{self.current_position_id} @ ${price:.2f} | Size: {self.position_size:.4f} | Fee: ${fee:.2f}")
+            print(f"          ATR: ${atr:.2f} | TP: ${self.take_profit:.2f} (+{tp_pct:.2f}%) | SL: ${self.stop_loss:.2f} (-{sl_pct:.2f}%)")
+            print(f"          Trailing SL: ${self.trailing_stop_loss:.2f}")
 
     def _close_position(self, price: float) -> float:
         """Close current position and return PnL"""
         if not self.position:
             return 0.0
 
+        position_type = self.position
+        entry_price = self.entry_price
+        entry_step = self.entry_step
+        position_id = self.current_position_id or f"POS-{self.position_id_counter:06d}"
+
         # Calculate PnL
-        if self.position == 'long':
-            pnl = (price - self.entry_price) * self.position_size
+        if position_type == 'long':
+            pnl = (price - entry_price) * self.position_size
         else:  # short
-            pnl = (self.entry_price - price) * self.position_size
+            pnl = (entry_price - price) * self.position_size
 
         # Deduct closing fee
         fee = price * self.position_size * self.fee_rate
@@ -324,7 +606,29 @@ class TradingEnv(gym.Env):
         if pnl > 0:
             self.winning_trades += 1
 
-        # Reset position
+        # Debug logging (only first 5 trades per episode)
+        if self.total_trades <= 5:
+            pnl_pct = (pnl / (entry_price * self.position_size)) * 100
+            print(f"  [TRADE] Close #{position_id} @ ${price:.2f} | PnL: ${pnl:.2f} ({pnl_pct:+.2f}%) | Balance: ${self.balance:.2f}")
+
+        trade_record = {
+            "position_id": position_id,
+            "direction": position_type,
+            "entry_price": entry_price,
+            "exit_price": price,
+            "quantity": self.position_size,
+            "leverage": self.current_leverage,
+            "pnl": pnl,
+            "pnl_pct": (pnl / max(entry_price * self.position_size / max(self.current_leverage, 1e-6), 1e-6)) * 100
+                      if entry_price and self.position_size else 0.0,
+            "entry_step": entry_step,
+            "exit_step": self.current_step,
+            "duration_steps": self.current_step - entry_step,
+            "episode": self.episode_count
+        }
+        self.trade_log.append(trade_record)
+
+        # Reset position AND trailing stop loss
         self.position = None
         self.entry_price = 0.0
         self.position_size = 0.0
@@ -336,19 +640,25 @@ class TradingEnv(gym.Env):
         self.break_even = 0.0
         self.steps_in_position = 0
 
+        # Reset trailing stop tracking
+        self.trailing_stop_loss = 0.0
+        self.highest_price_since_entry = 0.0
+        self.lowest_price_since_entry = 0.0
+        self.current_position_id = None
+
         return pnl
 
-    def _check_liquidation(self, current_price: float) -> bool:
+    def _check_liquidation(self, low_price: float, high_price: float) -> bool:
         """Check if position should be liquidated"""
         if not self.position or self.liquidation_price == 0.0:
             return False
 
         if self.position == 'long':
             # Long position liquidated if price drops below liquidation price
-            return current_price <= self.liquidation_price
+            return low_price <= self.liquidation_price
         else:
             # Short position liquidated if price rises above liquidation price
-            return current_price >= self.liquidation_price
+            return high_price >= self.liquidation_price
 
     def _apply_funding_rate(self, current_price: float) -> float:
         """
@@ -374,7 +684,9 @@ class TradingEnv(gym.Env):
         if not self.position:
             return 0.0
 
-        current_price = self.data[self.current_step, 3]
+        # Use current_step - 1 if we're at or beyond the data boundary
+        step_idx = min(self.current_step, self.n_steps - 1)
+        current_price = self.data[step_idx, 3]
 
         if self.position == 'long':
             return (current_price - self.entry_price) * self.position_size
@@ -391,52 +703,117 @@ class TradingEnv(gym.Env):
         Returns:
             Reward value
         """
+        # Base reward from trading activity - AMPLIFIED for clear signal
+        base_reward = 0.0
+        if trade_reward != 0:
+            # Amplify trade reward so agent learns profit/loss clearly
+            base_reward = (trade_reward / self.initial_balance) * 5.0  # 5x amplification
+
         if self.reward_type == 'profit':
-            # Direct profit reward
-            if trade_reward != 0:
-                return trade_reward / self.initial_balance
-            return 0.0
+            # Direct profit reward + small step reward
+            step_reward = (self.equity - self.equity_history[-2]) / self.initial_balance if len(self.equity_history) > 1 else 0.0
+            return base_reward + step_reward * 2.0  # Amplify step reward
 
         elif self.reward_type == 'return':
             # Percentage return
             if len(self.equity_history) < 2:
-                return 0.0
-            return (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
+                return base_reward
+            step_return = (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
+            return base_reward + step_return * 5.0  # Amplify for clear signal
 
         elif self.reward_type == 'sharpe':
-            # Sharpe ratio (risk-adjusted return)
-            if len(self.equity_history) < 10:
-                return 0.0
+            # Sharpe ratio (risk-adjusted return) + step reward
+            step_reward = 0.0
+            if len(self.equity_history) >= 2:
+                step_return = (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
+                step_reward = step_return * 5.0  # Reduced from 10 for stability
 
-            equity_window = np.array(self.equity_history[-30:])
-            returns = np.diff(equity_window) / equity_window[:-1]
-            if len(returns) == 0 or np.std(returns) == 0:
-                return 0.0
+            # Calculate Sharpe only if we have enough data
+            sharpe_reward = 0.0
+            if len(self.equity_history) >= 10:
+                equity_window = np.array(self.equity_history[-30:])
+                returns = np.diff(equity_window) / equity_window[:-1]
+                if len(returns) > 0 and np.std(returns) > 0:
+                    sharpe = np.mean(returns) / (np.std(returns) + 1e-6)
+                    sharpe_reward = sharpe * 0.1  # Small sharpe component
 
-            sharpe = np.mean(returns) / (np.std(returns) + 1e-6)
-            return sharpe
+            return base_reward + step_reward + sharpe_reward
 
         elif self.reward_type == 'sortino':
-            # Sortino ratio (downside risk-adjusted return)
-            if len(self.equity_history) < 10:
-                return 0.0
+            # Sortino ratio (downside risk-adjusted return) + step reward
+            step_reward = 0.0
+            if len(self.equity_history) >= 2:
+                step_return = (self.equity_history[-1] - self.equity_history[-2]) / self.equity_history[-2]
+                step_reward = step_return * 10  # Scale up for learning
 
-            equity_window = np.array(self.equity_history[-30:])
-            returns = np.diff(equity_window) / equity_window[:-1]
-            downside_returns = returns[returns < 0]
+            sortino_reward = 0.0
+            if len(self.equity_history) >= 10:
+                equity_window = np.array(self.equity_history[-30:])
+                returns = np.diff(equity_window) / equity_window[:-1]
+                downside_returns = returns[returns < 0]
 
-            if len(downside_returns) == 0:
-                return np.mean(returns)
+                if len(returns) > 0 and len(downside_returns) > 0:
+                    sortino = np.mean(returns) / (np.std(downside_returns) + 1e-6)
+                    sortino_reward = sortino * 0.1
+                elif len(returns) > 0:
+                    sortino_reward = np.mean(returns) * 0.1
 
-            sortino = np.mean(returns) / (np.std(downside_returns) + 1e-6)
-            return sortino
+            return base_reward + step_reward + sortino_reward
 
         else:
-            return 0.0
+            return base_reward
 
     def render(self):
         """Render environment state"""
         print(f"Step: {self.current_step}/{self.n_steps}")
+
+    def _save_episode_log(self):
+        """Save detailed episode log to file"""
+        if not self.step_log:
+            return
+
+        # Create filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = self.log_dir / f"episode_{self.episode_count:04d}_{timestamp}.jsonl"
+
+        # Save as JSON Lines (one JSON object per line)
+        with open(filename, 'w') as f:
+            for step_data in self.step_log:
+                f.write(json.dumps(step_data) + '\n')
+
+        # Also create summary
+        summary_file = self.log_dir / f"episode_{self.episode_count:04d}_summary.txt"
+        with open(summary_file, 'w') as f:
+            f.write(f"Episode {self.episode_count} Summary\n")
+            f.write("=" * 70 + "\n\n")
+            f.write(f"Total Steps: {len(self.step_log)}\n")
+            f.write(f"Total Trades: {self.total_trades}\n")
+            f.write(f"Winning Trades: {self.winning_trades}\n")
+            f.write(f"Win Rate: {self.winning_trades / max(self.total_trades, 1) * 100:.2f}%\n")
+            f.write(f"Initial Balance: ${self.initial_balance:,.2f}\n")
+            f.write(f"Final Balance: ${self.balance:,.2f}\n")
+            f.write(f"Final Equity: ${self.equity:,.2f}\n")
+            f.write(f"Total PnL: ${self.balance - self.initial_balance:,.2f}\n")
+            f.write(f"Return: {(self.balance - self.initial_balance) / self.initial_balance * 100:+.2f}%\n")
+            f.write("\n" + "=" * 70 + "\n\n")
+            f.write("First 10 Steps:\n")
+            f.write("-" * 70 + "\n")
+            for i, step in enumerate(self.step_log[:10]):
+                f.write(f"Step {step['step']:4d} | {step['action_name']:5s} | ")
+                f.write(f"Price: ${step['price']:8.2f} | Balance: ${step['balance']:10.2f} | ")
+                f.write(f"Reward: {step['total_reward']:+8.4f}\n")
+
+            f.write("\n" + "-" * 70 + "\n")
+            f.write("Last 10 Steps:\n")
+            f.write("-" * 70 + "\n")
+            for i, step in enumerate(self.step_log[-10:]):
+                f.write(f"Step {step['step']:4d} | {step['action_name']:5s} | ")
+                f.write(f"Price: ${step['price']:8.2f} | Balance: ${step['balance']:10.2f} | ")
+                f.write(f"Reward: {step['total_reward']:+8.4f}\n")
+
+        print(f"  [LOG] Episode {self.episode_count} detailed log saved:")
+        print(f"        - {filename}")
+        print(f"        - {summary_file}")
         print(f"Balance: ${self.balance:.2f}")
         print(f"Equity: ${self.equity:.2f}")
         print(f"Position: {self.position}")
@@ -444,3 +821,4 @@ class TradingEnv(gym.Env):
         print(f"Win Rate: {self.winning_trades / max(self.total_trades, 1):.2%}")
         print(f"Total PnL: ${self.total_pnl:.2f}")
         print("-" * 50)
+

@@ -21,6 +21,8 @@ export default function TrainPage() {
   // Form state
   const [selectedDataFile, setSelectedDataFile] = useState('');
   const [modelType, setModelType] = useState('d3qn');
+  const [trainingMode, setTrainingMode] = useState<'episodes' | 'timesteps'>('episodes');
+  const [episodes, setEpisodes] = useState('100');
   const [timesteps, setTimesteps] = useState('100000');
   const [learningRate, setLearningRate] = useState('0.00025');
   const [gamma, setGamma] = useState('0.995');
@@ -171,7 +173,8 @@ export default function TrainPage() {
       const response = await apiClient.startTraining({
         symbols: [selectedDataFile.split('_')[0]],
         model_type: modelType,
-        timesteps: parseInt(timesteps),
+        episodes: trainingMode === 'episodes' ? parseInt(episodes) : undefined,
+        timesteps: trainingMode === 'timesteps' ? parseInt(timesteps) : undefined,
         learning_rate: parseFloat(learningRate),
         gamma: parseFloat(gamma),
         reward_type: rewardType,
@@ -294,24 +297,73 @@ export default function TrainPage() {
                 </p>
               </div>
 
-              {/* Timesteps */}
+              {/* Training Mode Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Training Timesteps *
+                  Training Mode *
                 </label>
-                <input
-                  type="number"
-                  value={timesteps}
-                  onChange={(e) => setTimesteps(e.target.value)}
-                  className="input w-full"
-                  min="1000"
-                  step="1000"
-                  required
-                  disabled={training}
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Recommended: 10,000 (test) | 100,000 (quick) | 1,000,000+ (full training)
-                </p>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setTrainingMode('episodes')}
+                    disabled={training}
+                    className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                      trainingMode === 'episodes'
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-semibold'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-primary-300'
+                    }`}
+                  >
+                    Episodes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTrainingMode('timesteps')}
+                    disabled={training}
+                    className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                      trainingMode === 'timesteps'
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-semibold'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-primary-300'
+                    }`}
+                  >
+                    Timesteps
+                  </button>
+                </div>
+
+                {trainingMode === 'episodes' ? (
+                  <div>
+                    <input
+                      type="number"
+                      value={episodes}
+                      onChange={(e) => setEpisodes(e.target.value)}
+                      className="input w-full"
+                      min="1"
+                      step="1"
+                      required
+                      disabled={training}
+                      placeholder="Number of episodes"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Episodes: Complete runs from start to finish. Recommended: 2 (quick test) | 10 (test) | 100 (quick train) | 1000+ (full training)
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="number"
+                      value={timesteps}
+                      onChange={(e) => setTimesteps(e.target.value)}
+                      className="input w-full"
+                      min="10"
+                      step="10"
+                      required
+                      disabled={training}
+                      placeholder="Number of timesteps"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Timesteps: Individual actions taken. Recommended: 1,000 (quick test) | 10,000 (test) | 100,000 (quick train) | 1,000,000+ (full training)
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Hyperparameters Grid */}
@@ -436,28 +488,28 @@ export default function TrainPage() {
               📊 Model Comparison
             </h3>
             <div className="space-y-3 text-sm">
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
-                <div className="font-semibold text-blue-900 dark:text-blue-100">SAC</div>
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded opacity-60">
+                <div className="font-semibold text-blue-900 dark:text-blue-100">SAC 🚧</div>
                 <div className="text-blue-700 dark:text-blue-300 text-xs mt-1">
-                  Best: 152% returns, Sharpe 2.81
+                  Coming Soon - Best: 152% returns, Sharpe 2.81
                 </div>
               </div>
-              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded">
-                <div className="font-semibold text-green-900 dark:text-green-100">TD3</div>
+              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded opacity-60">
+                <div className="font-semibold text-green-900 dark:text-green-100">TD3 🚧</div>
                 <div className="text-green-700 dark:text-green-300 text-xs mt-1">
-                  Risk control: -63% drawdown
+                  Coming Soon - Risk control: -63% drawdown
                 </div>
               </div>
-              <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded">
-                <div className="font-semibold text-purple-900 dark:text-purple-100">PPO</div>
+              <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded opacity-60">
+                <div className="font-semibold text-purple-900 dark:text-purple-100">PPO 🚧</div>
                 <div className="text-purple-700 dark:text-purple-300 text-xs mt-1">
-                  Stable and widely used
+                  Coming Soon - Stable and widely used
                 </div>
               </div>
-              <div className="p-3 bg-gray-50 dark:bg-gray-900/20 rounded">
-                <div className="font-semibold text-gray-900 dark:text-gray-100">D3QN</div>
+              <div className="p-3 bg-gray-50 dark:bg-gray-900/20 rounded border-2 border-green-500">
+                <div className="font-semibold text-gray-900 dark:text-gray-100">D3QN ✅</div>
                 <div className="text-gray-700 dark:text-gray-300 text-xs mt-1">
-                  Proven discrete action RL
+                  Proven discrete action RL (Available)
                 </div>
               </div>
             </div>
@@ -468,10 +520,11 @@ export default function TrainPage() {
               💡 Training Tips
             </h3>
             <ul className="text-sm text-yellow-800 dark:text-yellow-200 space-y-2">
-              <li>• Start with 10k timesteps for testing</li>
-              <li>• Use SAC for best performance</li>
+              <li>• Start with 2-10 episodes for quick testing</li>
+              <li>• Episodes mode: easier to understand progress</li>
+              <li>• Timesteps mode: more control over total steps</li>
+              <li>• Currently only D3QN is fully implemented</li>
               <li>• GPU speeds up training 10-20x</li>
-              <li>• Monitor progress in real-time</li>
               <li>• Sharpe ratio balances risk/reward</li>
             </ul>
           </div>

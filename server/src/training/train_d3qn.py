@@ -70,13 +70,18 @@ print("[DEBUG] All imports successful!")
 class TrainingLogger:
     """Simple logger for training metrics"""
 
-    def __init__(self, log_dir: str = "logs"):
-        self.log_dir = Path(log_dir)
+    def __init__(self, log_dir: str | Path = "logs"):
+        # Get project root (parent of server/)
+        project_root = Path(__file__).resolve().parent.parent.parent.parent
+        log_dir_path = Path(log_dir)
+        if not log_dir_path.is_absolute():
+            log_dir_path = project_root / log_dir_path
+        self.log_dir = log_dir_path
         self.log_dir.mkdir(exist_ok=True, parents=True)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.log_file = self.log_dir / f"training_{timestamp}.log"
-        self.metrics_file = self.log_dir / f"metrics_{timestamp}.json"
+        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.log_file = self.log_dir / f"training_{self.timestamp}.log"
+        self.metrics_file = self.log_dir / f"metrics_{self.timestamp}.json"
 
         self.metrics = {
             'episodes': [],
@@ -125,6 +130,28 @@ class TrainingLogger:
         with open(self.metrics_file, 'w') as f:
             json.dump(metrics_native, f, indent=2)
 
+    def save_trade_log(self, trades: List[Dict], label: str = "trades"):
+        """Persist trade history to JSON"""
+        if not trades:
+            return
+
+        import numpy as np
+
+        def convert(value):
+            if isinstance(value, (np.integer, int)):
+                return int(value)
+            if isinstance(value, (np.floating, float)):
+                return float(value)
+            if isinstance(value, np.ndarray):
+                return value.tolist()
+            return value
+
+        serialized = [{k: convert(v) for k, v in trade.items()} for trade in trades]
+        trade_file = self.log_dir / f"{label}_{self.timestamp}.json"
+        with open(trade_file, 'w', encoding='utf-8') as f:
+            json.dump(serialized, f, indent=2)
+        self.log(f"[INFO] Trade log saved: {trade_file}")
+
 
 def train_d3qn(
     symbol: str = "BTCUSDT",
@@ -168,7 +195,8 @@ def train_d3qn(
         log_dir: Directory for logs
     """
     # Initialize logger
-    logger = TrainingLogger(log_dir)
+    log_path = Path(log_dir) / "training"
+    logger = TrainingLogger(log_path)
     logger.log("=" * 60)
     logger.log("D3QN Crypto Futures Trading - Training")
     logger.log("=" * 60)
@@ -181,9 +209,12 @@ def train_d3qn(
     logger.log(f"Reward Type: {reward_type}")
     logger.log("=" * 60)
 
-    # Create checkpoint directory
-    checkpoint_path = Path(checkpoint_dir)
+    # Create checkpoint directory (relative to project root, not cwd)
+    # Get project root (parent of server/)
+    project_root = Path(__file__).resolve().parent.parent.parent.parent
+    checkpoint_path = project_root / checkpoint_dir
     checkpoint_path.mkdir(exist_ok=True, parents=True)
+    logger.log(f"[INFO] Checkpoints will be saved to: {checkpoint_path}")
 
     # Load market data
     logger.log("\n[DATA] Loading market data...")
@@ -262,6 +293,13 @@ def train_d3qn(
     episode_rewards = []
 
     for episode in range(1, episodes + 1):
+        # Enable detailed logging for last episode
+        if episode == episodes:
+            logger.log("\n" + "=" * 60)
+            logger.log("[DEBUG] FINAL EPISODE - Enabling detailed logging")
+            logger.log("=" * 60)
+            train_env.enable_detailed_logging = True
+
         # Reset environment
         state, info = train_env.reset()
         state = state.flatten()  # Flatten state for agent
@@ -360,6 +398,7 @@ def train_d3qn(
 
     # Final test
     logger.log("\n[TEST] Final evaluation on test set...")
+    logger.log("[DEBUG] Enabling detailed logging for test episodes...")
     test_env = TradingEnv(
         data=test_data,
         initial_balance=initial_balance,
@@ -367,6 +406,7 @@ def train_d3qn(
         window_size=window_size,
         reward_type=reward_type
     )
+    test_env.enable_detailed_logging = True
 
     test_reward, test_info = evaluate_agent(agent, test_env, episodes=10)
     logger.log(
@@ -383,8 +423,13 @@ def train_d3qn(
 
     # Save metrics
     logger.save_metrics()
+    logger.save_trade_log(train_env.trade_log, "train_trades")
+    logger.save_trade_log(test_env.trade_log, "test_trades")
     logger.log(f"[INFO] Metrics saved: {logger.metrics_file}")
     logger.log(f"[INFO] Logs saved: {logger.log_file}")
+    logger.log(f"\n[INFO] Detailed episode logs saved to: {project_root / 'logs'}")
+    logger.log(f"  - episode_XXXX_*.jsonl (step-by-step data in JSON Lines format)")
+    logger.log(f"  - episode_XXXX_summary.txt (human-readable summary)")
 
     logger.log("\n[COMPLETE] Done!")
 

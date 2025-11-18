@@ -9,6 +9,8 @@ import asyncio
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 import uuid
+from pathlib import Path
+import json
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,6 +22,36 @@ import numpy as np
 
 # Add server/src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+
+# Setup logging
+from utils.logging_config import get_server_logger, get_training_logger
+server_logger = get_server_logger()
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+LOG_ROOT = PROJECT_ROOT / "logs"
+TRAIN_LOG_DIR = LOG_ROOT / "training"
+BACKTEST_LOG_DIR = LOG_ROOT / "backtest"
+PAPER_LOG_DIR = LOG_ROOT / "paper"
+for directory in (TRAIN_LOG_DIR, BACKTEST_LOG_DIR, PAPER_LOG_DIR):
+    directory.mkdir(parents=True, exist_ok=True)
+
+
+def serialize_trade_records(trades: List[Dict]) -> List[Dict]:
+    """Convert environment trade logs to JSON serializable rows."""
+    serialized = []
+    for trade in trades:
+        record = {}
+        for key, value in trade.items():
+            if isinstance(value, (np.integer, int)):
+                record[key] = int(value)
+            elif isinstance(value, (np.floating, float)):
+                record[key] = float(value)
+            elif isinstance(value, np.ndarray):
+                record[key] = value.tolist()
+            else:
+                record[key] = value
+        serialized.append(record)
+    return serialized
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -152,12 +184,26 @@ async def get_config():
 @app.get("/api/system/info")
 async def system_info():
     """Get system information"""
-    import torch
+    # Try to import PyTorch with error handling for Windows DLL issues
+    torch_info = {
+        "cuda_available": False,
+        "cuda_device": None,
+        "num_gpus": 0,
+        "torch_error": None
+    }
+
+    try:
+        import torch
+        torch_info["cuda_available"] = torch.cuda.is_available()
+        torch_info["cuda_device"] = torch.cuda.get_device_name(0) if torch.cuda.is_available() else None
+        torch_info["num_gpus"] = torch.cuda.device_count() if torch.cuda.is_available() else 0
+    except Exception as e:
+        # Common on Windows: Missing Visual C++ Redistributable or CUDA libraries
+        torch_info["torch_error"] = str(e)
+        server_logger.warning(f"[System] PyTorch import failed: {e}")
 
     return {
-        "cuda_available": torch.cuda.is_available(),
-        "cuda_device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
-        "num_gpus": torch.cuda.device_count() if torch.cuda.is_available() else 0,
+        **torch_info,
         "python_version": sys.version,
         "timeframe": config["data"]["timeframe"],
         "supported_symbols": config["data"]["symbols"]
@@ -846,12 +892,24 @@ async def train_d3qn_task(task_id: str, request: TrainModelRequest):
 async def backtest_task(task_id: str, request: BacktestRequest):
     """Background task to run backtest on trained model"""
     try:
+        # Fix sys.path for imports (critical for background tasks)
+        import sys
+        import os
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        src_path = os.path.join(current_dir, 'src')
+        if src_path not in sys.path:
+            sys.path.insert(0, src_path)
+
         import torch
         import numpy as np
         from pathlib import Path
-        from src.agent.d3qn_agent import D3QNAgent
-        from src.policy.trading_env import TradingEnv
-        from src.data.loader import load_market_data, prepare_env_data, create_sample_data
+        from agent.d3qn_agent import D3QNAgent
+        from policy.trading_env import TradingEnv
+        from data.loader import load_market_data, prepare_env_data, create_sample_data
+        from utils.logging_config import get_server_logger
+
+        logger = get_server_logger()
+        logger.info(f"[Backtest] Starting backtest task: {task_id}")
 
         # Initialize
         background_tasks_status[task_id]["status"] = "running"
@@ -954,8 +1012,15 @@ async def backtest_task(task_id: str, request: BacktestRequest):
         obs_shape = env.observation_space.shape
         n_actions = env.action_space.n
 
+        # Calculate flattened state dimension (window_size * features)
+        # obs_shape = (72, 21) -> state_dim = 72 * 21 = 1512
+        state_dim = obs_shape[0] * obs_shape[1] if len(obs_shape) > 1 else obs_shape[0]
+
+        logger.info(f"[Backtest] Observation shape: {obs_shape}, State dim: {state_dim}, Actions: {n_actions}")
+        print(f"[Backtest] Observation shape: {obs_shape}, State dim: {state_dim}, Actions: {n_actions}")
+
         agent = D3QNAgent(
-            state_dim=obs_shape[0],
+            state_dim=state_dim,
             action_dim=n_actions,
             learning_rate=0.00025,  # Default, not used in evaluation
             gamma=0.995,
@@ -1010,12 +1075,15 @@ async def backtest_task(task_id: str, request: BacktestRequest):
 
             # Select action using the trained agent (no exploration)
             with torch.no_grad():
-                state_tensor = torch.FloatTensor(state).unsqueeze(0).to(device)
+                # Flatten state if it's 2D (window_size, features) -> (window_size * features,)
+                state_flat = state.flatten() if len(state.shape) > 1 else state
+                state_tensor = torch.FloatTensor(state_flat).unsqueeze(0).to(device)
                 q_values = agent.policy_net(state_tensor)
                 action = q_values.argmax(dim=1).item()
 
-            # Take action
-            next_state, reward, done, truncated, info = env.step(action)
+            # Take action (Gymnasium API returns: observation, reward, terminated, truncated, info)
+            next_state, reward, terminated, truncated, info = env.step(action)
+            done = terminated or truncated  # Episode ends if either is True
             episode_reward += reward
 
             # Get current price (close price at index 3 in OHLCV data)
@@ -1109,6 +1177,8 @@ async def backtest_task(task_id: str, request: BacktestRequest):
         winning_trades = int(total_trades * (win_rate / 100)) if total_trades > 0 else 0
         losing_trades = total_trades - winning_trades
 
+        trade_history = serialize_trade_records(getattr(env, "trade_log", []))
+
         results = {
             "summary": {
                 "total_return_pct": round(total_return_pct, 2),
@@ -1129,10 +1199,20 @@ async def backtest_task(task_id: str, request: BacktestRequest):
                 "profit_factor": round(profit_factor, 2)
             },
             "chart_data": chart_data,
-            "trade_history": []  # Simplified: no detailed trade history for now
+            "trade_history": trade_history
         }
 
         print(f"[Backtest] Results: Return={total_return_pct:.2f}%, Trades={total_trades}, Win Rate={win_rate:.2f}%")
+        log_payload = {
+            "task_id": task_id,
+            "request": request.dict(),
+            "results": results,
+            "timestamp": datetime.now().isoformat()
+        }
+        log_file = BACKTEST_LOG_DIR / f"backtest_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{task_id}.json"
+        with open(log_file, 'w', encoding='utf-8') as f:
+            json.dump(log_payload, f, indent=2)
+        print(f"[Backtest] Log saved to: {log_file}")
 
         # Store results
         background_tasks_status[task_id]["results"] = results
@@ -1155,6 +1235,16 @@ async def backtest_task(task_id: str, request: BacktestRequest):
     except Exception as e:
         import traceback
         error_msg = f"Backtest failed: {str(e)}"
+
+        # Log to file
+        try:
+            from utils.logging_config import get_server_logger
+            logger = get_server_logger()
+            logger.error(f"[Backtest] Error in task {task_id}: {error_msg}")
+            logger.error(traceback.format_exc())
+        except:
+            pass
+
         print(f"[Backtest] Error: {e}")
         traceback.print_exc()
 
@@ -1315,7 +1405,7 @@ async def download_data_task(task_id: str, request: DataDownloadRequest):
                         else:
                             await asyncio.sleep(2 ** retry_count)  # Exponential backoff
 
-                print(f"  ✓ Downloaded {len(all_candles)} total candles for {symbol} (expected ~{expected_candles})")
+                print(f"  [OK] Downloaded {len(all_candles)} total candles for {symbol} (expected ~{expected_candles})")
 
                 # Warn if we got significantly fewer candles than expected
                 if len(all_candles) < expected_candles * 0.8:
@@ -1577,313 +1667,249 @@ async def paper_trading_task(config: dict):
     """Background task for paper trading simulation"""
     try:
         import ccxt
-        import random
+        from pathlib import Path
+        import torch
+        from agent.d3qn_agent import D3QNAgent
+        from policy.trading_env import TradingEnv
+        from data.loader import prepare_env_data
+        from stable_baselines3 import PPO, SAC, TD3
         from datetime import datetime
 
-        # Initialize
         symbol = config["symbol"]
+        model_path = Path(config["model_path"])
+        if not model_path.exists():
+            raise FileNotFoundError(f"Model not found: {model_path}")
+
         initial_balance = config["initial_balance"]
         max_leverage = config["max_leverage"]
         fee_rate = config["fee_rate"]
-        update_interval = config.get("update_interval", 2)  # Default 2 seconds for smooth updates
-
-        # Trading state
-        balance = initial_balance
-        position = None  # None or {'direction': 'LONG'/'SHORT', 'entry_price': ..., ...}
-        position_history = []
-        trades = []
-        chart_data = []
+        update_interval = config.get("update_interval", 2)
+        window_size = config.get("window_size", 72)
 
         # Initialize exchange
         exchange = ccxt.binance()
 
-        # Fetch initial candles (1 minute timeframe for smooth display)
-        # Get more historical data for model calculations (1000 candles = ~16 hours)
-        ohlcv = exchange.fetch_ohlcv(symbol, '1m', limit=1000)
-        for candle in ohlcv:
-            chart_data.append({
-                "time": int(candle[0] / 1000),
-                "open": candle[1],
-                "high": candle[2],
-                "low": candle[3],
-                "close": candle[4],
-                "volume": candle[5]
+        # Fetch historical candles for context
+        ohlcv = exchange.fetch_ohlcv(symbol, '1m', limit=max(window_size + 10, 1000))
+        chart_data = [{
+            "time": int(candle[0] / 1000),
+            "open": candle[1],
+            "high": candle[2],
+            "low": candle[3],
+            "close": candle[4],
+            "volume": candle[5]
+        } for candle in ohlcv]
+
+        run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        paper_log_file = PAPER_LOG_DIR / f"paper_{run_id}.log"
+        paper_trade_file = PAPER_LOG_DIR / f"paper_trades_{run_id}.jsonl"
+
+        def log_event(message: str):
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            with open(paper_log_file, 'a', encoding='utf-8') as f:
+                f.write(f"{timestamp} - {message}\n")
+
+        async def broadcast_initial():
+            await ws_manager.broadcast({
+                "type": "paper_trading_update",
+                "candle": chart_data[-1] if chart_data else None
             })
 
-        # Send initial chart data
-        await ws_manager.broadcast({
-            "type": "paper_trading_update",
-            "candle": chart_data[-1] if chart_data else None
-        })
+        await broadcast_initial()
+        log_event(f"Paper trading started for {symbol} (model={model_path})")
 
-        step = 0
-        last_candle_time = None
-        last_position_close_time = 0  # Cooldown to prevent opening positions too frequently
+        df = pd.DataFrame(chart_data)
+        df['timestamp'] = pd.to_datetime(df['time'], unit='s')
+        env_data = prepare_env_data(df[['timestamp', 'open', 'high', 'low', 'close', 'volume']], add_indicators=True, normalize=True)
+        if len(env_data) <= window_size:
+            raise RuntimeError("Not enough data to start paper trading")
+
+        env = TradingEnv(
+            data=env_data,
+            initial_balance=initial_balance,
+            max_leverage=max_leverage,
+            fee_rate=fee_rate,
+            window_size=window_size,
+            reward_type="sharpe",
+            streaming_mode=True
+        )
+        env.reset(options={"start_index": window_size})
+
+        obs_shape = env.observation_space.shape
+        state_dim = int(np.prod(obs_shape))
+        action_dim = env.action_space.n
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        sb3_model = None
+        agent = None
+        if model_path.suffix.lower() == ".zip":
+            for cls in (PPO, SAC, TD3):
+                try:
+                    sb3_model = cls.load(str(model_path))
+                    break
+                except Exception:
+                    sb3_model = None
+            if sb3_model is None:
+                raise RuntimeError("Unsupported SB3 checkpoint")
+        else:
+            agent = D3QNAgent(
+                state_dim=state_dim,
+                action_dim=action_dim,
+                learning_rate=0.00025,
+                gamma=0.995,
+                device=device
+            )
+            agent.load(str(model_path))
+            agent.policy_net.eval()
+
+        def format_trades(timestamps: List[pd.Timestamp]):
+            rows = []
+            for idx, trade in enumerate(env.trade_log[-20:], 1):
+                entry_idx = min(trade["entry_step"], len(timestamps) - 1)
+                exit_idx = min(trade["exit_step"], len(timestamps) - 1)
+                exit_time = int(timestamps[exit_idx].timestamp())
+                rows.append({
+                    "id": str(idx),
+                    "timestamp": exit_time,
+                    "action": f"CLOSE_{trade['direction'].upper()}",
+                    "position": trade["direction"].upper(),
+                    "entry_price": trade["entry_price"],
+                    "exit_price": trade["exit_price"],
+                    "current_price": trade["exit_price"],
+                    "quantity": trade["quantity"],
+                    "leverage": trade["leverage"],
+                    "liquidation_price": 0,
+                    "take_profit": 0,
+                    "stop_loss": 0,
+                    "break_even": 0,
+                    "pnl": trade["pnl"],
+                    "pnl_pct": trade["pnl_pct"],
+                    "balance": env.balance,
+                    "status": "CLOSED"
+                })
+            return rows
+
+        last_candle_time = chart_data[-1]["time"] if chart_data else None
+        last_logged_trade_idx = 0
+
+        def flush_trades():
+            nonlocal last_logged_trade_idx
+            trades = getattr(env, "trade_log", [])
+            if len(trades) <= last_logged_trade_idx:
+                return
+            new_trades = serialize_trade_records(trades[last_logged_trade_idx:])
+            with open(paper_trade_file, 'a', encoding='utf-8') as f:
+                for record in new_trades:
+                    f.write(json.dumps(record) + "\n")
+            last_logged_trade_idx = len(trades)
 
         while paper_trading_state["active"]:
-            step += 1
-
-            # Fetch latest price
             ticker = exchange.fetch_ticker(symbol)
             current_price = ticker['last']
-
-            # Calculate current 1-minute candle timestamp (aligned to minute)
             current_timestamp = int(datetime.now().timestamp())
-            current_candle_time = (current_timestamp // 60) * 60  # Align to minute boundary
+            current_candle_time = (current_timestamp // 60) * 60
 
-            # Check if we need to create a new candle or update existing one
             if last_candle_time is None or current_candle_time != last_candle_time:
-                # New 1-minute candle
                 new_candle = {
                     "time": current_candle_time,
                     "open": current_price,
                     "high": current_price,
                     "low": current_price,
                     "close": current_price,
-                    "volume": ticker.get('baseVolume', random.uniform(1000, 10000))
+                    "volume": ticker.get('baseVolume', 0)
                 }
                 chart_data.append(new_candle)
-                last_candle_time = current_candle_time
+                if len(chart_data) > 1000:
+                    chart_data = chart_data[-1000:]
 
-                # Keep last 500 candles
-                if len(chart_data) > 500:
-                    chart_data = chart_data[-500:]
-            else:
-                # Update current candle (same minute)
-                if len(chart_data) > 0:
-                    current_candle = chart_data[-1]
-                    current_candle['high'] = max(current_candle['high'], current_price)
-                    current_candle['low'] = min(current_candle['low'], current_price)
-                    current_candle['close'] = current_price
-                    current_candle['volume'] = ticker.get('baseVolume', current_candle.get('volume', 0))
-                    new_candle = current_candle
-                else:
-                    # Fallback if chart_data is empty
-                    new_candle = {
-                        "time": current_candle_time,
-                        "open": current_price,
-                        "high": current_price,
-                        "low": current_price,
-                        "close": current_price,
-                        "volume": ticker.get('baseVolume', random.uniform(1000, 10000))
-                    }
-                    chart_data.append(new_candle)
+                df = pd.DataFrame(chart_data)
+                df['timestamp'] = pd.to_datetime(df['time'], unit='s')
+                env_data = prepare_env_data(df[['timestamp', 'open', 'high', 'low', 'close', 'volume']], add_indicators=True, normalize=True)
+                if len(env_data) <= window_size:
                     last_candle_time = current_candle_time
+                    await asyncio.sleep(update_interval)
+                    continue
 
-            # Trading logic (simplified - using random decisions)
-            action = random.choice([0, 1, 2, 3])  # HOLD, OPEN_LONG, OPEN_SHORT, CLOSE_POSITION
+                env.data = env_data.astype(np.float32)
+                env.n_steps = len(env_data)
+                env.current_step = env.n_steps - 1
 
-            # Check if should close position (TP/SL/Liquidation)
-            if position:
-                unrealized_pnl = 0
-                if position['direction'] == 'LONG':
-                    unrealized_pnl = (current_price - position['entry_price']) * position['quantity']
+                observation = env._get_observation()
+                if sb3_model:
+                    action, _ = sb3_model.predict(observation, deterministic=True)
+                    action = int(action)
                 else:
-                    unrealized_pnl = (position['entry_price'] - current_price) * position['quantity']
+                    action = agent.select_action(observation.flatten(), training=False)
+                action = int(np.clip(action, 0, action_dim - 1))
 
-                # Check TP/SL
-                close_reason = None
-                if position['direction'] == 'LONG':
-                    if current_price >= position['take_profit']:
-                        close_reason = 'Take Profit'
-                    elif current_price <= position['stop_loss']:
-                        close_reason = 'Stop Loss'
-                    elif current_price <= position['liquidation_price']:
-                        close_reason = 'Liquidated'
-                else:
-                    if current_price <= position['take_profit']:
-                        close_reason = 'Take Profit'
-                    elif current_price >= position['stop_loss']:
-                        close_reason = 'Stop Loss'
-                    elif current_price >= position['liquidation_price']:
-                        close_reason = 'Liquidated'
+                env.step(action)
+                timestamps = df['timestamp'].tolist()
 
-                # Close position if needed
-                if close_reason or action == 3:
-                    # Calculate final P&L
-                    exit_price = current_price
-                    if position['direction'] == 'LONG':
-                        pnl = (exit_price - position['entry_price']) * position['quantity']
-                    else:
-                        pnl = (position['entry_price'] - exit_price) * position['quantity']
+                unrealized = env._calculate_position_pnl()
+                equity = env.balance + unrealized
 
-                    # Deduct closing fee
-                    closing_fee = exit_price * position['quantity'] * fee_rate
-                    pnl -= closing_fee
+                returns = np.diff(env.equity_history) / np.maximum(env.equity_history[:-1], 1e-8) if len(env.equity_history) > 1 else np.array([0])
+                sharpe = float(np.mean(returns) / (np.std(returns) + 1e-8) * np.sqrt(252 * 24)) if len(returns) > 0 else 0.0
+                eq_array = np.array(env.equity_history)
+                running_max = np.maximum.accumulate(eq_array)
+                drawdowns = (eq_array - running_max) / np.maximum(running_max, 1e-8)
+                max_drawdown = float(abs(drawdowns.min()) * 100) if len(drawdowns) > 0 else 0.0
 
-                    balance += pnl
-                    pnl_pct = (pnl / (position['entry_price'] * position['quantity'] / position['leverage'])) * 100
+                current_position_data = None
+                if env.position:
+                    current_position_data = {
+                        "direction": env.position.upper(),
+                        "entry_price": env.entry_price,
+                        "current_price": current_price,
+                        "quantity": env.position_size,
+                        "leverage": env.current_leverage,
+                        "liquidation_price": env.liquidation_price,
+                        "take_profit": env.take_profit,
+                        "stop_loss": env.stop_loss,
+                        "break_even": env.break_even,
+                        "unrealized_pnl": unrealized,
+                        "unrealized_pnl_pct": (unrealized / max(env.entry_price * env.position_size / max(env.current_leverage, 1e-8), 1e-8)) * 100 if env.entry_price and env.position_size else 0.0,
+                        "margin_used": env.balance / max(env.current_leverage, 1) if env.current_leverage else 0.0,
+                        "duration_hours": env.hold_duration
+                    }
 
-                    # Add to history
-                    position_history.append({
-                        "id": str(len(position_history) + 1),
-                        "direction": position['direction'],
-                        "entry_price": position['entry_price'],
-                        "exit_price": exit_price,
-                        "entry_time": position['entry_time'],
-                        "exit_time": current_timestamp,
-                        "quantity": position['quantity'],
-                        "leverage": position['leverage'],
-                        "pnl": pnl,
-                        "pnl_pct": pnl_pct,
-                        "duration_hours": int((current_timestamp - position['entry_time']) / 3600),
-                        "exit_reason": close_reason or 'Manual Close'
-                    })
+                trade_rows = format_trades(timestamps)
+                flush_trades()
 
-                    # Add trade
-                    trades.append({
-                        "id": str(len(trades) + 1),
-                        "timestamp": current_timestamp,
-                        "action": f"CLOSE_{position['direction']}",
-                        "position": position['direction'],
-                        "entry_price": position['entry_price'],
-                        "exit_price": exit_price,
-                        "current_price": exit_price,
-                        "quantity": position['quantity'],
-                        "leverage": position['leverage'],
-                        "liquidation_price": position['liquidation_price'],
-                        "take_profit": position['take_profit'],
-                        "stop_loss": position['stop_loss'],
-                        "break_even": position['break_even'],
-                        "pnl": pnl,
-                        "pnl_pct": pnl_pct,
-                        "balance": balance,
-                        "status": "CLOSED"
-                    })
-
-                    position = None
-                    last_position_close_time = current_timestamp  # Record close time for cooldown
-
-            # Open new position (random for demo)
-            # Add cooldown: must wait at least 60 seconds after closing position
-            # Reduce probability from 30% to 5% to prevent spam
-            time_since_last_close = current_timestamp - last_position_close_time
-            can_open_new_position = (not position and
-                                     action in [1, 2] and
-                                     time_since_last_close >= 60 and  # 60 second cooldown
-                                     random.random() < 0.05)  # 5% chance (was 30%)
-
-            if can_open_new_position:
-                direction = 'LONG' if action == 1 else 'SHORT'
-                leverage = max_leverage
-                position_value = balance * random.uniform(0.3, 0.7) * leverage
-                quantity = position_value / current_price
-                fee = position_value * fee_rate
-
-                # Calculate price levels
-                margin_ratio = 1.0 / leverage
-                if direction == 'LONG':
-                    liquidation_price = current_price * (1 - margin_ratio * 0.9)
-                    take_profit = current_price * random.uniform(1.01, 1.03)
-                    stop_loss = current_price * random.uniform(0.97, 0.99)
-                    break_even = current_price * (1 + fee_rate * 2)
-                else:
-                    liquidation_price = current_price * (1 + margin_ratio * 0.9)
-                    take_profit = current_price * random.uniform(0.97, 0.99)
-                    stop_loss = current_price * random.uniform(1.01, 1.03)
-                    break_even = current_price * (1 - fee_rate * 2)
-
-                balance -= fee
-
-                position = {
-                    'direction': direction,
-                    'entry_price': current_price,
-                    'entry_time': current_timestamp,
-                    'quantity': quantity,
-                    'leverage': leverage,
-                    'liquidation_price': liquidation_price,
-                    'take_profit': take_profit,
-                    'stop_loss': stop_loss,
-                    'break_even': break_even,
-                    'margin_used': position_value / leverage
-                }
-
-                # Add trade
-                trades.append({
-                    "id": str(len(trades) + 1),
-                    "timestamp": current_timestamp,
-                    "action": f"OPEN_{direction}",
-                    "position": direction,
-                    "entry_price": current_price,
-                    "exit_price": None,
-                    "current_price": current_price,
-                    "quantity": quantity,
-                    "leverage": leverage,
-                    "liquidation_price": liquidation_price,
-                    "take_profit": take_profit,
-                    "stop_loss": stop_loss,
-                    "break_even": break_even,
-                    "pnl": -fee,
-                    "pnl_pct": -fee / balance * 100,
-                    "balance": balance,
-                    "status": "OPEN"
+                await ws_manager.broadcast({
+                    "type": "paper_trading_update",
+                    "metrics": {
+                        "balance": env.balance,
+                        "initial_balance": initial_balance,
+                        "total_profit": env.balance - initial_balance,
+                        "total_return": ((equity - initial_balance) / initial_balance) * 100,
+                        "win_rate": env.winning_trades / max(env.total_trades, 1) * 100,
+                        "total_trades": env.total_trades,
+                        "winning_trades": env.winning_trades,
+                        "losing_trades": env.total_trades - env.winning_trades,
+                        "max_drawdown": max_drawdown,
+                        "sharpe_ratio": sharpe,
+                        "current_position": env.position.upper() if env.position else "NEUTRAL",
+                        "position_size": env.position_size if env.position else 0,
+                        "unrealized_pnl": unrealized
+                    },
+                    "currentPosition": current_position_data,
+                    "candle": new_candle,
+                    "trades": trade_rows,
+                    "positionHistory": trade_rows[-10:]
                 })
 
-            # Calculate metrics
-            total_trades = len([t for t in trades if 'CLOSE' in t['action']])
-            winning_trades = len([t for t in trades if 'CLOSE' in t['action'] and t['pnl'] > 0])
-            total_pnl = sum([t['pnl'] for t in trades if 'CLOSE' in t['action']])
-            win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
+                last_candle_time = current_candle_time
 
-            unrealized_pnl = 0
-            if position:
-                if position['direction'] == 'LONG':
-                    unrealized_pnl = (current_price - position['entry_price']) * position['quantity']
-                else:
-                    unrealized_pnl = (position['entry_price'] - current_price) * position['quantity']
-
-            equity = balance + unrealized_pnl
-
-            # Prepare current position data
-            current_position_data = None
-            if position:
-                unrealized_pnl_pct = (unrealized_pnl / (position['entry_price'] * position['quantity'] / position['leverage'])) * 100
-                duration_hours = int((current_timestamp - position['entry_time']) / 3600)
-
-                current_position_data = {
-                    'direction': position['direction'],
-                    'entry_price': position['entry_price'],
-                    'current_price': current_price,
-                    'quantity': position['quantity'],
-                    'leverage': position['leverage'],
-                    'liquidation_price': position['liquidation_price'],
-                    'take_profit': position['take_profit'],
-                    'stop_loss': position['stop_loss'],
-                    'break_even': position['break_even'],
-                    'unrealized_pnl': unrealized_pnl,
-                    'unrealized_pnl_pct': unrealized_pnl_pct,
-                    'margin_used': position['margin_used'],
-                    'duration_hours': duration_hours
-                }
-
-            # Send WebSocket update
-            await ws_manager.broadcast({
-                "type": "paper_trading_update",
-                "metrics": {
-                    "balance": balance,
-                    "initial_balance": initial_balance,
-                    "total_profit": total_pnl,
-                    "total_return": ((equity - initial_balance) / initial_balance) * 100,
-                    "win_rate": win_rate,
-                    "total_trades": total_trades,
-                    "winning_trades": winning_trades,
-                    "losing_trades": total_trades - winning_trades,
-                    "current_position": position['direction'] if position else 'NEUTRAL',
-                    "position_size": position['quantity'] if position else 0,
-                    "unrealized_pnl": unrealized_pnl
-                },
-                "currentPosition": current_position_data,
-                "candle": new_candle,
-                "trades": trades[-20:],  # Last 20 trades
-                "positionHistory": position_history[-10:]  # Last 10 closed positions
-            })
-
-            # Wait for next update
             await asyncio.sleep(update_interval)
+
+        flush_trades()
+        log_event("Paper trading stopped normally")
 
     except Exception as e:
         print(f"Paper trading error: {e}")
         paper_trading_state["active"] = False
+        log_event(f"Paper trading stopped due to error: {e}")
         await ws_manager.broadcast({
             "type": "paper_trading_stopped",
             "message": f"Paper trading stopped due to error: {str(e)}"
@@ -2036,34 +2062,61 @@ async def websocket_endpoint(websocket: WebSocket):
     """WebSocket for real-time updates"""
     client_host = websocket.client.host if websocket.client else "unknown"
     client_port = websocket.client.port if websocket.client else "unknown"
+
+    server_logger.info(f"[WebSocket] Connection attempt from {client_host}:{client_port}")
     print(f"[WebSocket] Connection attempt from {client_host}:{client_port}")
 
     try:
+        # Log headers for debugging
+        headers = dict(websocket.headers)
+        server_logger.debug(f"[WebSocket] Headers: {headers}")
+
         print(f"[WebSocket] Accepting connection...")
         await ws_manager.connect(websocket)
+
+        server_logger.info(f"[WebSocket] Client connected: {client_host}:{client_port}")
         print(f"[WebSocket] Client connected: {client_host}:{client_port}")
+
+        # Send welcome message
+        await websocket.send_json({
+            "type": "connected",
+            "message": "WebSocket connection established"
+        })
 
         try:
             while True:
-                # Keep connection alive
+                # Keep connection alive and receive messages
                 data = await websocket.receive_text()
-                print(f"[WebSocket] Received from {client_host}: {data[:50]}...")
-                # Echo back for testing
-                await websocket.send_json({"type": "echo", "data": data})
+                print(f"[WebSocket] Received from {client_host}: {data[:50] if len(data) > 50 else data}")
+
+                # Parse and handle message
+                try:
+                    import json
+                    msg = json.loads(data)
+                    if msg.get('type') == 'ping':
+                        await websocket.send_json({"type": "pong"})
+                except:
+                    # Echo back for testing
+                    await websocket.send_json({"type": "echo", "data": data})
+
         except WebSocketDisconnect:
+            server_logger.info(f"[WebSocket] Client disconnected: {client_host}:{client_port}")
             print(f"[WebSocket] Client disconnected: {client_host}:{client_port}")
             ws_manager.disconnect(websocket)
         except Exception as e:
+            server_logger.error(f"[WebSocket] Error in message loop: {type(e).__name__}: {e}")
             print(f"[WebSocket] Error in message loop: {type(e).__name__}: {e}")
             import traceback
             traceback.print_exc()
             ws_manager.disconnect(websocket)
+
     except Exception as e:
+        server_logger.error(f"[WebSocket] Failed to establish connection: {type(e).__name__}: {e}")
         print(f"[WebSocket] Failed to accept connection: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
         try:
-            await websocket.close(code=1008, reason=str(e)[:100])
+            await websocket.close(code=1011, reason=str(e)[:100])
         except:
             pass
 
@@ -2078,14 +2131,36 @@ if __name__ == "__main__":
     print("CRYPPO System - Backend Server")
     print("Version: 2.0.0 | Timeframe: 1H Only")
     print("=" * 60)
+
+    # Check for websockets package
+    websockets_available = False
+    try:
+        import websockets
+        print(f"\n[OK] WebSocket support: websockets {websockets.__version__}")
+        websockets_available = True
+    except ImportError:
+        print("\n[ERROR] websockets package not installed!")
+        print("  WebSocket connections will fail with 400 Bad Request")
+        print("\n  To fix, run:")
+        print("    pip install websockets>=12.0")
+        print("    OR")
+        print("    pip install -r requirements.txt")
+        print("\n  Starting server anyway (REST API will work, WebSocket won't)...")
+
     print("\nStarting server...")
     print("API Docs: http://localhost:8000/docs")
     print("WebSocket: ws://localhost:8000/ws")
     print("=" * 60)
 
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000,
-        log_level="info"
-    )
+    # Use websockets protocol explicitly if available
+    uvicorn_config = {
+        "app": app,
+        "host": "0.0.0.0",
+        "port": 8000,
+        "log_level": "info"
+    }
+
+    if websockets_available:
+        uvicorn_config["ws"] = "websockets"
+
+    uvicorn.run(**uvicorn_config)

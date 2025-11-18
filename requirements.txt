@@ -1,46 +1,74 @@
 # RL Crypto Trading System - 1H Timeframe
 # Backend Dependencies
+# Compatible with Python 3.10-3.12 | Windows 11 / Linux
 
-# Core Deep Learning & RL
-torch>=2.0.0
-numpy>=1.24.0
-gymnasium>=0.29.0
-stable-baselines3>=2.2.0
+# ============================================================================
+# IMPORTANT: PyTorch Installation
+# ============================================================================
+# PyTorch must be installed separately based on your system:
+#
+# For Windows with CUDA 12.6:
+#   pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+#
+# For Linux with CUDA 12.6:
+#   pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+#
+# For CPU only:
+#   pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#
+# After installing PyTorch, run: pip install -r requirements.txt
+# ============================================================================
+
+# Core RL Framework
+numpy>=1.24.0,<2.0.0
+gymnasium>=0.29.0,<0.30.0
+stable-baselines3>=2.2.0,<3.0.0
 
 # Data Processing
-pandas>=2.0.0
-pyarrow>=7.0.0
-scipy>=1.10.0
+pandas>=2.0.0,<3.0.0
+pyarrow>=14.0.0,<15.0.0
+scipy>=1.10.0,<2.0.0
 
 # FastAPI Backend
-fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
-websockets>=12.0
-python-multipart>=0.0.6
+fastapi>=0.104.0,<0.122.0
+uvicorn[standard]>=0.24.0,<0.35.0
+websockets>=12.0,<14.0
+python-multipart>=0.0.6,<0.1.0
 
-# Market Data
-ccxt>=4.0.0
-python-binance>=1.0.17
+# Market Data & Trading
+ccxt>=4.0.0,<5.0.0
+python-binance>=1.0.17,<2.0.0
 
 # Technical Analysis
-TA-Lib>=0.4.0
+# Note: TA-Lib requires separate binary installation
+# Windows: Download from https://github.com/cgohlke/talib-build/releases
+# Linux: sudo apt-get install ta-lib
+TA-Lib>=0.4.0; platform_system != "Windows"
 
 # Visualization
-matplotlib>=3.7.0
-seaborn>=0.12.0
-plotly>=5.14.0
+matplotlib>=3.7.0,<4.0.0
+seaborn>=0.12.0,<1.0.0
+plotly>=5.14.0,<6.0.0
 
 # CLI & Utilities
-rich>=13.0.0
-pydantic>=2.0.0
-pyyaml>=6.0
-tqdm>=4.65.0
-python-dotenv>=1.0.0
-requests>=2.31.0
+rich>=13.0.0,<14.0.0
+pydantic>=2.0.0,<3.0.0
+pyyaml>=6.0,<7.0
+tqdm>=4.65.0,<5.0.0
+python-dotenv>=1.0.0,<2.0.0
+requests>=2.31.0,<3.0.0
 
 # Machine Learning Tools
-scikit-learn>=1.3.0
-tensorboard>=2.14.0
+scikit-learn>=1.3.0,<2.0.0
+tensorboard>=2.14.0,<3.0.0
 
-# Development
-pytest>=7.4.0
+# Development & Testing
+pytest>=7.4.0,<9.0.0
+
+# ============================================================================
+# EXCLUDED PACKAGES (Not needed for this project)
+# ============================================================================
+# alpaca-trade-api - Not used, conflicts with websockets>=12
+# finrl - Not used, conflicts with ccxt>=4 and stockstats
+# stockstats - Not needed for this implementation
+# ============================================================================

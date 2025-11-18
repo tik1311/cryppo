@@ -34,7 +34,7 @@ export default function BacktestPage() {
     fetchDataFiles();
     fetchSystemInfo();
 
-    // Setup WebSocket
+    // Setup WebSocket (optional - fallback to polling if fails)
     const ws = new WebSocketClient();
     wsClient.current = ws;
 
@@ -76,7 +76,12 @@ export default function BacktestPage() {
       }
     });
 
-    ws.connect();
+    // Try to connect WebSocket (but don't rely on it)
+    try {
+      ws.connect();
+    } catch (error) {
+      console.log('WebSocket unavailable, using polling instead');
+    }
 
     return () => {
       ws.disconnect();
@@ -125,8 +130,11 @@ export default function BacktestPage() {
 
   const pollTaskStatus = async (taskId: string) => {
     try {
+      console.log(`[Poll] Checking status for task: ${taskId}`);
       const response = await apiClient.getTaskStatus(taskId);
       const status = response.data;
+
+      console.log(`[Poll] Status:`, status);
 
       if (status.progress !== undefined) {
         setProgress(status.progress);
@@ -136,12 +144,24 @@ export default function BacktestPage() {
       }
 
       if (status.status === 'completed') {
+        console.log('[Poll] Backtest completed!');
         setProgress(100);
+        setProgressMessage('Backtest completed! Loading results...');
 
-        // Fetch results
+        // Fetch results (or use from status if available)
         try {
-          const resultsResponse = await apiClient.getBacktestResults(taskId);
-          setResults(resultsResponse.data);
+          let resultsData = null;
+          if (status.results) {
+            console.log('[Poll] Using results from status');
+            resultsData = status.results;
+          } else {
+            console.log('[Poll] Fetching results from API');
+            const resultsResponse = await apiClient.getBacktestResults(taskId);
+            resultsData = resultsResponse.data;
+          }
+
+          setResults(resultsData);
+          console.log('[Poll] Results loaded:', resultsData);
         } catch (err) {
           console.error('Failed to fetch results:', err);
         }
@@ -153,9 +173,12 @@ export default function BacktestPage() {
           setCurrentTaskId(null);
           if (pollIntervalRef.current) {
             clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
           }
         }, 2000);
       } else if (status.status === 'failed') {
+        console.error('[Poll] Backtest failed:', status.message);
+        setProgressMessage(status.message || 'Backtest failed');
         setTimeout(() => {
           setRunning(false);
           setProgress(0);
@@ -163,11 +186,13 @@ export default function BacktestPage() {
           setCurrentTaskId(null);
           if (pollIntervalRef.current) {
             clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
           }
         }, 3000);
       }
     } catch (error) {
-      console.error('Failed to poll task status:', error);
+      console.error('[Poll] Failed to poll task status:', error);
+      // Don't stop polling on network errors - keep retrying
     }
   };
 

@@ -46,7 +46,8 @@ def run_backtest(
     print("[1/5] Loading market data...")
     try:
         if use_sample_data:
-            df = create_sample_data(symbol=symbol, n_samples=10000, save_dir="data")
+            # Use minimal sample data for quick testing (2000 samples)
+            df = create_sample_data(symbol=symbol, n_samples=2000, save_dir="data")
             print(f"  Using synthetic data: {len(df)} candles")
         else:
             df = load_market_data(symbol=symbol, timeframe=timeframe)
@@ -71,6 +72,8 @@ def run_backtest(
         reward_type="sharpe"
     )
     print(f"  Environment created successfully")
+    print(f"  [DEBUG] Enabling detailed logging for backtest...")
+    env.enable_detailed_logging = True
 
     # Load model
     print("[4/5] Loading trained model...")
@@ -99,13 +102,15 @@ def run_backtest(
     # Run backtest
     print("[5/5] Running backtest simulation...")
     state, _ = env.reset()
-    done = False
+    terminated = False
+    truncated = False
     step = 0
     total_reward = 0
 
     equity_curve = [initial_balance]
 
-    while not done:
+    # Loop until episode ends (either terminated or truncated)
+    while not (terminated or truncated):
         # Select action using trained model
         with torch.no_grad():
             # Flatten state if it's 2D
@@ -114,8 +119,8 @@ def run_backtest(
             q_values = agent.policy_net(state_tensor)
             action = q_values.argmax(dim=1).item()
 
-        # Take action
-        next_state, reward, done, truncated, info = env.step(action)
+        # Take action (Gymnasium API: observation, reward, terminated, truncated, info)
+        next_state, reward, terminated, truncated, info = env.step(action)
         total_reward += reward
         equity_curve.append(info['balance'])
 
@@ -162,6 +167,11 @@ def run_backtest(
 
     print("="*60)
     print("[SUCCESS] Backtest completed!")
+    print("="*60)
+    print()
+    print("[INFO] Detailed step-by-step logs saved to:")
+    print(f"  logs/episode_0001_*.jsonl (step-by-step data in JSON Lines format)")
+    print(f"  logs/episode_0001_summary.txt (human-readable summary)")
     print("="*60)
 
 

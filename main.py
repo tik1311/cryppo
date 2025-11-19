@@ -81,9 +81,12 @@ def list_data_files():
         console.print("[yellow]No data directory found[/yellow]")
         return
 
+    # Look for both .parquet and .csv files
+    parquet_files = list(data_dir.glob("*.parquet"))
     csv_files = list(data_dir.glob("*.csv"))
+    data_files = parquet_files + csv_files
 
-    if not csv_files:
+    if not data_files:
         console.print("[yellow]No data files found[/yellow]")
         return
 
@@ -92,7 +95,7 @@ def list_data_files():
     table.add_column("Size", justify="right", style="green")
     table.add_column("Modified", style="yellow")
 
-    for file in sorted(csv_files):
+    for file in sorted(data_files):
         size = file.stat().st_size / 1024  # KB
         mtime = datetime.fromtimestamp(file.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
 
@@ -109,12 +112,15 @@ def list_models():
     """List trained models"""
     console.print("\n[bold cyan]📁 Trained Models[/bold cyan]\n")
 
-    models_dir = Path("models")
-    if not models_dir.exists():
-        console.print("[yellow]No models directory found[/yellow]")
+    checkpoints_dir = Path("checkpoints")
+    if not checkpoints_dir.exists():
+        console.print("[yellow]No checkpoints directory found[/yellow]")
         return
 
-    model_files = list(models_dir.glob("*.zip")) + list(models_dir.glob("*.pt"))
+    # Look for .pth, .pt, and .zip model files
+    model_files = (list(checkpoints_dir.glob("*.pth")) +
+                   list(checkpoints_dir.glob("*.pt")) +
+                   list(checkpoints_dir.glob("*.zip")))
 
     if not model_files:
         console.print("[yellow]No model files found[/yellow]")

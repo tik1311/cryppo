@@ -122,7 +122,6 @@ def train_sac(
     symbol: str = "BTCUSDT",
     timeframe: str = "1h",
     timesteps: int = 100000,
-    use_sample_data: bool = False,
     initial_balance: float = 10000.0,
     max_leverage: float = 3.0,
     learning_rate: float = 0.0003,
@@ -147,7 +146,6 @@ def train_sac(
         symbol: Trading pair symbol
         timeframe: Candle timeframe
         timesteps: Total training timesteps
-        use_sample_data: Use synthetic data for testing
         initial_balance: Starting capital
         max_leverage: Maximum leverage
         learning_rate: Learning rate for optimizer
@@ -186,9 +184,6 @@ def train_sac(
     # Load market data
     print("\n[DATA] Loading market data...")
     try:
-        if use_sample_data:
-            print("[WARN]  Using synthetic data for testing")
-            df = create_sample_data(symbol=symbol, n_samples=10000, save_dir="data")
         else:
             df = load_market_data(symbol=symbol, timeframe=timeframe)
 
@@ -197,7 +192,6 @@ def train_sac(
 
     except FileNotFoundError as e:
         print(f"[ERROR] Error: {e}")
-        print("\n[INFO] Use --sample-data flag to train with synthetic data")
         return
 
     # Prepare data
@@ -360,7 +354,6 @@ def main():
     # Data parameters
     parser.add_argument('--symbol', type=str, default='BTCUSDT', help='Trading pair symbol')
     parser.add_argument('--timeframe', type=str, default='1h', help='Candle timeframe')
-    parser.add_argument('--sample-data', action='store_true', help='Use synthetic sample data')
 
     # Training parameters
     parser.add_argument('--timesteps', type=int, default=100000, help='Total training timesteps')
@@ -397,7 +390,7 @@ def main():
         symbol=args.symbol,
         timeframe=args.timeframe,
         timesteps=args.timesteps,
-        use_sample_data=args.sample_data,
+        
         initial_balance=args.balance,
         max_leverage=args.leverage,
         learning_rate=args.lr,

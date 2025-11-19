@@ -58,11 +58,10 @@ def show_menu() -> None:
     table.add_row("2", "Download Data", "Fetch market data via CCXT")
     table.add_row("3", "List Data", "Show available files in data/")
     table.add_row("4", "Prepare Data", "Create normalized NPZ splits")
-    table.add_row("5", "Generate Sample Data", "Synthetic candles for testing")
-    table.add_row("6", "Train Model", "Train D3QN/PPO/SAC/TD3")
-    table.add_row("7", "Backtest Model", "Evaluate a saved checkpoint")
-    table.add_row("8", "Paper Trading", "Live-style CCXT simulation")
-    table.add_row("9", "List Models", "Show files inside checkpoints/")
+    table.add_row("5", "Train Model", "Train D3QN/PPO/SAC/TD3")
+    table.add_row("6", "Backtest Model", "Evaluate a saved checkpoint")
+    table.add_row("7", "Paper Trading", "Live-style CCXT simulation")
+    table.add_row("8", "List Models", "Show files inside checkpoints/")
     table.add_row("0", "Exit", "Quit the UI")
     console.print(table)
 
@@ -101,10 +100,6 @@ def handle_prepare_data():
     timeframe = Prompt.ask("Timeframe", default="1h")
     window = Prompt.ask("Window size", default="72")
     output = Prompt.ask("Output directory", default="data/processed")
-    sample = Confirm.ask("Use synthetic data?", default=False)
-    samples = "10000"
-    if sample:
-        samples = Prompt.ask("Synthetic samples", default="10000")
     cmd = [
         "data",
         "prepare",
@@ -117,18 +112,7 @@ def handle_prepare_data():
         "--output",
         output,
     ]
-    if sample:
-        cmd.append("--sample-data")
-        cmd.extend(["--samples", samples])
     run_command(cmd)
-
-
-def handle_sample_data():
-    symbol = Prompt.ask("Symbol label", default="TESTCOIN").upper()
-    samples = Prompt.ask("Number of samples", default="2000")
-    run_command(
-        ["data", "sample", "--symbol", symbol, "--samples", samples]
-    )
 
 
 def handle_train():
@@ -144,7 +128,6 @@ def handle_train():
         default="sharpe",
         choices=["profit", "return", "sharpe", "sortino"],
     )
-    sample = Confirm.ask("Use sample data?", default=True)
 
     args = [
         "train",
@@ -165,9 +148,6 @@ def handle_train():
         timesteps = Prompt.ask("Timesteps", default="50000")
         args.extend(["--timesteps", timesteps])
 
-    if sample:
-        args.append("--sample-data")
-
     run_command(args)
 
 
@@ -181,7 +161,6 @@ def handle_backtest():
         default="d3qn",
         choices=["d3qn", "ppo", "sac", "td3"],
     )
-    sample = Confirm.ask("Use sample data?", default=True)
     symbol = Prompt.ask("Symbol", default="BTCUSDT").upper()
     timeframe = Prompt.ask("Timeframe", default="1h")
     args = [
@@ -195,8 +174,6 @@ def handle_backtest():
         "--timeframe",
         timeframe,
     ]
-    if sample:
-        args.append("--sample-data")
     run_command(args)
 
 
@@ -241,11 +218,10 @@ HANDLERS = {
     "2": handle_download_data,
     "3": handle_list_data,
     "4": handle_prepare_data,
-    "5": handle_sample_data,
-    "6": handle_train,
-    "7": handle_backtest,
-    "8": handle_paper,
-    "9": handle_list_models,
+    "5": handle_train,
+    "6": handle_backtest,
+    "7": handle_paper,
+    "8": handle_list_models,
 }
 
 

@@ -88,9 +88,13 @@ class TrainingLogger:
         self.log_dir = log_dir_path
         self.log_dir.mkdir(exist_ok=True, parents=True)
 
-        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.log_file = self.log_dir / f"training_{self.timestamp}.log"
-        self.metrics_file = self.log_dir / f"metrics_{self.timestamp}.json"
+        # Use consistent filenames - overwrite each session (keep only latest)
+        self.log_file = self.log_dir / "training.log"
+        self.metrics_file = self.log_dir / "metrics.json"
+
+        # Clear previous logs (overwrite mode)
+        if self.log_file.exists():
+            self.log_file.unlink()
 
         self.metrics = {
             'episodes': [],
@@ -104,8 +108,9 @@ class TrainingLogger:
         }
 
     def log(self, message: str):
-        """Log message to console and file"""
+        """Log message to console and file (overwrites on first call)"""
         print(message)
+        # Use append mode to keep writing within same session
         with open(self.log_file, 'a', encoding='utf-8') as f:
             f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {message}\n")
 
@@ -156,7 +161,8 @@ class TrainingLogger:
             return value
 
         serialized = [{k: convert(v) for k, v in trade.items()} for trade in trades]
-        trade_file = self.log_dir / f"{label}_{self.timestamp}.json"
+        # Use consistent filename - overwrite each session
+        trade_file = self.log_dir / f"{label}.json"
         with open(trade_file, 'w', encoding='utf-8') as f:
             json.dump(serialized, f, indent=2)
         self.log(f"[INFO] Trade log saved: {trade_file}")
@@ -169,7 +175,6 @@ def train_d3qn(
     max_steps: int = 10000,
     eval_freq: int = 50,
     save_freq: int = 100,
-    use_sample_data: bool = False,
     initial_balance: float = 10000.0,
     max_leverage: float = 3.0,
     learning_rate: float = 0.00025,
@@ -191,7 +196,6 @@ def train_d3qn(
         max_steps: Maximum steps per episode
         eval_freq: Evaluate every N episodes
         save_freq: Save checkpoint every N episodes
-        use_sample_data: Use synthetic data for testing
         initial_balance: Starting capital
         max_leverage: Maximum leverage
         learning_rate: Learning rate for optimizer
@@ -228,23 +232,15 @@ def train_d3qn(
     # Load market data
     logger.log("\n[DATA] Loading market data...")
     try:
-        if use_sample_data:
-            logger.log("[WARN] Using synthetic data for testing")
-            df = create_sample_data(symbol=symbol, n_samples=10000, save_dir="data")
-        else:
-            df = load_market_data(symbol=symbol, timeframe=timeframe)
-
+        df = load_market_data(symbol=symbol, timeframe=timeframe)
         logger.log(f"[OK] Loaded {len(df):,} candles")
         logger.log(f"  Date range: {df['timestamp'].min()} to {df['timestamp'].max()}")
 
     except FileNotFoundError as e:
         logger.log(f"[ERROR] {e}")
-        logger.log("\n[INFO] To download real market data:")
-        logger.log("   1. Start the server: uvicorn server.main:app")
-        logger.log("   2. Download data via API:")
-        logger.log(f"      POST /api/data/download")
-        logger.log(f"      {{'symbol': '{symbol}', 'timeframe': '{timeframe}', 'start': '2023-01-01', 'end': '2024-12-31'}}")
-        logger.log("\n   Or use --sample-data flag to train with synthetic data")
+        logger.log("\n[INFO] To download market data:")
+        logger.log("   Use: python main.py → Option 2 (Download Data)")
+        logger.log(f"   Or: python cryppo.py data download --symbol {symbol} --timeframe {timeframe} --start 2023-01-01 --end 2024-12-31")
         return
 
     # Prepare data
@@ -645,7 +641,6 @@ def main():
         # Data parameters
         parser.add_argument('--symbol', type=str, default='BTCUSDT', help='Trading pair symbol')
         parser.add_argument('--timeframe', type=str, default='1h', help='Candle timeframe')
-        parser.add_argument('--sample-data', action='store_true', help='Use synthetic sample data')
 
         # Training parameters
         parser.add_argument('--episodes', type=int, default=1000, help='Number of training episodes')
@@ -679,7 +674,6 @@ def main():
             max_steps=args.max_steps,
             eval_freq=args.eval_freq,
             save_freq=args.save_freq,
-            use_sample_data=args.sample_data,
             initial_balance=args.balance,
             max_leverage=args.leverage,
             learning_rate=args.lr,

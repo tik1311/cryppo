@@ -38,17 +38,18 @@ class DetailedStepLogger:
         self.mode_dir = self.log_dir / mode
         self.mode_dir.mkdir(parents=True, exist_ok=True)
 
-        # Use consistent filenames (append mode) instead of creating new files each time
+        # Use consistent filenames - OVERWRITE each session (keep only latest)
         self.step_log_file = self.mode_dir / f"{mode}_steps.jsonl"
         self.trade_log_file = self.mode_dir / f"{mode}_trades.jsonl"
         self.episode_log_file = self.mode_dir / f"{mode}_episodes.jsonl"
         self.analysis_log_file = self.mode_dir / f"{mode}_analysis.txt"
 
-        # Open files in APPEND mode with UTF-8 encoding (fixes Windows cp874 issue)
-        self.step_log = open(self.step_log_file, 'a', buffering=1, encoding='utf-8')
-        self.trade_log = open(self.trade_log_file, 'a', buffering=1, encoding='utf-8')
-        self.episode_log = open(self.episode_log_file, 'a', buffering=1, encoding='utf-8')
-        self.analysis_log = open(self.analysis_log_file, 'a', buffering=1, encoding='utf-8')
+        # Open files in WRITE mode (overwrite) with UTF-8 encoding
+        # This keeps only the latest session's logs
+        self.step_log = open(self.step_log_file, 'w', buffering=1, encoding='utf-8')
+        self.trade_log = open(self.trade_log_file, 'w', buffering=1, encoding='utf-8')
+        self.episode_log = open(self.episode_log_file, 'w', buffering=1, encoding='utf-8')
+        self.analysis_log = open(self.analysis_log_file, 'w', buffering=1, encoding='utf-8')
 
         # Episode tracking
         self.current_episode = 0

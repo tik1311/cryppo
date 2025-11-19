@@ -104,7 +104,6 @@ def train_ppo(
     symbol: str = "BTCUSDT",
     timeframe: str = "1h",
     timesteps: int = 100000,
-    use_sample_data: bool = False,
     initial_balance: float = 10000.0,
     max_leverage: float = 3.0,
     learning_rate: float = 0.0003,
@@ -140,9 +139,6 @@ def train_ppo(
 
     print("\n[DATA] Loading market data...")
     try:
-        if use_sample_data:
-            print("[WARN]  Using synthetic data")
-            df = create_sample_data(symbol=symbol, n_samples=10000, save_dir="data")
         else:
             df = load_market_data(symbol=symbol, timeframe=timeframe)
         print(f"[OK] Loaded {len(df):,} candles")
@@ -232,7 +228,6 @@ def main():
     parser = argparse.ArgumentParser(description="Train PPO agent")
     parser.add_argument('--symbol', type=str, default='BTCUSDT')
     parser.add_argument('--timeframe', type=str, default='1h')
-    parser.add_argument('--sample-data', action='store_true')
     parser.add_argument('--timesteps', type=int, default=100000)
     parser.add_argument('--balance', type=float, default=10000.0)
     parser.add_argument('--leverage', type=float, default=3.0)
@@ -257,7 +252,7 @@ def main():
         symbol=args.symbol,
         timeframe=args.timeframe,
         timesteps=args.timesteps,
-        use_sample_data=args.sample_data,
+        
         initial_balance=args.balance,
         max_leverage=args.leverage,
         learning_rate=args.lr,

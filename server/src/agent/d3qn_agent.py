@@ -234,8 +234,8 @@ class D3QNAgent:
         learning_rate: float = 0.0003,
         gamma: float = 0.97,
         epsilon_start: float = 1.0,
-        epsilon_end: float = 0.15,
-        epsilon_decay: float = 0.9995,
+        epsilon_end: float = 0.25,  # Increased from 0.15 for more exploration
+        epsilon_decay: float = 0.9997,  # Slower decay from 0.9995
         buffer_size: int = 100000,
         batch_size: int = 128,
         target_update_freq: int = 250,

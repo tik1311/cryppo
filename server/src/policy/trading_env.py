@@ -50,8 +50,8 @@ class TradingEnv(gym.Env):
         reward_type: str = 'sharpe',
         min_episode_length: int = 1200,  # Minimum steps per episode (20-30% more than avg ~1000)
         atr_period: int = 14,  # ATR calculation period
-        atr_sl_multiplier: float = 1.5,  # Stop Loss = Entry ± (ATR × 1.5) - wider breathing room to avoid noise
-        atr_tp_multiplier: float = 4.5,  # Take Profit = Entry ± (ATR × 4.5) - high reward target
+        atr_sl_multiplier: float = 1.3,  # Stop Loss = Entry ± (ATR × 1.3) - tighter SL, reduced from 1.5
+        atr_tp_multiplier: float = 6.0,  # Take Profit = Entry ± (ATR × 6.0) - higher reward target, increased from 4.5
         streaming_mode: bool = False
     ):
         """
@@ -307,18 +307,18 @@ class TradingEnv(gym.Env):
             if self.position is None:
                 exploration_bonus += 0.0001  # Small reward for patience
 
-            # Action Masking: Penalize excessive holding (STRENGTHENED Phase 4)
-            # This prevents HOLD-only bias
-            if self.consecutive_holds > 30:
-                # Earlier and stronger penalty
-                hold_penalty = -0.002 * (self.consecutive_holds - 30)
+            # Action Masking: Penalize excessive holding (STRENGTHENED Phase 5)
+            # This prevents HOLD-only bias - penalties start earlier and are stronger
+            if self.consecutive_holds > 20:  # Reduced from 30 - start earlier
+                # Escalating penalty
+                hold_penalty = -0.005 * (self.consecutive_holds - 20)  # Increased from -0.002
                 exploration_bonus += hold_penalty
-            if self.consecutive_holds > 50:
+            if self.consecutive_holds > 40:  # Reduced from 50
                 # Very heavy penalty to force action
-                exploration_bonus -= 0.02
-            if self.consecutive_holds > 100:
-                # Extreme penalty
-                exploration_bonus -= 0.05
+                exploration_bonus -= 0.05  # Increased from -0.02
+            if self.consecutive_holds > 80:  # Reduced from 100
+                # Extreme penalty to break HOLD bias
+                exploration_bonus -= 0.15  # Increased from -0.05
         else:
             # Reward for breaking HOLD streak (STRENGTHENED)
             if self.consecutive_holds > 20:
@@ -447,11 +447,15 @@ class TradingEnv(gym.Env):
             if exit_event:
                 trade_reward = self._close_position(exit_price)
                 if exit_event == 'tp':
-                    trade_reward += 0.10  # INCREASED: Strong positive reinforcement for TP
+                    # Phase 5: Stronger rewards for winning trades
+                    trade_reward += 0.20  # Doubled from 0.10 - strong positive reinforcement for TP
+                    exploration_bonus += 0.02  # Extra bonus for completing profitable trade
                     if self.total_trades <= 5:
                         print(f"  [WIN] Take Profit HIT @ ${exit_price:.2f}")
                 elif exit_event == 'sl':
-                    trade_reward -= 0.005  # REDUCED: Light penalty for SL (acceptable risk management)
+                    # Phase 5: Minimal penalty for SL - it's part of good risk management
+                    trade_reward -= 0.002  # Reduced from 0.005 - SL is acceptable
+                    exploration_bonus += 0.005  # Small bonus for taking risk even with loss
                     if self.total_trades <= 5:
                         print(f"  [RISK] Stop Loss HIT @ ${exit_price:.2f}")
 
@@ -750,18 +754,19 @@ class TradingEnv(gym.Env):
         volatility_pct = atr / price  # Calculate volatility as % of price
 
         # Adjust TP/SL multipliers based on market volatility
+        # New R:R Ratio = 6.0/1.3 = 4.62x (increased from 3.0x)
         if volatility_pct > 0.03:  # High volatility (>3%)
             # Wider targets to capture big moves, wider SL to avoid noise
-            tp_mult = self.atr_tp_multiplier * 1.3  # 4.5 → 5.85x
-            sl_mult = self.atr_sl_multiplier * 1.5  # 1.5 → 2.25x
+            tp_mult = self.atr_tp_multiplier * 1.3  # 6.0 → 7.8x
+            sl_mult = self.atr_sl_multiplier * 1.4  # 1.3 → 1.82x
         elif volatility_pct < 0.01:  # Low volatility (<1%)
             # Tighter targets, tighter SL
-            tp_mult = self.atr_tp_multiplier * 0.7  # 4.5 → 3.15x
-            sl_mult = self.atr_sl_multiplier * 0.8  # 1.5 → 1.2x
+            tp_mult = self.atr_tp_multiplier * 0.8  # 6.0 → 4.8x
+            sl_mult = self.atr_sl_multiplier * 0.9  # 1.3 → 1.17x
         else:  # Normal volatility (1-3%)
             # Use default multipliers
-            tp_mult = self.atr_tp_multiplier
-            sl_mult = self.atr_sl_multiplier
+            tp_mult = self.atr_tp_multiplier  # 6.0x
+            sl_mult = self.atr_sl_multiplier  # 1.3x
 
         if position_type == 'long':
             # LONG: TP above, SL below

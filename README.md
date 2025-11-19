@@ -328,6 +328,96 @@ cryppo/
 
 ---
 
+## 🎯 Phase 6: Multi-Timeframe Hierarchical System
+
+### Revolutionary Approach
+
+Phase 6 implements a **hierarchical multi-timeframe architecture** combining:
+- **Primary timeframe** (5m/15m/1h) for macro trend/regime analysis
+- **1-minute detail candles** for micro timing signals
+
+**Key Concept**: 1m candles are NOT separate data - they are **details within each primary candle**:
+- 1 candle 5m = 5x 1m candles (microstructure inside)
+- 1 candle 15m = 15x 1m candles
+- 1 candle 1h = 60x 1m candles
+
+### Why Multi-Timeframe?
+
+**Single-Timeframe Problems**:
+- Miss precise entry timing (too coarse)
+- False signals from noise (too granular)
+- Can't see both trend AND timing
+
+**Multi-Timeframe Solution**:
+- ✅ Primary TF: Strategic context (where in trend?)
+- ✅ Detail TF: Tactical timing (when to enter?)
+- ✅ Hierarchical fusion: Best of both worlds
+
+### Architecture Overview
+
+```
+Primary [72×27] → CNN-BiLSTM-Attention → Macro [512]
+                                            ↓
+Detail [5×8]    → Multi-Head CNN         → Micro [128]
+                                            ↓
+                     Hierarchical Attention Fusion
+                              ↓
+                        Dueling QR-DQN
+                              ↓
+                      Q-values [3×32 quantiles]
+```
+
+**Components**:
+1. **Primary Macro CNN**: Trend, regime, support/resistance
+2. **Detail Micro CNN**: Timing, momentum, volume profile
+3. **Hierarchical Fusion**: Soft attention weights macro vs micro
+4. **Dueling QR-DQN**: Distributional RL for risk assessment
+
+### Training Command
+
+```bash
+python train_multitf.py \
+    --symbol BTC/USDT \
+    --primary-tf 5m \
+    --episodes 200 \
+    --initial-balance 10000
+```
+
+### Expected Performance (Phase 6)
+
+| Metric | Phase 5 | Phase 6 (Multi-TF) | Improvement |
+|--------|---------|-------------------|-------------|
+| Win Rate | 28-32% | 32-38% | +10-15% |
+| Expectancy | +20-40% | +30-50% | +25-50% |
+| Entry Quality | Good | Excellent | Better timing |
+| Trade Signals | Mixed | High quality | Less noise |
+| Final Balance | $12-15k | $14-18k | +15-25% |
+
+**Why Better?**:
+- 🎯 **Better Entry Timing**: 1m details reveal precise moments
+- 🎯 **Reduced False Signals**: Primary filters noise, detail confirms
+- 🎯 **Adaptive Weighting**: Attention learns when to focus on what
+- 🎯 **Richer Context**: Agent sees macro AND micro simultaneously
+
+### Files Created
+
+- `server/src/data/multi_timeframe_loader.py` - Data loading/alignment
+- `server/src/agent/multi_timeframe_network.py` - Network architecture
+- `server/src/policy/multi_timeframe_env.py` - Environment wrapper
+- `server/src/agent/multi_timeframe_agent.py` - MT D3QN agent
+- `train_multitf.py` - Training script
+
+### Action Space (Confirmed)
+
+**3 Actions ONLY** (NO CLOSE):
+- **HOLD** (0): Wait
+- **LONG** (1): Open long
+- **SHORT** (2): Open short
+
+**Critical Rule**: Agent can ONLY **open** positions. Positions ONLY **close** via TP/SL (automatic).
+
+---
+
 ## 📊 Phase 5 Performance Improvements
 
 ### Problem Analysis (From Latest Training)

@@ -1,162 +1,133 @@
-2025-11-19 23:21:05 | INFO | ============================================================
-2025-11-19 23:21:05 | INFO | CRYPPO - TRAIN Mode
-2025-11-19 23:21:05 | INFO | Session started: 2025-11-19 23:21:05
-2025-11-19 23:21:05 | INFO | ============================================================
-2025-11-19 23:21:05 | INFO | Symbol: BTCUSDT
-2025-11-19 23:21:05 | INFO | Timeframes: 1h + 1m
-2025-11-19 23:21:05 | INFO | Episodes: 1
-2025-11-19 23:21:05 | INFO | Initial Balance: $10000.00
-2025-11-19 23:21:05 | INFO | Date Range: 2025-08-21 to 2025-11-19
-2025-11-19 23:21:05 | INFO | 
-2025-11-19 23:21:06 | INFO | Environment initialized: 2063 steps
-2025-11-19 23:21:06 | INFO | 
-2025-11-19 23:21:07 | INFO | ============================================================
-2025-11-19 23:21:07 | INFO | EPISODE 1/1
-2025-11-19 23:21:07 | INFO | ============================================================
-2025-11-19 23:21:07 | INFO | Step 1261 | [OPEN SHORT] @ 108474.00 | TP: 106120.53 | SL: 109886.08 | Size: 0.0922
-2025-11-19 23:21:07 | INFO | Step 1277 | [CLOSE SHORT] @ 106120.53 (tp) | PnL: $213.05 (+2.13%) | Balance: $10209.05 | Trades: 1 | Win Rate: 100.0%
-2025-11-19 23:21:07 | INFO | Step 1278 | [OPEN LONG] @ 104845.10 | TP: 107060.10 | SL: 103516.10 | Size: 0.0974
-2025-11-19 23:21:07 | INFO | Step 1280 | [CLOSE LONG] @ 103516.10 (sl) | PnL: $-133.44 (-1.31%) | Balance: $10071.52 | Trades: 2 | Win Rate: 50.0%
-2025-11-19 23:21:07 | INFO | Step 1281 | [OPEN LONG] @ 105610.50 | TP: 107949.48 | SL: 104207.11 | Size: 0.0954
-2025-11-19 23:21:08 | INFO | Step 1327 | [CLOSE LONG] @ 107949.48 (tp) | PnL: $218.94 (+2.17%) | Balance: $10286.43 | Trades: 3 | Win Rate: 66.7%
-2025-11-19 23:21:08 | INFO | Step 1334 | [OPEN SHORT] @ 108561.90 | TP: 106956.52 | SL: 109525.12 | Size: 0.0948
-2025-11-19 23:21:08 | INFO | Step 1345 | [CLOSE SHORT] @ 109525.12 (sl) | PnL: $-95.42 (-0.93%) | Balance: $10186.90 | Trades: 4 | Win Rate: 50.0%
-2025-11-19 23:21:08 | INFO | Step 1346 | [OPEN SHORT] @ 110369.30 | TP: 108579.98 | SL: 111442.89 | Size: 0.0923
-2025-11-19 23:21:08 | INFO | Step 1350 | [CLOSE SHORT] @ 111442.89 (sl) | PnL: $-103.21 (-1.01%) | Balance: $10079.62 | Trades: 5 | Win Rate: 40.0%
-2025-11-19 23:21:08 | INFO | Step 1351 | [OPEN SHORT] @ 110921.00 | TP: 109129.73 | SL: 111995.76 | Size: 0.0909
-2025-11-19 23:21:08 | INFO | Step 1361/2063 | Balance: $10075.59 | Trades: 5 | WR: 40.0% | Epsilon: 0.996
-2025-11-19 23:21:08 | INFO | Step 1369 | [CLOSE SHORT] @ 109129.73 (tp) | PnL: $158.81 (+1.58%) | Balance: $10234.40 | Trades: 6 | Win Rate: 50.0%
-2025-11-19 23:21:08 | INFO | Step 1370 | [OPEN LONG] @ 107743.40 | TP: 109541.79 | SL: 106664.36 | Size: 0.0950
-2025-11-19 23:21:08 | INFO | Step 1380 | [CLOSE LONG] @ 109541.79 (tp) | PnL: $166.66 (+1.63%) | Balance: $10396.97 | Trades: 7 | Win Rate: 57.1%
-2025-11-19 23:21:08 | INFO | Step 1382 | [OPEN LONG] @ 112507.20 | TP: 115203.76 | SL: 110889.27 | Size: 0.0924
-2025-11-19 23:21:08 | INFO | Step 1386 | [CLOSE LONG] @ 110889.27 (sl) | PnL: $-153.61 (-1.48%) | Balance: $10239.20 | Trades: 8 | Win Rate: 50.0%
-2025-11-19 23:21:08 | INFO | Step 1388 | [OPEN LONG] @ 109008.00 | TP: 112115.09 | SL: 107143.75 | Size: 0.0939
-2025-11-19 23:21:08 | INFO | Step 1401 | [CLOSE LONG] @ 107143.75 (sl) | PnL: $-179.14 (-1.75%) | Balance: $10055.96 | Trades: 9 | Win Rate: 44.4%
-2025-11-19 23:21:08 | INFO | Step 1404 | [OPEN SHORT] @ 108912.70 | TP: 107113.17 | SL: 109992.43 | Size: 0.0923
-2025-11-19 23:21:08 | INFO | Step 1411 | [CLOSE SHORT] @ 107113.17 (tp) | PnL: $162.20 (+1.61%) | Balance: $10214.14 | Trades: 10 | Win Rate: 50.0%
-2025-11-19 23:21:08 | INFO | Step 1412 | [OPEN LONG] @ 107142.60 | TP: 109581.94 | SL: 105679.00 | Size: 0.0953
-2025-11-19 23:21:08 | INFO | Step 1420 | [CLOSE LONG] @ 109581.94 (tp) | PnL: $228.37 (+2.24%) | Balance: $10438.42 | Trades: 11 | Win Rate: 54.5%
-2025-11-19 23:21:08 | INFO | Step 1421 | [OPEN LONG] @ 109228.60 | TP: 111039.26 | SL: 108142.20 | Size: 0.0956
-2025-11-19 23:21:08 | INFO | Step 1431 | [CLOSE LONG] @ 111039.26 (tp) | PnL: $168.79 (+1.62%) | Balance: $10603.04 | Trades: 12 | Win Rate: 58.3%
-2025-11-19 23:21:08 | INFO | Step 1432 | [OPEN LONG] @ 110518.10 | TP: 112565.48 | SL: 109289.67 | Size: 0.0959
-2025-11-19 23:21:08 | INFO | Step 1434 | [CLOSE LONG] @ 109289.67 (sl) | PnL: $-122.05 (-1.15%) | Balance: $10476.75 | Trades: 13 | Win Rate: 53.8%
-2025-11-19 23:21:08 | INFO | Step 1436 | [OPEN SHORT] @ 109890.00 | TP: 107968.00 | SL: 111043.20 | Size: 0.0953
-2025-11-19 23:21:08 | INFO | Step 1442 | [CLOSE SHORT] @ 111043.20 (sl) | PnL: $-114.18 (-1.09%) | Balance: $10358.38 | Trades: 14 | Win Rate: 50.0%
-2025-11-19 23:21:08 | INFO | Step 1443 | [OPEN SHORT] @ 111193.00 | TP: 109315.21 | SL: 112319.67 | Size: 0.0932
-2025-11-19 23:21:08 | INFO | Step 1461/2063 | Balance: $10354.23 | Trades: 14 | WR: 50.0% | Epsilon: 0.991
-2025-11-19 23:21:08 | INFO | Step 1495 | [CLOSE SHORT] @ 112319.67 (sl) | PnL: $-109.14 (-1.05%) | Balance: $10245.09 | Trades: 15 | Win Rate: 46.7%
-2025-11-19 23:21:08 | INFO | Step 1497 | [OPEN LONG] @ 113235.20 | TP: 113998.76 | SL: 112777.07 | Size: 0.0905
-2025-11-19 23:21:08 | INFO | Step 1499 | [CLOSE LONG] @ 113998.76 (tp) | PnL: $64.96 (+0.63%) | Balance: $10305.95 | Trades: 16 | Win Rate: 50.0%
-2025-11-19 23:21:08 | INFO | Step 1500 | [OPEN SHORT] @ 113515.20 | TP: 112420.70 | SL: 114171.90 | Size: 0.0908
-2025-11-19 23:21:09 | INFO | Step 1508 | [CLOSE SHORT] @ 114171.90 (sl) | PnL: $-63.77 (-0.62%) | Balance: $10238.06 | Trades: 17 | Win Rate: 47.1%
-2025-11-19 23:21:09 | INFO | Step 1509 | [OPEN LONG] @ 114497.80 | TP: 116141.82 | SL: 113511.39 | Size: 0.0894
-2025-11-19 23:21:09 | INFO | Step 1517 | [CLOSE LONG] @ 116141.82 (tp) | PnL: $142.85 (+1.40%) | Balance: $10376.82 | Trades: 18 | Win Rate: 50.0%
-2025-11-19 23:21:09 | INFO | Step 1518 | [OPEN SHORT] @ 114990.20 | TP: 113315.95 | SL: 115994.75 | Size: 0.0902
-2025-11-19 23:21:09 | INFO | Step 1548 | [CLOSE SHORT] @ 115994.75 (sl) | PnL: $-94.84 (-0.91%) | Balance: $10277.83 | Trades: 19 | Win Rate: 47.4%
-2025-11-19 23:21:09 | INFO | Step 1549 | [OPEN LONG] @ 114571.90 | TP: 116082.81 | SL: 113665.35 | Size: 0.0897
-2025-11-19 23:21:09 | INFO | Step 1553 | [CLOSE LONG] @ 113665.35 (sl) | PnL: $-85.40 (-0.83%) | Balance: $10188.31 | Trades: 20 | Win Rate: 45.0%
-2025-11-19 23:21:09 | INFO | Step 1557 | [OPEN SHORT] @ 112833.50 | TP: 110711.64 | SL: 114106.61 | Size: 0.0903
-2025-11-19 23:21:09 | INFO | Step 1561/2063 | Balance: $10184.24 | Trades: 20 | WR: 45.0% | Epsilon: 0.986
-2025-11-19 23:21:09 | INFO | Step 1576 | [CLOSE SHORT] @ 110711.64 (tp) | PnL: $187.59 (+1.84%) | Balance: $10371.83 | Trades: 21 | Win Rate: 47.6%
-2025-11-19 23:21:09 | INFO | Step 1578 | [OPEN LONG] @ 111372.00 | TP: 113453.71 | SL: 110122.97 | Size: 0.0931
-2025-11-19 23:21:09 | INFO | Step 1581 | [CLOSE LONG] @ 110122.97 (sl) | PnL: $-120.42 (-1.16%) | Balance: $10247.26 | Trades: 22 | Win Rate: 45.5%
-2025-11-19 23:21:09 | INFO | Step 1582 | [OPEN LONG] @ 110496.30 | TP: 112896.58 | SL: 109056.13 | Size: 0.0927
-2025-11-19 23:21:09 | INFO | Step 1586 | [CLOSE LONG] @ 109056.13 (sl) | PnL: $-137.60 (-1.34%) | Balance: $10105.56 | Trades: 23 | Win Rate: 43.5%
-2025-11-19 23:21:09 | INFO | Step 1588 | [OPEN LONG] @ 110720.00 | TP: 113712.53 | SL: 108924.48 | Size: 0.0913
-2025-11-19 23:21:09 | INFO | Step 1594 | [CLOSE LONG] @ 108924.48 (sl) | PnL: $-167.86 (-1.66%) | Balance: $9933.66 | Trades: 24 | Win Rate: 41.7%
-2025-11-19 23:21:09 | INFO | Step 1595 | [OPEN SHORT] @ 107582.20 | TP: 104964.22 | SL: 109152.99 | Size: 0.0923
-2025-11-19 23:21:09 | INFO | Step 1606 | [CLOSE SHORT] @ 109152.99 (sl) | PnL: $-149.07 (-1.50%) | Balance: $9780.62 | Trades: 25 | Win Rate: 40.0%
-2025-11-19 23:21:09 | INFO | Step 1609 | [OPEN LONG] @ 109186.20 | TP: 111576.26 | SL: 107752.17 | Size: 0.0896
-2025-11-19 23:21:09 | INFO | Step 1661/2063 | Balance: $9776.70 | Trades: 25 | WR: 40.0% | Epsilon: 0.982
-2025-11-19 23:21:09 | INFO | Step 1682 | [CLOSE LONG] @ 107752.17 (sl) | PnL: $-132.32 (-1.35%) | Balance: $9644.39 | Trades: 26 | Win Rate: 38.5%
-2025-11-19 23:21:09 | INFO | Step 1683 | [OPEN LONG] @ 107556.90 | TP: 109006.69 | SL: 106687.03 | Size: 0.0897
-2025-11-19 23:21:09 | INFO | Step 1688 | [CLOSE LONG] @ 106687.03 (sl) | PnL: $-81.83 (-0.85%) | Balance: $9558.70 | Trades: 27 | Win Rate: 37.0%
-2025-11-19 23:21:09 | INFO | Step 1689 | [OPEN LONG] @ 107737.40 | TP: 109645.02 | SL: 106592.82 | Size: 0.0887
-2025-11-19 23:21:09 | INFO | Step 1693 | [CLOSE LONG] @ 106592.82 (sl) | PnL: $-105.33 (-1.10%) | Balance: $9449.55 | Trades: 28 | Win Rate: 35.7%
-2025-11-19 23:21:09 | INFO | Step 1694 | [OPEN LONG] @ 106644.00 | TP: 108986.28 | SL: 105238.63 | Size: 0.0886
-2025-11-19 23:21:10 | INFO | Step 1707 | [CLOSE LONG] @ 105238.63 (sl) | PnL: $-128.26 (-1.36%) | Balance: $9317.51 | Trades: 29 | Win Rate: 34.5%
-2025-11-19 23:21:10 | INFO | Step 1708 | [OPEN SHORT] @ 104702.40 | TP: 101983.24 | SL: 106333.90 | Size: 0.0890
-2025-11-19 23:21:10 | INFO | Step 1719 | [CLOSE SHORT] @ 101983.24 (tp) | PnL: $238.35 (+2.56%) | Balance: $9552.13 | Trades: 30 | Win Rate: 36.7%
-2025-11-19 23:21:10 | INFO | Step 1721 | [OPEN SHORT] @ 100507.00 | TP: 97569.95 | SL: 102269.23 | Size: 0.0950
-2025-11-19 23:21:10 | INFO | Step 1731 | [CLOSE SHORT] @ 102269.23 (sl) | PnL: $-171.37 (-1.79%) | Balance: $9376.94 | Trades: 31 | Win Rate: 35.5%
-2025-11-19 23:21:10 | INFO | Step 1732 | [OPEN SHORT] @ 102068.80 | TP: 98704.83 | SL: 104087.18 | Size: 0.0919
-2025-11-19 23:21:10 | INFO | Step 1744 | [CLOSE SHORT] @ 104087.18 (sl) | PnL: $-189.25 (-2.02%) | Balance: $9183.94 | Trades: 32 | Win Rate: 34.4%
-2025-11-19 23:21:10 | INFO | Step 1745 | [OPEN SHORT] @ 103950.00 | TP: 101908.82 | SL: 105174.71 | Size: 0.0883
-2025-11-19 23:21:10 | INFO | Step 1761/2063 | Balance: $9180.27 | Trades: 32 | WR: 34.4% | Epsilon: 0.977
-2025-11-19 23:21:10 | INFO | Step 1765 | [CLOSE SHORT] @ 101908.82 (tp) | PnL: $176.74 (+1.92%) | Balance: $9357.00 | Trades: 33 | Win Rate: 36.4%
-2025-11-19 23:21:10 | INFO | Step 1766 | [OPEN SHORT] @ 100830.60 | TP: 98793.80 | SL: 102052.68 | Size: 0.0928
-2025-11-19 23:21:10 | INFO | Step 1768 | [CLOSE SHORT] @ 102052.68 (sl) | PnL: $-117.20 (-1.25%) | Balance: $9236.06 | Trades: 34 | Win Rate: 35.3%
-2025-11-19 23:21:10 | INFO | Step 1769 | [OPEN SHORT] @ 101335.90 | TP: 98810.59 | SL: 102851.08 | Size: 0.0911
-2025-11-19 23:21:10 | INFO | Step 1793 | [CLOSE SHORT] @ 102851.08 (sl) | PnL: $-141.85 (-1.54%) | Balance: $9090.52 | Trades: 35 | Win Rate: 34.3%
-2025-11-19 23:21:10 | INFO | Step 1794 | [OPEN SHORT] @ 103718.40 | TP: 101300.68 | SL: 105169.03 | Size: 0.0876
-2025-11-19 23:21:10 | INFO | Step 1825 | [CLOSE SHORT] @ 101300.68 (tp) | PnL: $208.35 (+2.29%) | Balance: $9295.24 | Trades: 36 | Win Rate: 36.1%
-2025-11-19 23:21:10 | INFO | Step 1826 | [OPEN LONG] @ 101673.80 | TP: 102795.51 | SL: 101000.77 | Size: 0.0914
-2025-11-19 23:21:10 | INFO | Step 1835 | [CLOSE LONG] @ 102795.51 (tp) | PnL: $98.79 (+1.06%) | Balance: $9390.31 | Trades: 37 | Win Rate: 37.8%
-2025-11-19 23:21:10 | INFO | Step 1837 | [OPEN SHORT] @ 103715.80 | TP: 102447.57 | SL: 104476.74 | Size: 0.0905
-2025-11-19 23:21:10 | INFO | Step 1840 | [CLOSE SHORT] @ 104476.74 (sl) | PnL: $-72.68 (-0.77%) | Balance: $9313.87 | Trades: 38 | Win Rate: 36.8%
-2025-11-19 23:21:10 | INFO | Step 1841 | [OPEN LONG] @ 104764.10 | TP: 106338.85 | SL: 103819.25 | Size: 0.0889
-2025-11-19 23:21:10 | INFO | Step 1846 | [CLOSE LONG] @ 106338.85 (tp) | PnL: $136.22 (+1.46%) | Balance: $9446.37 | Trades: 39 | Win Rate: 38.5%
-2025-11-19 23:21:10 | INFO | Step 1847 | [OPEN SHORT] @ 105683.00 | TP: 103432.25 | SL: 107033.45 | Size: 0.0894
-2025-11-19 23:21:10 | INFO | Step 1861/2063 | Balance: $9442.59 | Trades: 39 | WR: 38.5% | Epsilon: 0.972
-2025-11-19 23:21:10 | INFO | Step 1871 | [CLOSE SHORT] @ 107033.45 (sl) | PnL: $-124.54 (-1.32%) | Balance: $9318.05 | Trades: 40 | Win Rate: 37.5%
-2025-11-19 23:21:10 | INFO | Step 1872 | [OPEN SHORT] @ 106595.80 | TP: 104568.60 | SL: 107812.12 | Size: 0.0874
-2025-11-19 23:21:10 | INFO | Step 1882 | [CLOSE SHORT] @ 104568.60 (tp) | PnL: $173.55 (+1.86%) | Balance: $9487.88 | Trades: 41 | Win Rate: 39.0%
-2025-11-19 23:21:10 | INFO | Step 1884 | [OPEN SHORT] @ 104517.80 | TP: 102640.98 | SL: 105643.89 | Size: 0.0908
-2025-11-19 23:21:10 | INFO | Step 1890 | [CLOSE SHORT] @ 102640.98 (tp) | PnL: $166.65 (+1.76%) | Balance: $9650.73 | Trades: 42 | Win Rate: 40.5%
-2025-11-19 23:21:10 | INFO | Step 1891 | [OPEN LONG] @ 102598.40 | TP: 104260.70 | SL: 101601.02 | Size: 0.0941
-2025-11-19 23:21:10 | INFO | Step 1903 | [CLOSE LONG] @ 104260.70 (tp) | PnL: $152.44 (+1.58%) | Balance: $9799.31 | Trades: 43 | Win Rate: 41.9%
-2025-11-19 23:21:10 | INFO | Step 1904 | [OPEN SHORT] @ 104844.90 | TP: 103413.04 | SL: 105704.01 | Size: 0.0935
-2025-11-19 23:21:10 | INFO | Step 1909 | [CLOSE SHORT] @ 103413.04 (tp) | PnL: $129.96 (+1.33%) | Balance: $9925.35 | Trades: 44 | Win Rate: 43.2%
-2025-11-19 23:21:10 | INFO | Step 1910 | [OPEN SHORT] @ 101393.10 | TP: 99536.01 | SL: 102507.35 | Size: 0.0979
-2025-11-19 23:21:11 | INFO | Step 1919 | [CLOSE SHORT] @ 102507.35 (sl) | PnL: $-113.09 (-1.14%) | Balance: $9808.29 | Trades: 45 | Win Rate: 42.2%
-2025-11-19 23:21:11 | INFO | Step 1920 | [OPEN LONG] @ 102015.00 | TP: 104099.55 | SL: 100764.27 | Size: 0.0961
-2025-11-19 23:21:11 | INFO | Step 1934 | [CLOSE LONG] @ 100764.27 (sl) | PnL: $-124.13 (-1.27%) | Balance: $9680.24 | Trades: 46 | Win Rate: 41.3%
-2025-11-19 23:21:11 | INFO | Step 1935 | [OPEN LONG] @ 99601.40 | TP: 102214.57 | SL: 98033.49 | Size: 0.0972
-2025-11-19 23:21:11 | INFO | Step 1938 | [CLOSE LONG] @ 98033.49 (sl) | PnL: $-156.20 (-1.61%) | Balance: $9520.17 | Trades: 47 | Win Rate: 40.4%
-2025-11-19 23:21:11 | INFO | Step 1941 | [OPEN LONG] @ 99654.30 | TP: 102448.63 | SL: 97977.69 | Size: 0.0955
-2025-11-19 23:21:11 | INFO | Step 1946 | [CLOSE LONG] @ 97977.69 (sl) | PnL: $-163.91 (-1.72%) | Balance: $9352.45 | Trades: 48 | Win Rate: 39.6%
-2025-11-19 23:21:11 | INFO | Step 1947 | [OPEN SHORT] @ 97491.90 | TP: 94436.51 | SL: 99325.13 | Size: 0.0959
-2025-11-19 23:21:11 | INFO | Step 1961/2063 | Balance: $9348.71 | Trades: 48 | WR: 39.6% | Epsilon: 0.967
-2025-11-19 23:21:11 | INFO | Step 1962 | [CLOSE SHORT] @ 94436.51 (tp) | PnL: $289.48 (+3.10%) | Balance: $9638.19 | Trades: 49 | Win Rate: 40.8%
-2025-11-19 23:21:11 | INFO | Step 1963 | [OPEN SHORT] @ 95023.30 | TP: 91864.26 | SL: 96918.72 | Size: 0.1014
-2025-11-19 23:21:11 | INFO | Step 2033 | [CLOSE SHORT] @ 91864.26 (tp) | PnL: $316.69 (+3.29%) | Balance: $9951.03 | Trades: 50 | Win Rate: 42.0%
-2025-11-19 23:21:11 | INFO | Step 2037 | [OPEN SHORT] @ 92169.70 | TP: 89592.27 | SL: 93716.16 | Size: 0.1080
-2025-11-19 23:21:11 | INFO | Step 2042 | [CLOSE SHORT] @ 89592.27 (tp) | PnL: $274.40 (+2.76%) | Balance: $10221.45 | Trades: 51 | Win Rate: 43.1%
-2025-11-19 23:21:11 | INFO | Step 2044 | [OPEN SHORT] @ 89615.90 | TP: 87021.34 | SL: 91172.63 | Size: 0.1141
-2025-11-19 23:21:11 | INFO | Step 2046 | [CLOSE SHORT] @ 91172.63 (sl) | PnL: $-181.72 (-1.78%) | Balance: $10035.64 | Trades: 52 | Win Rate: 42.3%
-2025-11-19 23:21:11 | INFO | Step 2047 | [OPEN LONG] @ 91361.70 | TP: 93802.83 | SL: 89897.03 | Size: 0.1098
-2025-11-19 23:21:11 | INFO | Step 2061/2063 | Balance: $10031.63 | Trades: 52 | WR: 42.3% | Epsilon: 0.962
-2025-11-19 23:21:11 | INFO | Step 2062 | [CLOSE LONG] @ 92916.90 (timeout) | PnL: $166.75 (+1.66%) | Balance: $10198.38 | Trades: 53 | Win Rate: 43.4%
-2025-11-19 23:21:11 | INFO | 
-2025-11-19 23:21:11 | INFO | EPISODE 1/1 SUMMARY
-2025-11-19 23:21:11 | INFO | ------------------------------------------------------------
-2025-11-19 23:21:11 | INFO | Performance:
-2025-11-19 23:21:11 | INFO |   Total Reward: 0.46
-2025-11-19 23:21:11 | INFO |   Final Balance: $10198.38
-2025-11-19 23:21:11 | INFO |   Total Return: 1.98%
-2025-11-19 23:21:11 | INFO |   Total PnL: $407.79
-2025-11-19 23:21:11 | INFO | 
-2025-11-19 23:21:11 | INFO | Trading Stats:
-2025-11-19 23:21:11 | INFO |   Total Trades: 53
-2025-11-19 23:21:11 | INFO |   Winning Trades: 23
-2025-11-19 23:21:11 | INFO |   Losing Trades: 30
-2025-11-19 23:21:11 | INFO |   Win Rate: 43.40%
-2025-11-19 23:21:11 | INFO | 
-2025-11-19 23:21:11 | INFO | Action Distribution:
-2025-11-19 23:21:11 | INFO |   HOLD: 748 (93.4%)
-2025-11-19 23:21:11 | INFO |   OPEN LONG: 25 (3.1%)
-2025-11-19 23:21:11 | INFO |   OPEN SHORT: 28 (3.5%)
-2025-11-19 23:21:11 | INFO | 
-2025-11-19 23:21:11 | INFO | Agent Stats:
-2025-11-19 23:21:11 | INFO |   Epsilon: 0.9621
-2025-11-19 23:21:11 | INFO |   Steps Completed: 2062/2063
-2025-11-19 23:21:11 | INFO |   Replay Buffer Size: 801
-2025-11-19 23:21:11 | INFO | 
-2025-11-19 23:21:11 | INFO | ============================================================
-2025-11-19 23:21:11 | INFO | TRAINING COMPLETED
-2025-11-19 23:21:11 | INFO | Total Episodes: 1
-2025-11-19 23:21:11 | INFO | Final Balance: $10198.38
-2025-11-19 23:21:11 | INFO | Total Return: 1.98%
-2025-11-19 23:21:11 | INFO | Win Rate: 43.40%
-2025-11-19 23:21:11 | INFO | ============================================================
-2025-11-19 23:21:11 | INFO | Model saved to: checkpoints/d3qn_BTCUSDT_1h.pth
+2025-11-19 23:48:04 | INFO | ============================================================
+2025-11-19 23:48:04 | INFO | CRYPPO - TRAIN Mode
+2025-11-19 23:48:04 | INFO | Session started: 2025-11-19 23:48:04
+2025-11-19 23:48:04 | INFO | ============================================================
+2025-11-19 23:48:04 | INFO | Symbol: BTCUSDT
+2025-11-19 23:48:04 | INFO | Timeframes: 1h + 1m
+2025-11-19 23:48:04 | INFO | Episodes: 1
+2025-11-19 23:48:04 | INFO | Initial Balance: $10000.00
+2025-11-19 23:48:04 | INFO | Date Range: 2025-08-21 to 2025-11-19
+2025-11-19 23:48:04 | INFO | 
+2025-11-19 23:48:05 | INFO | Environment initialized: 2063 steps
+2025-11-19 23:48:05 | INFO | 
+2025-11-19 23:48:07 | INFO | ============================================================
+2025-11-19 23:48:07 | INFO | EPISODE 1/1
+2025-11-19 23:48:07 | INFO | ============================================================
+2025-11-19 23:48:07 | INFO | Step 1492 | [OPEN SHORT] @ 111574.30 | TP: 110896.17 | SL: 111981.17 | Size: 0.0896
+2025-11-19 23:48:07 | INFO | Step 1495 | [CLOSE SHORT] @ 111981.17 (sl) | PnL: $-40.48 (-0.40%) | Balance: $9955.52 | Trades: 1 | Win Rate: 0.0%
+2025-11-19 23:48:07 | INFO | Step 1500 | [OPEN LONG] @ 113515.20 | TP: 114609.70 | SL: 112858.50 | Size: 0.0877
+2025-11-19 23:48:07 | INFO | Step 1507 | [CLOSE LONG] @ 112858.50 (sl) | PnL: $-61.55 (-0.62%) | Balance: $9889.98 | Trades: 2 | Win Rate: 0.0%
+2025-11-19 23:48:07 | INFO | Step 1508 | [OPEN SHORT] @ 114631.80 | TP: 113334.21 | SL: 115410.35 | Size: 0.0863
+2025-11-19 23:48:07 | INFO | Step 1515 | [CLOSE SHORT] @ 115410.35 (sl) | PnL: $-71.15 (-0.72%) | Balance: $9814.87 | Trades: 3 | Win Rate: 0.0%
+2025-11-19 23:48:07 | INFO | Step 1516 | [OPEN SHORT] @ 116008.80 | TP: 114491.69 | SL: 116919.06 | Size: 0.0846
+2025-11-19 23:48:07 | INFO | Step 1524 | [CLOSE SHORT] @ 114491.69 (tp) | PnL: $124.48 (+1.27%) | Balance: $9935.43 | Trades: 4 | Win Rate: 25.0%
+2025-11-19 23:48:07 | INFO | Step 1525 | [OPEN SHORT] @ 114914.40 | TP: 113383.77 | SL: 115832.77 | Size: 0.0865
+2025-11-19 23:48:07 | INFO | Step 1548 | [CLOSE SHORT] @ 115832.77 (sl) | PnL: $-83.41 (-0.84%) | Balance: $9848.05 | Trades: 5 | Win Rate: 20.0%
+2025-11-19 23:48:07 | INFO | Step 1554 | [OPEN SHORT] @ 112744.60 | TP: 110918.48 | SL: 113840.28 | Size: 0.0873
+2025-11-19 23:48:08 | INFO | Step 1574 | [CLOSE SHORT] @ 110918.48 (tp) | PnL: $155.63 (+1.58%) | Balance: $9999.74 | Trades: 6 | Win Rate: 33.3%
+2025-11-19 23:48:08 | INFO | Step 1575 | [OPEN LONG] @ 111819.30 | TP: 113212.69 | SL: 110983.26 | Size: 0.0894
+2025-11-19 23:48:08 | INFO | Step 1576 | [CLOSE LONG] @ 110983.26 (sl) | PnL: $-78.73 (-0.79%) | Balance: $9917.00 | Trades: 7 | Win Rate: 28.6%
+2025-11-19 23:48:08 | INFO | Step 1580 | [OPEN LONG] @ 110974.90 | TP: 113203.36 | SL: 109637.82 | Size: 0.0894
+2025-11-19 23:48:08 | INFO | Step 1586 | [CLOSE LONG] @ 109637.82 (sl) | PnL: $-123.40 (-1.24%) | Balance: $9789.63 | Trades: 8 | Win Rate: 25.0%
+2025-11-19 23:48:08 | INFO | Step 1587 | [OPEN LONG] @ 110199.70 | TP: 113044.29 | SL: 108492.95 | Size: 0.0888
+2025-11-19 23:48:08 | INFO | Step 1589/2063 | Balance: $9785.72 | Trades: 8 | WR: 25.0% | Epsilon: 0.996
+2025-11-19 23:48:08 | INFO | Step 1594 | [CLOSE LONG] @ 108492.95 (sl) | PnL: $-155.48 (-1.59%) | Balance: $9630.24 | Trades: 9 | Win Rate: 22.2%
+2025-11-19 23:48:08 | INFO | Step 1595 | [OPEN LONG] @ 107582.20 | TP: 110200.18 | SL: 106011.42 | Size: 0.0895
+2025-11-19 23:48:08 | INFO | Step 1615 | [CLOSE LONG] @ 110200.18 (tp) | PnL: $230.40 (+2.39%) | Balance: $9856.79 | Trades: 10 | Win Rate: 30.0%
+2025-11-19 23:48:08 | INFO | Step 1616 | [OPEN SHORT] @ 109780.10 | TP: 107750.12 | SL: 110998.09 | Size: 0.0898
+2025-11-19 23:48:08 | INFO | Step 1620 | [CLOSE SHORT] @ 110998.09 (sl) | PnL: $-113.35 (-1.15%) | Balance: $9739.51 | Trades: 11 | Win Rate: 27.3%
+2025-11-19 23:48:08 | INFO | Step 1621 | [OPEN SHORT] @ 110160.10 | TP: 108028.55 | SL: 111439.03 | Size: 0.0884
+2025-11-19 23:48:08 | INFO | Step 1681 | [CLOSE SHORT] @ 108028.55 (tp) | PnL: $184.64 (+1.90%) | Balance: $9920.25 | Trades: 12 | Win Rate: 33.3%
+2025-11-19 23:48:08 | INFO | Step 1682 | [OPEN SHORT] @ 107843.80 | TP: 106399.47 | SL: 108710.39 | Size: 0.0920
+2025-11-19 23:48:08 | INFO | Step 1689/2063 | Balance: $9916.28 | Trades: 12 | WR: 33.3% | Epsilon: 0.991
+2025-11-19 23:48:08 | INFO | Step 1693 | [CLOSE SHORT] @ 106399.47 (tp) | PnL: $128.94 (+1.30%) | Balance: $10045.22 | Trades: 13 | Win Rate: 38.5%
+2025-11-19 23:48:08 | INFO | Step 1694 | [OPEN LONG] @ 106644.00 | TP: 108986.28 | SL: 105238.63 | Size: 0.0942
+2025-11-19 23:48:08 | INFO | Step 1707 | [CLOSE LONG] @ 105238.63 (sl) | PnL: $-136.34 (-1.36%) | Balance: $9904.86 | Trades: 14 | Win Rate: 35.7%
+2025-11-19 23:48:08 | INFO | Step 1708 | [OPEN LONG] @ 104702.40 | TP: 107421.56 | SL: 103070.90 | Size: 0.0946
+2025-11-19 23:48:08 | INFO | Step 1716 | [CLOSE LONG] @ 103070.90 (sl) | PnL: $-158.24 (-1.60%) | Balance: $9742.66 | Trades: 15 | Win Rate: 33.3%
+2025-11-19 23:48:08 | INFO | Step 1717 | [OPEN SHORT] @ 103157.70 | TP: 100676.65 | SL: 104646.34 | Size: 0.0944
+2025-11-19 23:48:08 | INFO | Step 1720 | [CLOSE SHORT] @ 100676.65 (tp) | PnL: $230.52 (+2.37%) | Balance: $9969.28 | Trades: 16 | Win Rate: 37.5%
+2025-11-19 23:48:08 | INFO | Step 1722 | [OPEN SHORT] @ 100710.10 | TP: 97998.82 | SL: 102336.87 | Size: 0.0990
+2025-11-19 23:48:08 | INFO | Step 1738 | [CLOSE SHORT] @ 102336.87 (sl) | PnL: $-165.09 (-1.66%) | Balance: $9800.21 | Trades: 17 | Win Rate: 35.3%
+2025-11-19 23:48:08 | INFO | Step 1739 | [OPEN LONG] @ 102926.10 | TP: 105231.96 | SL: 101542.59 | Size: 0.0952
+2025-11-19 23:48:08 | INFO | Step 1766 | [CLOSE LONG] @ 101542.59 (sl) | PnL: $-135.60 (-1.38%) | Balance: $9660.69 | Trades: 18 | Win Rate: 33.3%
+2025-11-19 23:48:08 | INFO | Step 1767 | [OPEN SHORT] @ 101762.20 | TP: 99476.84 | SL: 103133.42 | Size: 0.0949
+2025-11-19 23:48:09 | INFO | Step 1786 | [CLOSE SHORT] @ 99476.84 (tp) | PnL: $213.18 (+2.21%) | Balance: $9870.00 | Trades: 19 | Win Rate: 36.8%
+2025-11-19 23:48:09 | INFO | Step 1789/2063 | Balance: $9870.00 | Trades: 19 | WR: 36.8% | Epsilon: 0.986
+2025-11-19 23:48:09 | INFO | Step 1790 | [OPEN SHORT] @ 101128.40 | TP: 99112.63 | SL: 102337.86 | Size: 0.0976
+2025-11-19 23:48:09 | INFO | Step 1791 | [CLOSE SHORT] @ 102337.86 (sl) | PnL: $-122.04 (-1.24%) | Balance: $9744.02 | Trades: 20 | Win Rate: 35.0%
+2025-11-19 23:48:09 | INFO | Step 1795 | [OPEN LONG] @ 103844.90 | TP: 106311.53 | SL: 102364.92 | Size: 0.0938
+2025-11-19 23:48:09 | INFO | Step 1802 | [CLOSE LONG] @ 102364.92 (sl) | PnL: $-142.71 (-1.46%) | Balance: $9597.41 | Trades: 21 | Win Rate: 33.3%
+2025-11-19 23:48:09 | INFO | Step 1806 | [OPEN SHORT] @ 102392.10 | TP: 100850.92 | SL: 103316.81 | Size: 0.0937
+2025-11-19 23:48:09 | INFO | Step 1836 | [CLOSE SHORT] @ 103316.81 (sl) | PnL: $-90.55 (-0.94%) | Balance: $9503.02 | Trades: 22 | Win Rate: 31.8%
+2025-11-19 23:48:09 | INFO | Step 1837 | [OPEN LONG] @ 103715.80 | TP: 104984.03 | SL: 102954.86 | Size: 0.0916
+2025-11-19 23:48:09 | INFO | Step 1842 | [CLOSE LONG] @ 104984.03 (tp) | PnL: $112.35 (+1.18%) | Balance: $9611.57 | Trades: 23 | Win Rate: 34.8%
+2025-11-19 23:48:09 | INFO | Step 1844 | [OPEN SHORT] @ 104676.80 | TP: 102928.58 | SL: 105725.73 | Size: 0.0918
+2025-11-19 23:48:09 | INFO | Step 1846 | [CLOSE SHORT] @ 105725.73 (sl) | PnL: $-100.20 (-1.04%) | Balance: $9507.53 | Trades: 24 | Win Rate: 33.3%
+2025-11-19 23:48:09 | INFO | Step 1851 | [OPEN SHORT] @ 106050.00 | TP: 103925.45 | SL: 107324.73 | Size: 0.0897
+2025-11-19 23:48:09 | INFO | Step 1871 | [CLOSE SHORT] @ 107324.73 (sl) | PnL: $-118.13 (-1.24%) | Balance: $9385.60 | Trades: 25 | Win Rate: 32.0%
+2025-11-19 23:48:09 | INFO | Step 1872 | [OPEN SHORT] @ 106595.80 | TP: 104568.60 | SL: 107812.12 | Size: 0.0880
+2025-11-19 23:48:09 | INFO | Step 1882 | [CLOSE SHORT] @ 104568.60 (tp) | PnL: $174.81 (+1.86%) | Balance: $9556.65 | Trades: 26 | Win Rate: 34.6%
+2025-11-19 23:48:09 | INFO | Step 1883 | [OPEN LONG] @ 104350.10 | TP: 106209.15 | SL: 103234.67 | Size: 0.0916
+2025-11-19 23:48:09 | INFO | Step 1885 | [CLOSE LONG] @ 103234.67 (sl) | PnL: $-105.94 (-1.11%) | Balance: $9446.89 | Trades: 27 | Win Rate: 33.3%
+2025-11-19 23:48:09 | INFO | Step 1889/2063 | Balance: $9446.89 | Trades: 27 | WR: 33.3% | Epsilon: 0.982
+2025-11-19 23:48:09 | INFO | Step 1889 | [OPEN LONG] @ 103073.60 | TP: 104720.06 | SL: 102085.72 | Size: 0.0917
+2025-11-19 23:48:09 | INFO | Step 1903 | [CLOSE LONG] @ 104720.06 (tp) | PnL: $147.06 (+1.56%) | Balance: $9590.18 | Trades: 28 | Win Rate: 35.7%
+2025-11-19 23:48:09 | INFO | Step 1906 | [OPEN SHORT] @ 104947.80 | TP: 103559.28 | SL: 105780.91 | Size: 0.0914
+2025-11-19 23:48:09 | INFO | Step 1908 | [CLOSE SHORT] @ 103559.28 (tp) | PnL: $123.10 (+1.28%) | Balance: $9709.44 | Trades: 29 | Win Rate: 37.9%
+2025-11-19 23:48:09 | INFO | Step 1911 | [OPEN SHORT] @ 101700.00 | TP: 99753.77 | SL: 102867.74 | Size: 0.0955
+2025-11-19 23:48:09 | INFO | Step 1923 | [CLOSE SHORT] @ 102867.74 (sl) | PnL: $-115.41 (-1.19%) | Balance: $9590.14 | Trades: 30 | Win Rate: 36.7%
+2025-11-19 23:48:09 | INFO | Step 1924 | [OPEN SHORT] @ 103555.00 | TP: 101551.00 | SL: 104757.40 | Size: 0.0926
+2025-11-19 23:48:09 | INFO | Step 1933 | [CLOSE SHORT] @ 101551.00 (tp) | PnL: $181.83 (+1.90%) | Balance: $9768.13 | Trades: 31 | Win Rate: 38.7%
+2025-11-19 23:48:09 | INFO | Step 1934 | [OPEN LONG] @ 100580.20 | TP: 103075.32 | SL: 99083.13 | Size: 0.0971
+2025-11-19 23:48:09 | INFO | Step 1936 | [CLOSE LONG] @ 99083.13 (sl) | PnL: $-149.24 (-1.53%) | Balance: $9614.98 | Trades: 32 | Win Rate: 37.5%
+2025-11-19 23:48:09 | INFO | Step 1939 | [OPEN SHORT] @ 98764.10 | TP: 96119.66 | SL: 100350.77 | Size: 0.0974
+2025-11-19 23:48:09 | INFO | Step 1941 | [CLOSE SHORT] @ 100350.77 (sl) | PnL: $-158.37 (-1.65%) | Balance: $9452.76 | Trades: 33 | Win Rate: 36.4%
+2025-11-19 23:48:09 | INFO | Step 1945 | [OPEN LONG] @ 99103.30 | TP: 102044.37 | SL: 97338.65 | Size: 0.0954
+2025-11-19 23:48:09 | INFO | Step 1946 | [CLOSE LONG] @ 97338.65 (sl) | PnL: $-172.03 (-1.82%) | Balance: $9276.95 | Trades: 34 | Win Rate: 35.3%
+2025-11-19 23:48:09 | INFO | Step 1950 | [OPEN SHORT] @ 97333.20 | TP: 94338.56 | SL: 99129.99 | Size: 0.0953
+2025-11-19 23:48:10 | INFO | Step 1962 | [CLOSE SHORT] @ 94338.56 (tp) | PnL: $281.83 (+3.04%) | Balance: $9555.07 | Trades: 35 | Win Rate: 37.1%
+2025-11-19 23:48:10 | INFO | Step 1963 | [OPEN LONG] @ 95023.30 | TP: 98182.33 | SL: 93127.88 | Size: 0.1006
+2025-11-19 23:48:10 | INFO | Step 1989/2063 | Balance: $9551.25 | Trades: 35 | WR: 37.1% | Epsilon: 0.977
+2025-11-19 23:48:10 | INFO | Step 2012 | [CLOSE LONG] @ 93127.88 (sl) | PnL: $-194.34 (-2.03%) | Balance: $9356.91 | Trades: 36 | Win Rate: 36.1%
+2025-11-19 23:48:10 | INFO | Step 2013 | [OPEN LONG] @ 94221.70 | TP: 96388.58 | SL: 92921.58 | Size: 0.0993
+2025-11-19 23:48:10 | INFO | Step 2031 | [CLOSE LONG] @ 92921.58 (sl) | PnL: $-132.80 (-1.42%) | Balance: $9220.36 | Trades: 37 | Win Rate: 35.1%
+2025-11-19 23:48:10 | INFO | Step 2034 | [OPEN SHORT] @ 91880.50 | TP: 89420.70 | SL: 93356.38 | Size: 0.1004
+2025-11-19 23:48:10 | INFO | Step 2042 | [CLOSE SHORT] @ 89420.70 (tp) | PnL: $243.26 (+2.64%) | Balance: $9459.93 | Trades: 38 | Win Rate: 36.8%
+2025-11-19 23:48:10 | INFO | Step 2043 | [OPEN LONG] @ 90185.90 | TP: 92863.08 | SL: 88579.59 | Size: 0.1049
+2025-11-19 23:48:10 | INFO | Step 2053 | [CLOSE LONG] @ 92863.08 (tp) | PnL: $276.92 (+2.93%) | Balance: $9733.07 | Trades: 39 | Win Rate: 38.5%
+2025-11-19 23:48:10 | INFO | Step 2054 | [OPEN SHORT] @ 93447.30 | TP: 90919.92 | SL: 94963.72 | Size: 0.1042
+2025-11-19 23:48:10 | INFO | Step 2063 | [CLOSE SHORT] @ 92377.60 (timeout) | PnL: $107.57 (+1.11%) | Balance: $9836.74 | Trades: 40 | Win Rate: 40.0%
+2025-11-19 23:48:10 | INFO | 
+2025-11-19 23:48:10 | INFO | EPISODE 1/1 SUMMARY
+2025-11-19 23:48:10 | INFO | ------------------------------------------------------------
+2025-11-19 23:48:10 | INFO | Performance:
+2025-11-19 23:48:10 | INFO |   Total Reward: -7.03
+2025-11-19 23:48:10 | INFO |   Final Balance: $9836.74
+2025-11-19 23:48:10 | INFO |   Total Return: -1.63%
+2025-11-19 23:48:10 | INFO |   Total PnL: $-8.07
+2025-11-19 23:48:10 | INFO | 
+2025-11-19 23:48:10 | INFO | Trading Stats:
+2025-11-19 23:48:10 | INFO |   Total Trades: 40
+2025-11-19 23:48:10 | INFO |   Winning Trades: 16
+2025-11-19 23:48:10 | INFO |   Losing Trades: 24
+2025-11-19 23:48:10 | INFO |   Win Rate: 40.00%
+2025-11-19 23:48:10 | INFO | 
+2025-11-19 23:48:10 | INFO | Action Distribution:
+2025-11-19 23:48:10 | INFO |   HOLD: 519 (90.4%)
+2025-11-19 23:48:10 | INFO |   OPEN LONG: 22 (3.8%)
+2025-11-19 23:48:10 | INFO |   OPEN SHORT: 33 (5.7%)
+2025-11-19 23:48:10 | INFO | 
+2025-11-19 23:48:10 | INFO | Agent Stats:
+2025-11-19 23:48:10 | INFO |   Epsilon: 0.9732
+2025-11-19 23:48:10 | INFO |   Steps Completed: 2063/2063
+2025-11-19 23:48:10 | INFO |   Replay Buffer Size: 574
+2025-11-19 23:48:10 | INFO | 
+2025-11-19 23:48:10 | INFO | ============================================================
+2025-11-19 23:48:10 | INFO | TRAINING COMPLETED
+2025-11-19 23:48:10 | INFO | Total Episodes: 1
+2025-11-19 23:48:10 | INFO | Final Balance: $9836.74
+2025-11-19 23:48:10 | INFO | Total Return: -1.63%
+2025-11-19 23:48:10 | INFO | Win Rate: 40.00%
+2025-11-19 23:48:10 | INFO | ============================================================
+2025-11-19 23:48:10 | INFO | Model saved to: checkpoints/d3qn_BTCUSDT_1h.pth

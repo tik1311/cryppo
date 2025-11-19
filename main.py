@@ -1,254 +1,115 @@
 #!/usr/bin/env python3
 """
-Interactive launcher for CRYPPO.
-Provides a friendly Rich-based UI so everything can be executed by running:
-    python main.py
+Interactive Launcher for CRYPPO (Multi-Timeframe)
 """
 
 import sys
 import subprocess
-from typing import List
-
 from rich.console import Console
 from rich.panel import Panel
-from rich.table import Table
 from rich.prompt import Prompt, Confirm
+from rich.align import Align
 from rich.text import Text
-from rich import box
+from datetime import datetime, timedelta
 
 console = Console()
 
-
-BANNER = """
-  ██████╗██████╗ ██╗   ██╗██████╗ ██████╗  ██████╗
- ██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██╔═══██╗
- ██║     ██████╔╝ ╚████╔╝ ██████╔╝██████╔╝██║   ██║
- ██║     ██╔══██╗  ╚██╔╝  ██╔═══╝ ██╔═══╝ ██║   ██║
- ╚██████╗██║  ██║   ██║   ██║     ██║     ╚██████╔╝
-  ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═╝      ╚═════╝
-
-        Interactive CLI for CRYPPO
-"""
-
-
-def run_command(args: List[str]) -> None:
-    """Execute cryppo.py with the supplied arguments."""
+def run_command(args):
     cmd = [sys.executable, "cryppo.py"] + args
-    console.print(
-        Panel(
-            Text(" ".join(cmd), style="bold white"),
-            title="Executing",
-            border_style="cyan",
-            box=box.ROUNDED,
-        )
-    )
-    try:
-        subprocess.run(cmd, check=False)
-    except KeyboardInterrupt:
-        console.print("[yellow]Command interrupted by user[/yellow]")
+    subprocess.run(cmd)
 
-
-def show_menu() -> None:
-    """Display available actions."""
-    table = Table(title="Choose an action", box=box.SIMPLE_HEAVY)
-    table.add_column("#", style="cyan", justify="right")
-    table.add_column("Task", style="bold white")
-    table.add_column("Description", style="dim")
-    table.add_row("1", "System Check", "Validate environment, GPU, dependencies")
-    table.add_row("2", "Download Data", "Fetch market data via CCXT")
-    table.add_row("3", "List Data", "Show available files in data/")
-    table.add_row("4", "Prepare Data", "Create normalized NPZ splits")
-    table.add_row("5", "Train Model", "Train D3QN/PPO/SAC/TD3")
-    table.add_row("6", "Backtest Model", "Evaluate a saved checkpoint")
-    table.add_row("7", "Paper Trading", "Live-style CCXT simulation")
-    table.add_row("8", "List Models", "Show files inside checkpoints/")
-    table.add_row("0", "Exit", "Quit the UI")
-    console.print(table)
-
-
-def handle_system_check():
-    run_command(["check"])
-
-
-def handle_download_data():
-    symbol = Prompt.ask("Symbol", default="BTCUSDT").upper()
-    timeframe = Prompt.ask("Timeframe", default="1h")
-    start = Prompt.ask("Start date (YYYY-MM-DD)", default="2023-01-01")
-    end = Prompt.ask("End date (YYYY-MM-DD)", default="2024-12-31")
-    run_command(
-        [
-            "data",
-            "download",
-            "--symbol",
-            symbol,
-            "--start",
-            start,
-            "--end",
-            end,
-            "--timeframe",
-            timeframe,
-        ]
-    )
-
-
-def handle_list_data():
-    run_command(["data", "list"])
-
-
-def handle_prepare_data():
-    symbol = Prompt.ask("Symbol", default="BTCUSDT").upper()
-    timeframe = Prompt.ask("Timeframe", default="1h")
-    window = Prompt.ask("Window size", default="72")
-    output = Prompt.ask("Output directory", default="data/processed")
-    cmd = [
-        "data",
-        "prepare",
-        "--symbol",
-        symbol,
-        "--timeframe",
-        timeframe,
-        "--window",
-        window,
-        "--output",
-        output,
-    ]
-    run_command(cmd)
-
-
-def handle_train():
-    model = Prompt.ask(
-        "Model (d3qn/ppo/sac/td3)",
-        default="d3qn",
-        choices=["d3qn", "ppo", "sac", "td3"],
-    )
-    symbol = Prompt.ask("Symbol", default="BTCUSDT").upper()
-    timeframe = Prompt.ask("Timeframe", default="1h")
-    reward = Prompt.ask(
-        "Reward (profit/return/sharpe/sortino)",
-        default="sharpe",
-        choices=["profit", "return", "sharpe", "sortino"],
-    )
-
-    args = [
-        "train",
-        "--model",
-        model,
-        "--symbol",
-        symbol,
-        "--timeframe",
-        timeframe,
-        "--reward",
-        reward,
-    ]
-
-    if model == "d3qn":
-        episodes = Prompt.ask("Episodes", default="10")
-        args.extend(["--episodes", episodes])
-    else:
-        timesteps = Prompt.ask("Timesteps", default="50000")
-        args.extend(["--timesteps", timesteps])
-
-    run_command(args)
-
-
-def handle_backtest():
-    model_path = Prompt.ask(
-        "Path to model",
-        default="checkpoints/final_agent.pth",
-    )
-    model_type = Prompt.ask(
-        "Model type (d3qn/ppo/sac/td3)",
-        default="d3qn",
-        choices=["d3qn", "ppo", "sac", "td3"],
-    )
-    symbol = Prompt.ask("Symbol", default="BTCUSDT").upper()
-    timeframe = Prompt.ask("Timeframe", default="1h")
-    args = [
-        "backtest",
-        "--model",
-        model_path,
-        "--model-type",
-        model_type,
-        "--symbol",
-        symbol,
-        "--timeframe",
-        timeframe,
-    ]
-    run_command(args)
-
-
-def handle_paper():
-    model_path = Prompt.ask(
-        "Path to model",
-        default="checkpoints/final_agent.pth",
-    )
-    model_type = Prompt.ask(
-        "Model type (d3qn/ppo/sac/td3)",
-        default="d3qn",
-        choices=["d3qn", "ppo", "sac", "td3"],
-    )
-    symbol = Prompt.ask("Symbol (e.g. BTC/USDT)", default="BTC/USDT").upper()
-    timeframe = Prompt.ask("Timeframe", default="1m")
-    steps = Prompt.ask("Steps to simulate", default="120")
-    interval = Prompt.ask("Seconds between updates", default="2")
-    args = [
-        "paper",
-        "--model",
-        model_path,
-        "--model-type",
-        model_type,
-        "--symbol",
-        symbol,
-        "--timeframe",
-        timeframe,
-        "--steps",
-        steps,
-        "--interval",
-        interval,
-    ]
-    run_command(args)
-
-
-def handle_list_models():
-    run_command(["models"])
-
-
-HANDLERS = {
-    "1": handle_system_check,
-    "2": handle_download_data,
-    "3": handle_list_data,
-    "4": handle_prepare_data,
-    "5": handle_train,
-    "6": handle_backtest,
-    "7": handle_paper,
-    "8": handle_list_models,
-}
-
+def get_date_range():
+    """Helper to get start and end dates"""
+    default_start = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+    default_end = datetime.now().strftime("%Y-%m-%d")
+    
+    console.print(f"\n[dim]Default Range: {default_start} to {default_end}[/dim]")
+    start = Prompt.ask("Start Date (YYYY-MM-DD)", default=default_start)
+    end = Prompt.ask("End Date (YYYY-MM-DD)", default=default_end)
+    return start, end
 
 def main():
-    console.clear()
-    console.print(Panel(Text(BANNER, justify="center", style="bold cyan"), border_style="bright_cyan", box=box.DOUBLE))
-
     while True:
-        show_menu()
-        choice = Prompt.ask("Select option", default="1")
-        if choice == "0":
-            console.print("[bold green]Goodbye![/bold green]")
-            break
-        handler = HANDLERS.get(choice)
-        if handler:
-            handler()
-        else:
-            console.print("[red]Invalid choice[/red]")
-            continue
+        console.clear()
+        
+        title = Text("CRYPPO - Deep RL Trading System", style="bold magenta")
+        subtitle = Text("Multi-Timeframe Edition (1h + 1m)", style="dim white")
+        
+        console.print(Panel(Align.center(title + "\n" + subtitle), border_style="cyan"))
+        
+        console.print("\n[bold cyan]Main Menu[/bold cyan]")
+        console.print("1. [green]System Check[/green]")
+        console.print("2. [yellow]Download Data[/yellow] (Main + Detail)")
+        console.print("3. [blue]Train Model[/blue]")
+        console.print("4. [magenta]Backtest Model[/magenta]")
+        console.print("5. [red]Paper Trade (Simulation)[/red]")
+        console.print("0. Exit")
+        
+        choice = Prompt.ask("\nSelect option", default="1")
+        
+        if choice == "1":
+            run_command(["check"])
+            Prompt.ask("\nPress Enter to continue...")
+            
+        elif choice == "2":
+            console.print("\n[bold yellow]Download Market Data[/bold yellow]")
+            symbol = Prompt.ask("Symbol", default="BTCUSDT")
+            start, end = get_date_range()
+            
+            if Confirm.ask(f"Download {symbol} (1h & 1m) from {start} to {end}?"):
+                # Download 1h
+                run_command(["data", "download", "--symbol", symbol, "--timeframe", "1h", "--start", start, "--end", end])
+                # Download 1m
+                run_command(["data", "download", "--symbol", symbol, "--timeframe", "1m", "--start", start, "--end", end])
+            Prompt.ask("\nPress Enter to continue...")
 
-        if not Confirm.ask("Run another task?", default=True):
-            console.print("[bold green]Goodbye![/bold green]")
-            break
+        elif choice == "3":
+            console.print("\n[bold blue]Train Model[/bold blue]")
+            symbol = Prompt.ask("Symbol", default="BTCUSDT")
+            episodes = Prompt.ask("Episodes", default="10")
+            
+            use_date_range = Confirm.ask("Filter by date range?", default=False)
+            args = ["train", "--symbol", symbol, "--episodes", episodes]
+            
+            if use_date_range:
+                start, end = get_date_range()
+                args.extend(["--start", start, "--end", end])
+                
+            run_command(args)
+            Prompt.ask("\nPress Enter to continue...")
 
+        elif choice == "4":
+            console.print("\n[bold magenta]Backtest Model[/bold magenta]")
+            symbol = Prompt.ask("Symbol", default="BTCUSDT")
+            
+            use_date_range = Confirm.ask("Filter by date range?", default=False)
+            args = ["backtest", "--symbol", symbol]
+            
+            if use_date_range:
+                start, end = get_date_range()
+                args.extend(["--start", start, "--end", end])
+                
+            run_command(args)
+            Prompt.ask("\nPress Enter to continue...")
+            
+        elif choice == "5":
+            console.print("\n[bold red]Paper Trade Simulation[/bold red]")
+            console.print("[dim]Simulating live trading using recent data...[/dim]")
+            symbol = Prompt.ask("Symbol", default="BTCUSDT")
+            
+            use_date_range = Confirm.ask("Filter by date range?", default=False)
+            args = ["paper", "--symbol", symbol]
+            
+            if use_date_range:
+                start, end = get_date_range()
+                args.extend(["--start", start, "--end", end])
+            
+            run_command(args)
+            Prompt.ask("\nPress Enter to continue...")
+
+        elif choice == "0":
+            console.print("[bold]Goodbye![/bold]")
+            break
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        console.print("\n[yellow]Exited by user[/yellow]")
+    main()

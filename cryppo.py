@@ -610,11 +610,19 @@ def backtest(
         state_dim = int(np.prod(env.observation_space.shape))
         action_dim = base_env.action_space.n
 
+        # Get actual dimensions from environment (important for Phase 4.1+)
+        window_size = env.observation_space.shape[0]
+        n_features = env.observation_space.shape[1]
+
         agent = D3QNAgent(
             state_dim=state_dim,
             action_dim=action_dim,
+            window_size=window_size,
+            n_features=n_features,
             learning_rate=0.00025,
-            gamma=0.995
+            gamma=0.995,
+            use_hybrid_network=True,
+            device=device
         )
         agent.load(str(path))
 

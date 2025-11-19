@@ -48,7 +48,8 @@ class TradingEnv(gym.Env):
         atr_period: int = 14,
         atr_sl_multiplier: float = 1.5,
         atr_tp_multiplier: float = 2.5,  # Reduced from 4.5 to 2.5 (better win rate)
-        streaming_mode: bool = False
+        streaming_mode: bool = False,
+        logger = None  # Add logger parameter
     ):
         super().__init__()
 
@@ -93,10 +94,12 @@ class TradingEnv(gym.Env):
         })
 
         # Logging
+        self.logger = logger
         self.log_dir = Path("logs")
         self.log_dir.mkdir(exist_ok=True, parents=True)
         self.step_log = []
         self.enable_detailed_logging = False
+        self.verbose_trades = True  # Always log trades
 
         self.reset()
 
@@ -320,9 +323,12 @@ class TradingEnv(gym.Env):
             self.take_profit = price - (atr * self.atr_tp_multiplier)
             self.stop_loss = price + (atr * self.atr_sl_multiplier)
             
-        # Log
-        if self.total_trades < 5:
-            print(f"  [OPEN {pos_type.upper()}] @ {price:.2f} | TP: {self.take_profit:.2f} | SL: {self.stop_loss:.2f}")
+        # Log trade open
+        trade_msg = f"[OPEN {pos_type.upper()}] @ {price:.2f} | TP: {self.take_profit:.2f} | SL: {self.stop_loss:.2f} | Size: {self.position_size:.4f}"
+        if self.total_trades < 5 or self.verbose_trades:
+            print(f"  {trade_msg}")
+        if self.logger:
+            self.logger.info(f"Step {self.current_step} | {trade_msg}")
 
     def _close_position(self, price: float, reason: str) -> float:
         if not self.position: return 0.0
@@ -342,10 +348,17 @@ class TradingEnv(gym.Env):
         self.total_trades += 1
         if pnl > 0: self.winning_trades += 1
         
-        # Log
-        if self.total_trades < 5:
-            print(f"  [CLOSE {self.position.upper()}] @ {price:.2f} ({reason}) | PnL: {pnl:.2f}")
-            
+        # Calculate win rate
+        win_rate = (self.winning_trades / max(1, self.total_trades)) * 100
+        pnl_pct = (pnl / (self.entry_price * self.position_size)) * 100
+
+        # Log trade close
+        trade_msg = f"[CLOSE {self.position.upper()}] @ {price:.2f} ({reason}) | PnL: ${pnl:.2f} ({pnl_pct:+.2f}%) | Balance: ${self.balance:.2f} | Trades: {self.total_trades} | Win Rate: {win_rate:.1f}%"
+        if self.total_trades <= 10 or self.verbose_trades:
+            print(f"  {trade_msg}")
+        if self.logger:
+            self.logger.info(f"Step {self.current_step} | {trade_msg}")
+
         self.position = None
         return pnl
 

@@ -130,8 +130,10 @@ def run_backtest(args):
     )
     
     # 3. Init Env
-    env = TradingEnv(data_dict, initial_balance=args.balance)
-    
+    env = TradingEnv(data_dict, initial_balance=args.balance, logger=logger)
+    logger.info(f"Environment initialized: {env.n_steps} steps")
+    logger.info("")
+
     # 4. Load Agent
     obs_shape = env.observation_space['main'].shape
     detail_shape = env.observation_space['detail'].shape
@@ -244,8 +246,10 @@ def run_paper_trade(args):
     )
     
     # 3. Init Env with streaming mode
-    env = TradingEnv(data_dict, initial_balance=args.balance, streaming_mode=True)
-    
+    env = TradingEnv(data_dict, initial_balance=args.balance, streaming_mode=True, logger=logger)
+    logger.info(f"Environment initialized: {env.n_steps} steps")
+    logger.info("")
+
     # 4. Load Agent
     obs_shape = env.observation_space['main'].shape
     detail_shape = env.observation_space['detail'].shape
@@ -386,8 +390,10 @@ def run_train(args):
     )
     
     # 3. Init Env
-    env = TradingEnv(data_dict, initial_balance=args.balance)
-    
+    env = TradingEnv(data_dict, initial_balance=args.balance, logger=logger)
+    logger.info(f"Environment initialized: {env.n_steps} steps")
+    logger.info("")
+
     # 4. Init Agent
     obs_shape = env.observation_space['main'].shape
     detail_shape = env.observation_space['detail'].shape
@@ -411,6 +417,11 @@ def run_train(args):
         done = False
         total_reward = 0
         step_count = 0
+        action_counts = {0: 0, 1: 0, 2: 0}  # Track HOLD, LONG, SHORT
+
+        logger.info(f"{'='*60}")
+        logger.info(f"EPISODE {episode+1}/{args.episodes}")
+        logger.info(f"{'='*60}")
 
         with Progress(
             SpinnerColumn(),
@@ -429,10 +440,19 @@ def run_train(args):
 
                 agent.store_transition(state, action, reward, next_state, done)
 
+                # Track actions
+                action_counts[action] += 1
+
                 # Update every N steps for efficiency
                 step_count += 1
+                loss = None
                 if step_count % update_frequency == 0:
                     loss = agent.update()
+
+                # Log progress every 100 steps
+                if step_count % 100 == 0:
+                    current_wr = (env.winning_trades / max(1, env.total_trades)) * 100
+                    logger.info(f"Step {env.current_step}/{env.n_steps} | Balance: ${env.balance:.2f} | Trades: {env.total_trades} | WR: {current_wr:.1f}% | Epsilon: {agent.epsilon:.3f}")
 
                 state = next_state
                 total_reward += reward
@@ -441,18 +461,35 @@ def run_train(args):
         # Calculate metrics
         win_rate = (env.winning_trades / max(1, env.total_trades)) * 100
         total_return = ((env.balance - env.initial_balance) / env.initial_balance) * 100
+        total_actions = sum(action_counts.values())
 
         console.print(f"Episode {episode+1}/{args.episodes} | Reward: {total_reward:.2f} | Epsilon: {agent.epsilon:.2f} | Balance: ${env.balance:.2f}")
 
         # Log episode results
-        logger.info(f"Episode {episode+1}/{args.episodes}")
+        logger.info(f"")
+        logger.info(f"EPISODE {episode+1}/{args.episodes} SUMMARY")
+        logger.info(f"-" * 60)
+        logger.info(f"Performance:")
         logger.info(f"  Total Reward: {total_reward:.2f}")
         logger.info(f"  Final Balance: ${env.balance:.2f}")
         logger.info(f"  Total Return: {total_return:.2f}%")
+        logger.info(f"  Total PnL: ${env.total_pnl:.2f}")
+        logger.info(f"")
+        logger.info(f"Trading Stats:")
         logger.info(f"  Total Trades: {env.total_trades}")
+        logger.info(f"  Winning Trades: {env.winning_trades}")
+        logger.info(f"  Losing Trades: {env.total_trades - env.winning_trades}")
         logger.info(f"  Win Rate: {win_rate:.2f}%")
+        logger.info(f"")
+        logger.info(f"Action Distribution:")
+        logger.info(f"  HOLD: {action_counts[0]} ({action_counts[0]/total_actions*100:.1f}%)")
+        logger.info(f"  OPEN LONG: {action_counts[1]} ({action_counts[1]/total_actions*100:.1f}%)")
+        logger.info(f"  OPEN SHORT: {action_counts[2]} ({action_counts[2]/total_actions*100:.1f}%)")
+        logger.info(f"")
+        logger.info(f"Agent Stats:")
         logger.info(f"  Epsilon: {agent.epsilon:.4f}")
-        logger.info(f"  Steps: {env.current_step}/{env.n_steps}")
+        logger.info(f"  Steps Completed: {env.current_step}/{env.n_steps}")
+        logger.info(f"  Replay Buffer Size: {len(agent.memory)}")
         logger.info("")
 
         # Memory optimization: Clear cache after each episode

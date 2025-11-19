@@ -50,7 +50,7 @@ class D3QNAgent:
         n_detail_features: int,
         detail_len: int,
         action_dim: int,
-        learning_rate: float = 0.0001,
+        learning_rate: float = 0.0003,  # Increased from 0.0001 to 0.0003 for faster learning
         gamma: float = 0.99,
         device: str = "cuda" if torch.cuda.is_available() else "cpu"
     ):
@@ -58,8 +58,8 @@ class D3QNAgent:
         self.gamma = gamma
         self.device = torch.device(device)
         self.epsilon = 1.0
-        self.epsilon_min = 0.1
-        self.epsilon_decay = 0.9995
+        self.epsilon_min = 0.15  # Increased from 0.1 to 0.15 for more exploration
+        self.epsilon_decay = 0.9998  # Slower decay (was 0.9995) for better learning
         
         self.policy_net = HybridQNetwork(
             window_size, n_main_features, n_detail_features, detail_len, action_dim

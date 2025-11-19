@@ -43,11 +43,11 @@ class TradingEnv(gym.Env):
         fee_rate: float = 0.0004,
         max_leverage: float = 1.0,
         window_size: int = 36,  # Reduced from 72 to 36 for efficiency
-        reward_type: str = 'sharpe',
+        reward_type: str = 'pnl',  # Changed from 'sharpe' to 'pnl' for clearer signal
         min_episode_length: int = 500,  # Reduced from 1000 to 500
         atr_period: int = 14,
         atr_sl_multiplier: float = 1.5,
-        atr_tp_multiplier: float = 4.5,
+        atr_tp_multiplier: float = 2.5,  # Reduced from 4.5 to 2.5 (better win rate)
         streaming_mode: bool = False
     ):
         super().__init__()
@@ -143,7 +143,7 @@ class TradingEnv(gym.Env):
         # Patience / Anti-Overtrading
         self.consecutive_holds = 0
         self.last_trade_step = -100
-        self.min_bars_between_trades = 4
+        self.min_bars_between_trades = 2  # Reduced from 4 to 2 for more opportunities
 
         return self._get_observation(), self._get_info()
 
@@ -252,13 +252,20 @@ class TradingEnv(gym.Env):
             
             if exit_price:
                 trade_reward = self._close_position(exit_price, exit_reason)
-                reward += trade_reward
-                
-                # Bonus for TP, small penalty for SL (risk management is good)
+                # Normalize PnL to [-1, 1] range for stable learning
+                normalized_pnl = np.tanh(trade_reward / 100.0)
+                reward += normalized_pnl
+
+                # Strong bonus for TP, strong penalty for SL (encourage winning trades)
                 if exit_reason == 'tp':
-                    reward += 0.1  # Bonus for winning
+                    reward += 0.5  # Strong bonus for winning (increased from 0.1)
+                    # Bonus for win streak
+                    if self.winning_trades > 0 and self.total_trades > 0:
+                        recent_win_rate = self.winning_trades / self.total_trades
+                        if recent_win_rate > 0.4:
+                            reward += 0.2  # Extra bonus for maintaining good win rate
                 elif exit_reason == 'sl':
-                    reward -= 0.01 # Small penalty for losing
+                    reward -= 0.3  # Stronger penalty for losing (increased from 0.01)
             
             # Time penalty to discourage holding forever
             if self.hold_duration > 100:

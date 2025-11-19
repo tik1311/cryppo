@@ -192,6 +192,21 @@ def backtest_model():
 
     run_command(args)
 
+def paper_trade():
+    """Run paper trade simulation"""
+    console.print("\n[bold red]📈 Paper Trade (Live Simulation)[/bold red]")
+    console.print("[dim]Simulating live trading with real-time visualization...[/dim]")
+    symbol = Prompt.ask("Symbol", default="BTCUSDT")
+
+    use_date_range = Confirm.ask("Filter by date range?", default=False)
+    args = ["paper", "--symbol", symbol]
+
+    if use_date_range:
+        start, end = get_date_range()
+        args.extend(["--start", start, "--end", end])
+
+    run_command(args)
+
 def main():
     """Main menu loop"""
     while True:
@@ -207,6 +222,7 @@ def main():
             "📂 List Data",
             "🚀 Train Model",
             "📊 Backtest",
+            "📈 Paper Trade (Live Simulation)",
             "📁 List Models",
             "❌ Exit"
         ]
@@ -245,6 +261,10 @@ def main():
 
         elif choice == "📊 Backtest":
             backtest_model()
+            Prompt.ask("\n[dim]Press Enter to continue...[/dim]")
+
+        elif choice == "📈 Paper Trade (Live Simulation)":
+            paper_trade()
             Prompt.ask("\n[dim]Press Enter to continue...[/dim]")
 
         elif choice == "📁 List Models":

@@ -231,13 +231,21 @@ Trades: {env.total_trades} (Wins: {env.winning_trades})
 def run_train(args):
     """Run training"""
     console.print(f"[bold cyan]Training D3QN ({args.main_tf} + {args.detail_tf})[/bold cyan]")
-    console.print("\n[green]⚡ Performance Optimizations Enabled:[/green]")
+    console.print("\n[green]⚡ Performance Optimizations:[/green]")
     console.print("  • Window size: 36 (was 72) - 50% faster")
     console.print("  • Batch size: 32 (was 64) - 50% less memory")
     console.print("  • Replay buffer: 10k (was 50k) - 80% less memory")
     console.print("  • Network: Simplified (1 LSTM layer, 16 quantiles)")
     console.print("  • Update frequency: Every 4 steps (was every step)")
-    console.print("  • Memory cleanup: Enabled after each episode\n")
+    console.print("  • Memory cleanup: Enabled after each episode")
+
+    console.print("\n[magenta]💰 Profitability Improvements:[/magenta]")
+    console.print("  • TP/SL Ratio: 2.5:1.5 (was 4.5:1.5) - Better win rate")
+    console.print("  • Learning Rate: 0.0003 (was 0.0001) - Faster learning")
+    console.print("  • Epsilon Min: 0.15 (was 0.10) - More exploration")
+    console.print("  • Epsilon Decay: 0.9998 (was 0.9995) - Slower decay")
+    console.print("  • Reward Shaping: Bonus for win streaks > 40%")
+    console.print("  • Strong TP bonus (+0.5), Strong SL penalty (-0.3)\n")
 
     # Auto-limit data range if not specified (use last 3 months for efficiency)
     if not args.start and not args.end:

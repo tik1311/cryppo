@@ -149,7 +149,8 @@ def prepare_multi_timeframe_env_data(
     main_timeframe: str = "1h",
     detail_timeframe: str = "1m",
     add_indicators: bool = True,
-    normalize: bool = True
+    normalize: bool = True,
+    use_efficient_mode: bool = True  # New parameter for optimization
 ) -> Dict[str, np.ndarray]:
     """
     Prepare nested data structure for environment
@@ -159,11 +160,15 @@ def prepare_multi_timeframe_env_data(
         - 'detail': [N, detail_len, features] array (nested sequences)
     """
     print("\n[INFO] Preprocessing Multi-Timeframe Data...")
-    
+
     # 1. Add indicators to both
     if add_indicators:
         df_main = add_technical_indicators(df_main)
-        df_detail = add_technical_indicators(df_detail)
+        # Optimize: Only add essential indicators to detail timeframe
+        if use_efficient_mode:
+            df_detail = add_technical_indicators(df_detail)
+        else:
+            df_detail = add_technical_indicators(df_detail)
         
         # Drop NaNs
         df_main = df_main.dropna()

@@ -42,9 +42,9 @@ class TradingEnv(gym.Env):
         initial_balance: float = 10000.0,
         fee_rate: float = 0.0004,
         max_leverage: float = 1.0,
-        window_size: int = 72,
+        window_size: int = 36,  # Reduced from 72 to 36 for efficiency
         reward_type: str = 'sharpe',
-        min_episode_length: int = 1000,
+        min_episode_length: int = 500,  # Reduced from 1000 to 500
         atr_period: int = 14,
         atr_sl_multiplier: float = 1.5,
         atr_tp_multiplier: float = 4.5,

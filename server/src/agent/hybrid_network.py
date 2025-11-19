@@ -13,20 +13,19 @@ class DetailEncoder(nn.Module):
     """
     Encoder for Detail Timeframe Data (e.g., 1m candles)
     Processes a sequence of detail candles for each main timestep
+    Optimized: Simplified architecture for better performance
     """
     def __init__(self, n_features: int, hidden_dim: int = 32):
         super().__init__()
-        # 1D CNN to extract features from detail sequence
+        # Simplified: Single conv layer + pooling for efficiency
         self.conv1 = nn.Conv1d(n_features, hidden_dim, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv1d(hidden_dim, hidden_dim, kernel_size=3, padding=1)
-        self.pool = nn.AdaptiveAvgPool1d(1) # Pool to single vector per sequence
-        
+        self.pool = nn.AdaptiveAvgPool1d(1)  # Pool to single vector per sequence
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: [batch * window, detail_len, features]
-        x = x.transpose(1, 2) # -> [B, features, len]
+        x = x.transpose(1, 2)  # -> [B, features, len]
         x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = self.pool(x).squeeze(2) # -> [B, hidden_dim]
+        x = self.pool(x).squeeze(2)  # -> [B, hidden_dim]
         return x
 
 class HybridQNetwork(nn.Module):
@@ -37,53 +36,51 @@ class HybridQNetwork(nn.Module):
         n_detail_features: int,
         detail_len: int,
         action_dim: int,
-        cnn_channels: int = 64,
-        lstm_hidden: int = 128,
-        num_quantiles: int = 32
+        cnn_channels: int = 48,  # Reduced from 64 to 48
+        lstm_hidden: int = 64,  # Reduced from 128 to 64
+        num_quantiles: int = 16  # Reduced from 32 to 16 for efficiency
     ):
         super().__init__()
-        
+
         self.window_size = window_size
         self.num_quantiles = num_quantiles
         self.action_dim = action_dim
-        
+
         # 1. Detail Branch
         self.detail_encoder = DetailEncoder(n_detail_features, hidden_dim=32)
-        
-        # 2. Main Branch (CNN)
+
+        # 2. Main Branch (CNN) - Simplified to single layer
         # Input dim = Main Features + Detail Embedding (32)
         combined_features = n_main_features + 32
-        
+
         self.main_cnn = nn.Sequential(
             nn.Conv1d(combined_features, cnn_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv1d(cnn_channels, cnn_channels, kernel_size=3, padding=1),
             nn.ReLU()
         )
-        
-        # 3. LSTM Backbone
+
+        # 3. LSTM Backbone - Reduced to 1 layer
         self.lstm = nn.LSTM(
             input_size=cnn_channels,
             hidden_size=lstm_hidden,
-            num_layers=2,
+            num_layers=1,  # Reduced from 2 to 1
             batch_first=True,
             bidirectional=True
         )
-        
+
         # 4. Attention
         self.attention = nn.MultiheadAttention(lstm_hidden*2, num_heads=4, batch_first=True)
-        
-        # 5. Dueling Heads (QR-DQN)
+
+        # 5. Dueling Heads (QR-DQN) - Simplified
         self.fc_val = nn.Sequential(
-            nn.Linear(lstm_hidden*2, 256),
+            nn.Linear(lstm_hidden*2, 128),  # Reduced from 256
             nn.ReLU(),
-            nn.Linear(256, num_quantiles)
+            nn.Linear(128, num_quantiles)
         )
-        
+
         self.fc_adv = nn.Sequential(
-            nn.Linear(lstm_hidden*2, 256),
+            nn.Linear(lstm_hidden*2, 128),  # Reduced from 256
             nn.ReLU(),
-            nn.Linear(256, action_dim * num_quantiles)
+            nn.Linear(128, action_dim * num_quantiles)
         )
 
     def forward(self, state: Dict[str, torch.Tensor]) -> torch.Tensor:

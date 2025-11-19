@@ -104,6 +104,12 @@ runs/
 .cache
 temp/
 
+# Test and debug files
+test_*.py
+debug_*.py
+*_backup.*
+*.bat
+
 # Large files
 # *.parquet
 *.csv

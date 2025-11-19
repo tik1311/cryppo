@@ -146,7 +146,7 @@ class TradingEnv(gym.Env):
         # Patience / Anti-Overtrading
         self.consecutive_holds = 0
         self.last_trade_step = -100
-        self.min_bars_between_trades = 2  # Reduced from 4 to 2 for more opportunities
+        self.min_bars_between_trades = 5  # Increased from 2 to 5 to prevent overtrading
 
         return self._get_observation(), self._get_info()
 
@@ -224,11 +224,13 @@ class TradingEnv(gym.Env):
                     self._open_position('short', current_price)
                 self.last_trade_step = self.current_step
                 self.consecutive_holds = 0
+                # Small penalty for opening position to discourage overtrading
+                reward -= 0.05
             else:
                 # HOLD or Invalid Open
                 self.consecutive_holds += 1
                 # Small reward for patience (waiting for good setup)
-                reward += 0.0001
+                reward += 0.001  # Increased from 0.0001 to encourage patience
         else:
             # Already in position - Action is ignored (forced HOLD)
             self.hold_duration += 1
@@ -259,16 +261,21 @@ class TradingEnv(gym.Env):
                 normalized_pnl = np.tanh(trade_reward / 100.0)
                 reward += normalized_pnl
 
-                # Strong bonus for TP, strong penalty for SL (encourage winning trades)
+                # Reward structure to encourage quality trades:
+                # - Entry penalty: -0.05 (discourages overtrading)
+                # - TP bonus: +0.5 (strong incentive for winning)
+                # - SL penalty: -0.3 (strong disincentive for losing)
+                # - Net for winning trade: +0.5 - 0.05 = +0.45 + PnL
+                # - Net for losing trade: -0.3 - 0.05 = -0.35 + PnL
                 if exit_reason == 'tp':
-                    reward += 0.5  # Strong bonus for winning (increased from 0.1)
+                    reward += 0.5  # Strong bonus for winning
                     # Bonus for win streak
                     if self.winning_trades > 0 and self.total_trades > 0:
                         recent_win_rate = self.winning_trades / self.total_trades
                         if recent_win_rate > 0.4:
                             reward += 0.2  # Extra bonus for maintaining good win rate
                 elif exit_reason == 'sl':
-                    reward -= 0.3  # Stronger penalty for losing (increased from 0.01)
+                    reward -= 0.3  # Stronger penalty for losing
             
             # Time penalty to discourage holding forever
             if self.hold_duration > 100:
@@ -287,7 +294,7 @@ class TradingEnv(gym.Env):
         self.equity_history.append(self.equity)
         
         # 3. Check Termination
-        if self.current_step >= self.n_steps - 1:
+        if self.current_step >= self.n_steps:
             truncated = True
             if self.position:
                 self._close_position(current_price, 'timeout')

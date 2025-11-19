@@ -161,15 +161,18 @@ def run_backtest(args):
     done = False
     total_reward = 0
     agent.epsilon = 0.0 # No exploration
-    
+
+    # Calculate actual number of steps to execute
+    total_steps = env.n_steps - env.current_step
+
     with Progress(
-        SpinnerColumn(), 
+        SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
         BarColumn(),
         TaskProgressColumn(),
         console=console
     ) as progress:
-        task = progress.add_task("Backtesting...", total=env.n_steps)
+        task = progress.add_task("Backtesting...", total=total_steps)
         
         while not done:
             mask = env.get_action_mask()
@@ -349,8 +352,10 @@ def run_train(args):
     console.print("  • Learning Rate: 0.0003 (was 0.0001) - Faster learning")
     console.print("  • Epsilon Min: 0.15 (was 0.10) - More exploration")
     console.print("  • Epsilon Decay: 0.9998 (was 0.9995) - Slower decay")
-    console.print("  • Reward Shaping: Bonus for win streaks > 40%")
-    console.print("  • Strong TP bonus (+0.5), Strong SL penalty (-0.3)\n")
+    console.print("  • Anti-Overtrading: 5 bars minimum between trades")
+    console.print("  • Entry Penalty: -0.05 to discourage overtrading")
+    console.print("  • Reward: TP +0.5, SL -0.3, Hold +0.001")
+    console.print("  • Bonus for win streaks > 40%\n")
 
     # Auto-limit data range if not specified (use last 3 months for efficiency)
     if not args.start and not args.end:
@@ -423,6 +428,9 @@ def run_train(args):
         logger.info(f"EPISODE {episode+1}/{args.episodes}")
         logger.info(f"{'='*60}")
 
+        # Calculate actual number of steps to execute
+        total_steps = env.n_steps - env.current_step
+
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -430,7 +438,7 @@ def run_train(args):
             TaskProgressColumn(),
             console=console
         ) as progress:
-            task = progress.add_task(f"Episode {episode+1}/{args.episodes}", total=env.n_steps)
+            task = progress.add_task(f"Episode {episode+1}/{args.episodes}", total=total_steps)
 
             while not done:
                 mask = env.get_action_mask()

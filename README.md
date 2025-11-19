@@ -11,13 +11,22 @@ Beautiful CLI interface powered by Rich library | PyTorch CUDA 12.6 | Python 3.1
 
 ## What is CRYPPO?
 
-CRYPPO is a command-line cryptocurrency trading system that uses Deep Reinforcement Learning (D3QN) to learn optimal trading strategies. Train AI agents on GPU, backtest performance, and run paper trading simulations - all through an elegant CLI.
+CRYPPO is a command-line cryptocurrency trading system that uses state-of-the-art Deep Reinforcement Learning (Hybrid CNN-BiLSTM-Attention-QR-DQN) to learn optimal trading strategies. Train AI agents on GPU, backtest performance, and run paper trading simulations - all through an elegant CLI.
+
+The system combines:
+- **CNN** for pattern recognition (support/resistance, candlesticks)
+- **BiLSTM** for temporal modeling (trends, reversals)
+- **Self-Attention** for focusing on critical market moments
+- **QR-DQN** for distributional RL and risk quantification
+- **Action Masking** for preventing invalid trades
+- **Position-Aware States** for complete trade cycle learning
 
 ### Core Features
 
 - 🎨 **Beautiful CLI** - Inspired by Claude Code, with progress bars, tables, and panels
 - ⚡ **GPU-Accelerated** - CUDA 12.6 support for 10-20x faster training
-- 🤖 **D3QN Agent** - Deep Dueling Double DQN with experience replay
+- 🤖 **Hybrid CNN-BiLSTM-Attention-QR-DQN** - State-of-the-art deep RL architecture (2024-2025 research)
+- 🧠 **Advanced State Representation** - Position type one-hot encoding + action masking for valid actions
 - 📊 **Real-time Data** - Download from Binance, backtest, paper trade
 - 🎯 **Simple Commands** - `cryppo train`, `cryppo backtest`, `cryppo data download`
 
@@ -316,6 +325,703 @@ cryppo/
 ├── checkpoints/              # Trained models
 └── logs/                     # Training logs
 ```
+
+---
+
+## 🎯 Phase 6: Multi-Timeframe Hierarchical System
+
+### Revolutionary Approach
+
+Phase 6 implements a **hierarchical multi-timeframe architecture** combining:
+- **Primary timeframe** (5m/15m/1h) for macro trend/regime analysis
+- **1-minute detail candles** for micro timing signals
+
+**Key Concept**: 1m candles are NOT separate data - they are **details within each primary candle**:
+- 1 candle 5m = 5x 1m candles (microstructure inside)
+- 1 candle 15m = 15x 1m candles
+- 1 candle 1h = 60x 1m candles
+
+### Why Multi-Timeframe?
+
+**Single-Timeframe Problems**:
+- Miss precise entry timing (too coarse)
+- False signals from noise (too granular)
+- Can't see both trend AND timing
+
+**Multi-Timeframe Solution**:
+- ✅ Primary TF: Strategic context (where in trend?)
+- ✅ Detail TF: Tactical timing (when to enter?)
+- ✅ Hierarchical fusion: Best of both worlds
+
+### Architecture Overview
+
+```
+Primary [72×27] → CNN-BiLSTM-Attention → Macro [512]
+                                            ↓
+Detail [5×8]    → Multi-Head CNN         → Micro [128]
+                                            ↓
+                     Hierarchical Attention Fusion
+                              ↓
+                        Dueling QR-DQN
+                              ↓
+                      Q-values [3×32 quantiles]
+```
+
+**Components**:
+1. **Primary Macro CNN**: Trend, regime, support/resistance
+2. **Detail Micro CNN**: Timing, momentum, volume profile
+3. **Hierarchical Fusion**: Soft attention weights macro vs micro
+4. **Dueling QR-DQN**: Distributional RL for risk assessment
+
+### Training Command
+
+```bash
+python train_multitf.py \
+    --symbol BTC/USDT \
+    --primary-tf 5m \
+    --episodes 200 \
+    --initial-balance 10000
+```
+
+### Expected Performance (Phase 6)
+
+| Metric | Phase 5 | Phase 6 (Multi-TF) | Improvement |
+|--------|---------|-------------------|-------------|
+| Win Rate | 28-32% | 32-38% | +10-15% |
+| Expectancy | +20-40% | +30-50% | +25-50% |
+| Entry Quality | Good | Excellent | Better timing |
+| Trade Signals | Mixed | High quality | Less noise |
+| Final Balance | $12-15k | $14-18k | +15-25% |
+
+**Why Better?**:
+- 🎯 **Better Entry Timing**: 1m details reveal precise moments
+- 🎯 **Reduced False Signals**: Primary filters noise, detail confirms
+- 🎯 **Adaptive Weighting**: Attention learns when to focus on what
+- 🎯 **Richer Context**: Agent sees macro AND micro simultaneously
+
+### Files Created
+
+- `server/src/data/multi_timeframe_loader.py` - Data loading/alignment
+- `server/src/agent/multi_timeframe_network.py` - Network architecture
+- `server/src/policy/multi_timeframe_env.py` - Environment wrapper
+- `server/src/agent/multi_timeframe_agent.py` - MT D3QN agent
+- `train_multitf.py` - Training script
+
+### Action Space (Confirmed)
+
+**3 Actions ONLY** (NO CLOSE):
+- **HOLD** (0): Wait
+- **LONG** (1): Open long
+- **SHORT** (2): Open short
+
+**Critical Rule**: Agent can ONLY **open** positions. Positions ONLY **close** via TP/SL (automatic).
+
+---
+
+## 📊 Phase 5 Performance Improvements
+
+### Problem Analysis (From Latest Training)
+
+**Training Results (Before Phase 5)**:
+- Episodes: 2 (test run)
+- Win Rate: 24.4% (Episode 1), 24.5% (Episode 2)
+- Final Balance: $2,970 / $2,996 (from $10,000) = **-70% Loss**
+- HOLD Bias: 94% (only 6% trading actions)
+- R:R Ratio: 2.43x
+- Break-even Win Rate Required: 29.2%
+- **Result**: 24.5% < 29.2% = Guaranteed Loss
+
+**Key Problems**:
+1. **Insufficient Win Rate** (24% vs 29% required)
+2. **Severe HOLD Bias** (94% HOLD, only 6% trades)
+3. **Low R:R Ratio** (2.43x insufficient for 24% win rate)
+4. **No Learning** (both episodes -70%, no improvement)
+5. **Overtrading** (rapid entries/exits during epsilon exploration)
+
+---
+
+### 🔧 Phase 5 Improvements Implemented
+
+#### 1. Increased TP/SL Ratio (4.62x)
+
+**Before**:
+```python
+atr_sl_multiplier = 1.5  # SL distance
+atr_tp_multiplier = 4.5  # TP distance
+# R:R = 4.5/1.5 = 3.0x
+```
+
+**After**:
+```python
+atr_sl_multiplier = 1.3  # Tighter SL (-13%)
+atr_tp_multiplier = 6.0  # Wider TP (+33%)
+# R:R = 6.0/1.3 = 4.62x (+54%)
+```
+
+**Impact**:
+- Old: Win Rate 25%, R:R 3.0x → Expectancy = 0.25×3.0 - 0.75×1 = **-0.125** (loss)
+- New: Win Rate 25%, R:R 4.62x → Expectancy = 0.25×4.62 - 0.75×1 = **+0.405** (profit!)
+
+#### 2. Stronger HOLD Penalties
+
+**Before**:
+- Penalties start at 30 consecutive HOLDs
+- Penalty at 50 HOLDs: -0.02
+- Penalty at 100 HOLDs: -0.05
+
+**After**:
+- Penalties start at **20** consecutive HOLDs (-33% earlier)
+- Penalty at 40 HOLDs: **-0.05** (2.5x stronger)
+- Penalty at 80 HOLDs: **-0.15** (3x stronger)
+
+**Impact**: Forces agent to explore trading actions more aggressively
+
+#### 3. Increased Exploration (Epsilon)
+
+**Before**:
+```python
+epsilon_end = 0.15    # 85% greedy, 15% random
+epsilon_decay = 0.9995  # Fast decay
+```
+
+**After**:
+```python
+epsilon_end = 0.25    # 75% greedy, 25% random (+67% exploration)
+epsilon_decay = 0.9997  # Slower decay
+```
+
+**Impact**: More exploration throughout training
+
+#### 4. Enhanced Trade Completion Rewards
+
+**Before**:
+- TP Hit: +0.10 reward
+- SL Hit: -0.005 penalty
+
+**After**:
+- TP Hit: +0.20 reward + 0.02 bonus (3x total)
+- SL Hit: -0.002 penalty + 0.005 bonus (rewards taking risk)
+
+**Impact**: Strongly encourages completing trades vs infinite HOLD
+
+---
+
+### 📈 Expected Performance (Phase 5)
+
+| Metric | Before (Phase 4) | After (Phase 5 Target) | Change |
+|--------|------------------|----------------------|--------|
+| Win Rate | 24% | 28-32% | +17-33% |
+| R:R Ratio | 2.43x | 4.62x | +90% |
+| Expectancy | -12.5% | +20-40% | Profitable! |
+| HOLD % | 94% | 70-80% | -15-25% |
+| Trade % | 6% | 20-30% | +233-400% |
+| Final Balance | $2,970 (-70%) | $12,000-15,000 | +20-50% |
+
+---
+
+## 🏗️ Training Flow (Detailed)
+
+### Episode Training Loop
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  START EPISODE                          │
+└────────────────────┬────────────────────────────────────┘
+                     │
+                     ▼
+         ┌───────────────────────┐
+         │  Random Start Index   │ ← Prevents memorization
+         │  (within data range)  │
+         └───────────┬───────────┘
+                     │
+                     ▼
+         ┌───────────────────────┐
+         │   Reset Environment   │
+         │  Balance = $10,000    │
+         │  Position = None      │
+         └───────────┬───────────┘
+                     │
+                     ▼
+      ┌──────────────────────────────┐
+      │      STEP LOOP (Start)       │
+      └──────────────┬───────────────┘
+                     │
+    ┌────────────────┴────────────────┐
+    │                                 │
+    ▼                                 ▼
+┌────────────────┐          ┌─────────────────┐
+│  Get State     │          │  Epsilon-Greedy │
+│  (72×27 array) │          │  Action Select  │
+└────────┬───────┘          └────────┬────────┘
+         │                           │
+         └───────────┬───────────────┘
+                     │
+                     ▼
+         ┌───────────────────────┐
+         │  Get Action Mask      │ ← Phase 4.2
+         │  [1,1,1] or [1,0,0]   │
+         └───────────┬───────────┘
+                     │
+                     ▼
+         ┌───────────────────────┐
+         │   Apply Action        │
+         │  HOLD / LONG / SHORT  │
+         └───────────┬───────────┘
+                     │
+        ┌────────────┴────────────┐
+        │                         │
+        ▼                         ▼
+  ┌──────────┐            ┌──────────────┐
+  │ No Trade │            │  Open Trade  │
+  │ (HOLD)   │            │  (LONG/SHORT)│
+  └────┬─────┘            └──────┬───────┘
+       │                         │
+       │                         ▼
+       │            ┌───────────────────────┐
+       │            │  Calculate TP/SL      │
+       │            │  TP = Entry ± 6.0×ATR │
+       │            │  SL = Entry ± 1.3×ATR │
+       │            └──────────┬────────────┘
+       │                       │
+       └───────────┬───────────┘
+                   │
+                   ▼
+      ┌────────────────────────┐
+      │   Check TP/SL Hit      │ ← Auto-close
+      │   (every timestep)     │
+      └────────────┬───────────┘
+                   │
+       ┌───────────┴──────────┐
+       │                      │
+       ▼                      ▼
+  ┌─────────┐          ┌──────────┐
+  │ TP Hit  │          │  SL Hit  │
+  │ +Profit │          │ -Loss    │
+  └────┬────┘          └─────┬────┘
+       │                     │
+       └──────────┬──────────┘
+                  │
+                  ▼
+      ┌───────────────────────┐
+      │  Calculate Reward     │
+      │  = Trade + Position   │
+      │    + Exploration      │
+      └───────────┬───────────┘
+                  │
+                  ▼
+      ┌───────────────────────┐
+      │  Store Transition     │
+      │  (s, a, r, s', done)  │
+      │  → Replay Buffer      │
+      └───────────┬───────────┘
+                  │
+                  ▼
+      ┌───────────────────────┐
+      │  Train Network        │
+      │  (if buffer > 128)    │
+      │  - Sample batch       │
+      │  - Calculate TD error │
+      │  - Backprop + Update  │
+      └───────────┬───────────┘
+                  │
+                  ▼
+      ┌───────────────────────┐
+      │  Update Target Net    │
+      │  (every 250 steps)    │
+      └───────────┬───────────┘
+                  │
+                  ▼
+      ┌───────────────────────┐
+      │  Decay Epsilon        │
+      │  ε = ε × 0.9997       │
+      │  (min 0.25)           │
+      └───────────┬───────────┘
+                  │
+                  ▼
+         ┌────────────────┐
+         │  Episode End?  │
+         │  (truncated or │
+         │   terminated)  │
+         └────┬──────┬────┘
+              │      │
+         No   │      │   Yes
+              │      │
+              │      ▼
+              │  ┌───────────────────┐
+              │  │  Position Open?   │
+              │  └────┬──────┬───────┘
+              │       │      │
+              │  Yes  │      │  No
+              │       │      │
+              │       ▼      ▼
+              │  ┌─────────────────┐
+              │  │ Extend Episode  │
+              │  │ (max 500 bars)  │
+              │  │ Wait for TP/SL  │
+              │  └────┬────────────┘
+              │       │
+              └───────┴──────►  NEXT EPISODE
+```
+
+---
+
+## 🧠 Network Architecture Flow
+
+### Forward Pass (Hybrid CNN-BiLSTM-Attention-QR-DQN)
+
+```
+INPUT: State (72 timesteps × 27 features)
+  │
+  │  Market Data (17):        Position Info (10):
+  │  ├─ OHLCV (5)            ├─ Position Type [no/long/short] (3)
+  │  ├─ RSI (1)              ├─ Entry Price Norm (1)
+  │  ├─ MACD (3)             ├─ PnL % (1)
+  │  ├─ Bollinger (3)        ├─ Hold Duration (1)
+  │  ├─ ATR (1)              ├─ Market Regime [bull/bear/side] (3)
+  │  └─ Other (4)            └─ Regime Strength (1)
+  │
+  ▼
+┌─────────────────────────────────────────────┐
+│         1. CNN Feature Extractor            │
+│  ┌──────────────────────────────────────┐   │
+│  │  Multi-scale 1D Convolutions:        │   │
+│  │  ├─ Conv(kernel=3) → 64 channels     │   │
+│  │  ├─ Conv(kernel=5) → 64 channels     │   │
+│  │  └─ Conv(kernel=7) → 64 channels     │   │
+│  │                                        │   │
+│  │  Concat → 192 channels                │   │
+│  │  ↓                                     │   │
+│  │  Conv1D(1×1) → 128 channels           │   │
+│  │  ↓                                     │   │
+│  │  BatchNorm + ReLU + Dropout(0.1)      │   │
+│  └──────────────────────────────────────┘   │
+│                                               │
+│  Output: (72, 128)                           │
+└───────────────────┬─────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────┐
+│         2. Bidirectional LSTM               │
+│  ┌──────────────────────────────────────┐   │
+│  │  2 LSTM Layers (bidirectional)       │   │
+│  │  ├─ Layer 1: 128 hidden × 2 dirs     │   │
+│  │  └─ Layer 2: 128 hidden × 2 dirs     │   │
+│  │                                        │   │
+│  │  Forward + Backward → 256 features    │   │
+│  │  Dropout(0.1) between layers          │   │
+│  └──────────────────────────────────────┘   │
+│                                               │
+│  Output: (72, 256)                           │
+└───────────────────┬─────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────┐
+│         3. Self-Attention (4 heads)         │
+│  ┌──────────────────────────────────────┐   │
+│  │  Query = Linear(256 → 256)           │   │
+│  │  Key   = Linear(256 → 256)           │   │
+│  │  Value = Linear(256 → 256)           │   │
+│  │                                        │   │
+│  │  Attention Weights:                   │   │
+│  │  A = softmax(Q·K^T / √d_k)           │   │
+│  │                                        │   │
+│  │  Weighted Sum: Z = A·V               │   │
+│  │                                        │   │
+│  │  Residual: Output = Z + Input        │   │
+│  │  LayerNorm                            │   │
+│  └──────────────────────────────────────┘   │
+│                                               │
+│  Output: (72, 256)                           │
+└───────────────────┬─────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────┐
+│         4. Feature Aggregation              │
+│  ┌──────────────────────────────────────┐   │
+│  │  Last Timestep: (256,)               │   │
+│  │  +                                    │   │
+│  │  Attention Mean: mean((72,256)) → (256,)│ │
+│  │  =                                    │   │
+│  │  Combined: (512,)                     │   │
+│  └──────────────────────────────────────┘   │
+└───────────────────┬─────────────────────────┘
+                    │
+            ┌───────┴────────┐
+            │                │
+            ▼                ▼
+┌──────────────────┐  ┌──────────────────┐
+│  5a. Value Stream│  │5b. Advantage Stream│
+│                  │  │                   │
+│  FC(512→256)     │  │  FC(512→256)      │
+│  ReLU            │  │  ReLU             │
+│  FC(256→32)      │  │  FC(256→3×32)     │
+│                  │  │                   │
+│  V(s) [32 quant.]│  │  A(s,a) [3×32]    │
+└────────┬─────────┘  └─────────┬─────────┘
+         │                      │
+         └──────────┬───────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────┐
+│         6. QR-DQN Combination               │
+│  ┌──────────────────────────────────────┐   │
+│  │  For each action a:                  │   │
+│  │                                        │   │
+│  │  Q(s,a) = V(s) + (A(s,a) - mean_a(A))│   │
+│  │                                        │   │
+│  │  32 quantiles per action:             │   │
+│  │  [τ₁, τ₂, ..., τ₃₂] for each of      │   │
+│  │  [HOLD, LONG, SHORT]                  │   │
+│  │                                        │   │
+│  │  Final Q-value = mean(quantiles)      │   │
+│  └──────────────────────────────────────┘   │
+└───────────────────┬─────────────────────────┘
+                    │
+                    ▼
+              OUTPUT: Q-values
+              ├─ Q(HOLD)  = mean(32 quantiles)
+              ├─ Q(LONG)  = mean(32 quantiles)
+              └─ Q(SHORT) = mean(32 quantiles)
+```
+
+---
+
+## 🎯 Action Selection (Epsilon-Greedy with Masking)
+
+```
+START: Receive state s
+  │
+  ▼
+┌──────────────────────┐
+│  Get Action Mask     │
+│  from Environment    │
+└──────────┬───────────┘
+           │
+           ▼
+    ┌─────────────┐
+    │ Has Position?│
+    └──┬────────┬─┘
+       │        │
+    Yes│        │No
+       │        │
+       ▼        ▼
+  ┌─────────┐  ┌─────────┐
+  │mask=[1  │  │mask=[1  │
+  │      0  │  │      1  │
+  │      0] │  │      1] │
+  └────┬────┘  └────┬────┘
+       │            │
+       └─────┬──────┘
+             │
+             ▼
+      ┌──────────────┐
+      │Random < ε ?  │
+      └──┬────────┬──┘
+         │        │
+      Yes│        │No
+         │        │
+         ▼        ▼
+  ┌────────────┐  ┌────────────┐
+  │EXPLORATION │  │EXPLOITATION│
+  │            │  │            │
+  │Sample from │  │Forward pass│
+  │valid acts  │  │through net │
+  │with bias:  │  │            │
+  │HOLD: 10%   │  │Q-values:   │
+  │LONG: 45%   │  │[Q₀,Q₁,Q₂]  │
+  │SHORT: 45%  │  │            │
+  │            │  │Apply mask: │
+  │Apply mask  │  │Q[mask==0]  │
+  │            │  │ = -∞       │
+  │            │  │            │
+  │Select max  │  │Select max  │
+  └─────┬──────┘  └──────┬─────┘
+        │                │
+        └────────┬───────┘
+                 │
+                 ▼
+          ┌──────────┐
+          │  Action  │
+          │  a ∈{0,1,2}│
+          └──────────┘
+```
+
+---
+
+## 💰 Reward Calculation (Phase 5)
+
+```
+Total Reward = Trade Reward + Position Penalty + Exploration Bonus
+
+┌─────────────────────────────────────────┐
+│         1. Trade Reward                 │
+├─────────────────────────────────────────┤
+│  On Position Close (TP/SL):             │
+│  ├─ PnL / Initial Balance               │
+│  ├─ TP Hit: +0.20 (bonus)               │
+│  └─ SL Hit: -0.002 (minimal penalty)    │
+└─────────────────────────────────────────┘
+
+┌─────────────────────────────────────────┐
+│         2. Position Penalty             │
+├─────────────────────────────────────────┤
+│  While Holding Position:                │
+│  ├─ If against regime: -0.002/step      │
+│  ├─ If low volume: -0.001/step          │
+│  └─ If high volatility: -0.001/step     │
+└─────────────────────────────────────────┘
+
+┌─────────────────────────────────────────┐
+│         3. Exploration Bonus            │
+├─────────────────────────────────────────┤
+│  HOLD Penalties (Phase 5):              │
+│  ├─ >20 HOLD: -0.005×(steps-20)         │
+│  ├─ >40 HOLD: -0.05 extra               │
+│  └─ >80 HOLD: -0.15 extra               │
+│                                          │
+│  Trade Bonuses:                          │
+│  ├─ Break HOLD streak: +0.005            │
+│  ├─ Any trade action: +0.001             │
+│  ├─ TP Hit bonus: +0.02                  │
+│  └─ SL Hit bonus: +0.005 (risk-taking)   │
+│                                          │
+│  Market Regime Bonus:                    │
+│  ├─ LONG in bull: +0.003×strength        │
+│  ├─ SHORT in bear: +0.003×strength       │
+│  └─ Volume confirmed: +0.002             │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 🧪 Training Process (Loss Calculation)
+
+```
+Every Step (if buffer > batch_size):
+
+1. Sample Batch from Replay Buffer
+   ├─ Random: batch_size=128 transitions
+   └─ OR Prioritized: weighted by TD-error
+
+2. Compute Current Q-Values
+   Q(s,a) = PolicyNet(s)[a]  (32 quantiles)
+
+3. Compute Target Q-Values
+   a' = argmax_a TargetNet(s')  (Double DQN)
+   Q_target(s',a') = TargetNet(s')[a']
+
+   For each quantile τ:
+   y_τ = r + γ × Q_target_τ(s',a') × (1-done)
+
+4. Quantile Huber Loss
+   For each quantile pair (Q_τ, y_τ):
+
+   δ = y_τ - Q_τ
+
+   κ = {  0.5×δ²        if |δ| ≤ 1
+       {  |δ| - 0.5     otherwise
+
+   ρ_τ(δ) = |τ - 𝟙(δ<0)| × κ
+
+   Loss = (1/32) × Σ ρ_τ(δ)
+
+5. Backpropagation
+   optimizer.zero_grad()
+   loss.backward()
+   clip_grad_norm_(params, max_norm=10)
+   optimizer.step()
+
+6. Update Target Network (every 250 steps)
+   TargetNet ← PolicyNet
+```
+
+---
+
+## Hybrid CNN-BiLSTM-Attention-QR-DQN Architecture
+
+CRYPPO uses a state-of-the-art hybrid deep learning architecture based on 2024-2025 research:
+
+### Architecture Components
+
+```
+Input (72 timesteps × 27 features)
+    ↓
+1. CNN Feature Extractor (Multi-scale)
+    - Kernel sizes: 3, 5, 7 for different temporal patterns
+    - 64 channels per scale → 128 combined channels
+    - Batch normalization + dropout (0.1)
+    ↓
+2. Bidirectional LSTM
+    - 2 layers, 128 hidden units each direction
+    - Total: 256 features (forward + backward)
+    - Captures long-term temporal dependencies
+    ↓
+3. Self-Attention Mechanism
+    - 4 attention heads
+    - Focuses on critical time steps
+    - Residual connection + layer normalization
+    ↓
+4. Feature Aggregation
+    - Last timestep + attention-weighted average
+    - Combined: 512 features
+    ↓
+5. Dueling D3QN Head
+    - Value stream: V(s) → 32 quantiles
+    - Advantage stream: A(s,a) → 3 actions × 32 quantiles
+    - Q(s,a) = V(s) + (A(s,a) - mean(A))
+    ↓
+6. QR-DQN Output
+    - 32 quantiles per action for distributional RL
+    - Better risk assessment vs single Q-value
+    - Returns: [HOLD, LONG, SHORT] Q-values
+```
+
+### State Representation (27 Features)
+
+**Market Data (17 features):**
+- OHLCV (5): Open, High, Low, Close, Volume
+- Technical Indicators (12): RSI, MACD, ATR, Bollinger Bands, etc.
+
+**Position Information (10 features):**
+- Position Type One-Hot (3): `[no_position, long_position, short_position]`
+- Entry Price Normalized (1)
+- PnL Percentage (1)
+- Hold Duration Normalized (1)
+- Market Regime One-Hot (3): `[bull, bear, sideways]`
+- Regime Strength (1)
+
+### Action Masking
+
+The environment enforces valid actions:
+- **No Position**: Can HOLD, LONG, or SHORT
+- **Has Position**: Can only HOLD (positions close automatically at TP/SL)
+
+Action masking prevents:
+- Opening new positions while holding one
+- Invalid state transitions
+- Inefficient exploration of impossible actions
+
+### Episode Extension Logic
+
+**Problem**: Random episode sampling could cut episodes mid-position, preventing natural TP/SL closures.
+
+**Solution**: Position-aware episode extension
+1. Episodes sample random starting points (prevents memorization)
+2. If episode ends with open position → extend up to 500 bars
+3. Wait for natural TP/SL closure
+4. Only force-close if max extension exceeded
+
+This ensures the agent learns from complete trade cycles, not interrupted positions.
+
+### Key Advantages
+
+1. **CNN**: Captures local patterns (support/resistance, candlestick patterns)
+2. **BiLSTM**: Models long-term trends and reversals
+3. **Attention**: Focuses on market regime changes and volatility spikes
+4. **QR-DQN**: Distributional RL quantifies uncertainty and risk
+5. **Dueling**: Separates "how good is this state" from "which action is best"
+6. **Position State**: Agent knows if it can trade or must wait
+7. **Action Masking**: Eliminates wasted exploration on invalid actions
 
 ---
 

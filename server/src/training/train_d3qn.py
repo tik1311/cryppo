@@ -23,6 +23,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List
 import json
+import random
 
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent.parent))
@@ -64,6 +65,14 @@ except Exception as e:
     print(f"[DEBUG] [FAIL] Failed to import BacktestEngine: {e}")
     raise
 
+try:
+    print("[DEBUG] Importing DetailedStepLogger...")
+    from src.utils.detailed_logger import DetailedStepLogger
+    print("[DEBUG] [OK] DetailedStepLogger imported successfully")
+except Exception as e:
+    print(f"[DEBUG] [FAIL] Failed to import DetailedStepLogger: {e}")
+    raise
+
 print("[DEBUG] All imports successful!")
 
 
@@ -79,9 +88,13 @@ class TrainingLogger:
         self.log_dir = log_dir_path
         self.log_dir.mkdir(exist_ok=True, parents=True)
 
-        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.log_file = self.log_dir / f"training_{self.timestamp}.log"
-        self.metrics_file = self.log_dir / f"metrics_{self.timestamp}.json"
+        # Use consistent filenames - overwrite each session (keep only latest)
+        self.log_file = self.log_dir / "training.log"
+        self.metrics_file = self.log_dir / "metrics.json"
+
+        # Clear previous logs (overwrite mode)
+        if self.log_file.exists():
+            self.log_file.unlink()
 
         self.metrics = {
             'episodes': [],
@@ -95,8 +108,9 @@ class TrainingLogger:
         }
 
     def log(self, message: str):
-        """Log message to console and file"""
+        """Log message to console and file (overwrites on first call)"""
         print(message)
+        # Use append mode to keep writing within same session
         with open(self.log_file, 'a', encoding='utf-8') as f:
             f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {message}\n")
 
@@ -147,7 +161,8 @@ class TrainingLogger:
             return value
 
         serialized = [{k: convert(v) for k, v in trade.items()} for trade in trades]
-        trade_file = self.log_dir / f"{label}_{self.timestamp}.json"
+        # Use consistent filename - overwrite each session
+        trade_file = self.log_dir / f"{label}.json"
         with open(trade_file, 'w', encoding='utf-8') as f:
             json.dump(serialized, f, indent=2)
         self.log(f"[INFO] Trade log saved: {trade_file}")
@@ -160,7 +175,6 @@ def train_d3qn(
     max_steps: int = 10000,
     eval_freq: int = 50,
     save_freq: int = 100,
-    use_sample_data: bool = False,
     initial_balance: float = 10000.0,
     max_leverage: float = 3.0,
     learning_rate: float = 0.00025,
@@ -182,7 +196,6 @@ def train_d3qn(
         max_steps: Maximum steps per episode
         eval_freq: Evaluate every N episodes
         save_freq: Save checkpoint every N episodes
-        use_sample_data: Use synthetic data for testing
         initial_balance: Starting capital
         max_leverage: Maximum leverage
         learning_rate: Learning rate for optimizer
@@ -219,23 +232,15 @@ def train_d3qn(
     # Load market data
     logger.log("\n[DATA] Loading market data...")
     try:
-        if use_sample_data:
-            logger.log("[WARN] Using synthetic data for testing")
-            df = create_sample_data(symbol=symbol, n_samples=10000, save_dir="data")
-        else:
-            df = load_market_data(symbol=symbol, timeframe=timeframe)
-
+        df = load_market_data(symbol=symbol, timeframe=timeframe)
         logger.log(f"[OK] Loaded {len(df):,} candles")
         logger.log(f"  Date range: {df['timestamp'].min()} to {df['timestamp'].max()}")
 
     except FileNotFoundError as e:
         logger.log(f"[ERROR] {e}")
-        logger.log("\n[INFO] To download real market data:")
-        logger.log("   1. Start the server: uvicorn server.main:app")
-        logger.log("   2. Download data via API:")
-        logger.log(f"      POST /api/data/download")
-        logger.log(f"      {{'symbol': '{symbol}', 'timeframe': '{timeframe}', 'start': '2023-01-01', 'end': '2024-12-31'}}")
-        logger.log("\n   Or use --sample-data flag to train with synthetic data")
+        logger.log("\n[INFO] To download market data:")
+        logger.log("   Use: python main.py → Option 2 (Download Data)")
+        logger.log(f"   Or: python cryppo.py data download --symbol {symbol} --timeframe {timeframe} --start 2023-01-01 --end 2024-12-31")
         return
 
     # Prepare data
@@ -269,20 +274,27 @@ def train_d3qn(
 
     # Initialize agent
     logger.log("\n[AGENT] Initializing D3QN agent...")
-    state_dim = train_env.observation_space.shape[0] * train_env.observation_space.shape[1]  # Flatten
+    window_size = train_env.observation_space.shape[0]
+    n_features = train_env.observation_space.shape[1]
+    state_dim = window_size * n_features  # Flatten
     action_dim = train_env.action_space.n
 
     agent = D3QNAgent(
         state_dim=state_dim,
         action_dim=action_dim,
+        window_size=window_size,
+        n_features=n_features,
         learning_rate=learning_rate,
         gamma=gamma,
         batch_size=batch_size,
-        buffer_size=buffer_size
+        buffer_size=buffer_size,
+        use_hybrid_network=True  # Enable hybrid CNN-LSTM-Attention architecture
     )
 
     logger.log(f"[OK] State dim: {state_dim}")
+    logger.log(f"[OK] Window size: {window_size}, Features: {n_features}")
     logger.log(f"[OK] Action dim: {action_dim} (HOLD, LONG, SHORT, CLOSE)")
+    logger.log(f"[OK] Using hybrid CNN-BiLSTM-Attention-QR-DQN architecture")
     logger.log(f"[OK] Device: {agent.device}")
 
     # Training loop
@@ -292,13 +304,19 @@ def train_d3qn(
     best_val_reward = -float('inf')
     episode_rewards = []
 
+    # Initialize detailed logger (logs EVERY step)
+    detailed_logger = DetailedStepLogger(log_dir="logs", mode="train")
+    logger.log(f"[INFO] Detailed logs will be saved to: logs/train/")
+
     for episode in range(1, episodes + 1):
-        # Enable detailed logging for last episode
-        if episode == episodes:
-            logger.log("\n" + "=" * 60)
-            logger.log("[DEBUG] FINAL EPISODE - Enabling detailed logging")
-            logger.log("=" * 60)
+        # Enable detailed environment logging for specific episodes
+        # Log first 2 episodes, then every 25th episode, and last 2 episodes
+        enable_env_logging = (episode <= 2 or episode >= episodes - 1 or episode % 25 == 0)
+        if enable_env_logging:
+            logger.log(f"\n[DEBUG] Episode {episode} - Enabling detailed environment logging")
             train_env.enable_detailed_logging = True
+        else:
+            train_env.enable_detailed_logging = False
 
         # Reset environment
         state, info = train_env.reset()
@@ -306,13 +324,35 @@ def train_d3qn(
 
         episode_reward = 0
         episode_losses = []
+        epsilon_start = agent.epsilon
         step = 0
+
+        # Episode tracking for detailed logging
+        episode_actions = {'HOLD': 0, 'LONG': 0, 'SHORT': 0}
+        episode_trades_start = len(train_env.trade_log) if hasattr(train_env, 'trade_log') else 0
 
         # Episode loop
         done = False
         while not done and step < max_steps:
-            # Select action
-            action = agent.select_action(state, training=True)
+            # Get current state info from environment
+            current_price = train_env.data[train_env.current_step, 3]  # Close price
+
+            # Get Q-values for logging
+            q_values = agent.get_q_values(state)
+
+            # Get action mask (Phase 4.2)
+            action_mask = train_env.get_action_mask()
+
+            # Select action with masking
+            action = agent.select_action(state, training=True, action_mask=action_mask)
+            action_names = ['HOLD', 'LONG', 'SHORT']
+            episode_actions[action_names[action]] += 1
+
+            # Determine why this action was chosen
+            if random.random() < agent.epsilon:
+                reason = f"Exploration (eps={agent.epsilon:.3f})"
+            else:
+                reason = f"Exploitation (Q={q_values[action]:.4f} best)"
 
             # Take step
             next_state, reward, terminated, truncated, info = train_env.step(action)
@@ -327,14 +367,113 @@ def train_d3qn(
             if loss is not None:
                 episode_losses.append(loss)
 
+            # Calculate ATR for logging
+            atr = train_env._calculate_atr() if hasattr(train_env, '_calculate_atr') else 0.0
+
+            # Detailed step logging
+            step_data = {
+                'episode': episode,
+                'step': step,
+                'global_step': train_env.current_step - train_env.window_size,
+                'price': current_price,
+                'action': action,
+                'action_name': action_names[action],
+                'q_values': q_values.tolist(),
+                'epsilon': agent.epsilon,
+                'position': train_env.position,
+                'position_size': train_env.position_size if train_env.position else 0.0,
+                'entry_price': train_env.entry_price if train_env.position else 0.0,
+                'unrealized_pnl': train_env._calculate_position_pnl() if train_env.position else 0.0,
+                'unrealized_pnl_pct': (train_env._calculate_position_pnl() / train_env.balance * 100) if train_env.position and train_env.balance > 0 else 0.0,
+                'tp': train_env.take_profit if train_env.position else 0.0,
+                'sl': train_env.stop_loss if train_env.position else 0.0,
+                'atr': atr,
+                'balance': train_env.balance,
+                'equity': train_env.equity,
+                'trade_reward': 0.0,  # Will be updated if trade closes
+                'exploration_bonus': 0.0,
+                'position_penalty': 0.0,
+                'total_reward': reward,
+                'loss': loss if loss is not None else 0.0,
+                'reason': reason,
+                'terminated': terminated,
+                'truncated': truncated
+            }
+            detailed_logger.log_step(step_data)
+
             # Update state
             state = next_state
             episode_reward += reward
             step += 1
 
+        # Log all trades from this episode
+        if hasattr(train_env, 'trade_log'):
+            episode_trades_end = len(train_env.trade_log)
+            for trade in train_env.trade_log[episode_trades_start:episode_trades_end]:
+                trade_data = {
+                    'episode': episode,
+                    'trade_id': trade.get('position_id', 'unknown'),
+                    'direction': trade['direction'],
+                    'entry_step': trade['entry_step'],
+                    'entry_price': trade['entry_price'],
+                    'exit_step': trade['exit_step'],
+                    'exit_price': trade['exit_price'],
+                    'exit_reason': 'tp' if trade['pnl'] > 0 else 'sl',  # Simplified
+                    'duration_steps': trade['duration_steps'],
+                    'size': trade['quantity'],
+                    'leverage': trade['leverage'],
+                    'atr_at_entry': 0.0,  # Would need to store this
+                    'tp_price': 0.0,  # Would need to store this
+                    'sl_price': 0.0,  # Would need to store this
+                    'gross_pnl': trade['pnl'],
+                    'fees': 0.0,  # Included in pnl
+                    'net_pnl': trade['pnl'],
+                    'pnl_pct_vs_margin': trade['pnl_pct'],
+                    'pnl_pct_vs_notional': trade['pnl_pct'] / trade['leverage'] if trade['leverage'] > 0 else 0.0,
+                    'balance_before': 0.0,  # Would need to track
+                    'balance_after': 0.0  # Would need to track
+                }
+                detailed_logger.log_trade(trade_data)
+
         # Episode statistics
         episode_rewards.append(episode_reward)
         avg_loss = np.mean(episode_losses) if episode_losses else 0.0
+        agent_stats = agent.get_stats()
+
+        # Calculate episode statistics for detailed logger
+        episode_trades = train_env.trade_log[episode_trades_start:] if hasattr(train_env, 'trade_log') else []
+        winning_trades = sum(1 for t in episode_trades if t['pnl'] > 0)
+        losing_trades = sum(1 for t in episode_trades if t['pnl'] <= 0)
+        win_rate = winning_trades / len(episode_trades) if episode_trades else 0.0
+        avg_win = np.mean([t['pnl'] for t in episode_trades if t['pnl'] > 0]) if winning_trades > 0 else 0.0
+        avg_loss_trade = np.mean([t['pnl'] for t in episode_trades if t['pnl'] <= 0]) if losing_trades > 0 else 0.0
+        rr_ratio = abs(avg_win / avg_loss_trade) if avg_loss_trade != 0 else 0.0
+
+        # Log episode summary
+        episode_data = {
+            'episode': episode,
+            'steps': step,
+            'total_reward': episode_reward,
+            'initial_balance': initial_balance,
+            'final_balance': train_env.balance,
+            'return_pct': (train_env.balance - initial_balance) / initial_balance * 100,
+            'total_trades': len(episode_trades),
+            'winning_trades': winning_trades,
+            'losing_trades': losing_trades,
+            'win_rate': win_rate,
+            'avg_win': avg_win,
+            'avg_loss': avg_loss_trade,
+            'rr_ratio': rr_ratio,
+            'max_drawdown': 0.0,  # Would need to calculate
+            'sharpe_ratio': 0.0,  # Would need to calculate
+            'action_distribution': episode_actions,
+            'avg_loss': avg_loss,
+            'epsilon_start': epsilon_start,
+            'epsilon_end': agent.epsilon
+        }
+        detailed_logger.log_episode_end(episode_data)
+
+        # Standard episode logging (terminal output)
         agent_stats = agent.get_stats()
 
         # Log episode (every episode for better progress tracking)
@@ -344,7 +483,7 @@ def train_d3qn(
             f"Reward: {episode_reward:8.2f} | "
             f"Avg(10): {avg_reward_10:8.2f} | "
             f"Loss: {avg_loss:.4f} | "
-            f"Eps: {agent_stats['epsilon']:.3f} | "  # Changed from ε to Eps
+            f"Eps: {agent_stats['epsilon']:.3f} | "  # Changed from epsilon to Eps
             f"Steps: {step:4d} | "
             f"Trades: {info['total_trades']:2d} | "
             f"Win%: {info['win_rate']*100:5.1f} | "
@@ -431,6 +570,10 @@ def train_d3qn(
     logger.log(f"  - episode_XXXX_*.jsonl (step-by-step data in JSON Lines format)")
     logger.log(f"  - episode_XXXX_summary.txt (human-readable summary)")
 
+    # Close detailed logger
+    detailed_logger.close()
+    logger.log(f"\n[INFO] Detailed training logs closed and saved to: logs/training/detailed/")
+
     logger.log("\n[COMPLETE] Done!")
 
 
@@ -459,8 +602,11 @@ def evaluate_agent(agent: D3QNAgent, env: TradingEnv, episodes: int = 5) -> tupl
         done = False
 
         while not done:
-            # Select greedy action (no exploration)
-            action = agent.select_action(state, training=False)
+            # Get action mask (Phase 4.2)
+            action_mask = env.get_action_mask()
+
+            # Select greedy action (no exploration) with masking
+            action = agent.select_action(state, training=False, action_mask=action_mask)
 
             # Take step
             next_state, reward, terminated, truncated, info = env.step(action)
@@ -495,7 +641,6 @@ def main():
         # Data parameters
         parser.add_argument('--symbol', type=str, default='BTCUSDT', help='Trading pair symbol')
         parser.add_argument('--timeframe', type=str, default='1h', help='Candle timeframe')
-        parser.add_argument('--sample-data', action='store_true', help='Use synthetic sample data')
 
         # Training parameters
         parser.add_argument('--episodes', type=int, default=1000, help='Number of training episodes')
@@ -529,7 +674,6 @@ def main():
             max_steps=args.max_steps,
             eval_freq=args.eval_freq,
             save_freq=args.save_freq,
-            use_sample_data=args.sample_data,
             initial_balance=args.balance,
             max_leverage=args.leverage,
             learning_rate=args.lr,

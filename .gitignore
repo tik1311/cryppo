@@ -7,15 +7,15 @@
 *.env
 
 # Data files (but not client/src/app/data or client/src/lib)
-*.npz
-/data/
-!data/.gitkeep
-/data/npz/
-/data/raw/
-/data/processed/
-/data/indicators/
+# *.npz
+# /data/
+# !data/.gitkeep
+# /data/npz/
+# /data/raw/
+# /data/processed/
+# /data/indicators/
 /outputs/
-/logs/
+# LOGS ARE NOW TRACKED FOR DEBUGGING - removed /logs/ from gitignore
 /checkpoints/
 /results/
 
@@ -93,9 +93,9 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
-# Logs
-*.log
-logs/
+# Logs - NOW TRACKED FOR DEBUGGING
+# *.log  -- REMOVED to allow log files
+# logs/  -- REMOVED to allow logs directory
 
 # Tensorboard
 runs/
@@ -104,8 +104,14 @@ runs/
 .cache
 temp/
 
+# Test and debug files
+test_*.py
+debug_*.py
+*_backup.*
+*.bat
+
 # Large files
-*.parquet
+# *.parquet
 *.csv
 *.h5
 *.hdf5
@@ -149,3 +155,5 @@ client/yarn.lock
 # Next.js build artifacts
 client/tsconfig.tsbuildinfo
 client/next-env.d.ts
+
+

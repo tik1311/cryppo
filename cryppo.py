@@ -2,18 +2,20 @@
 """
 CRYPPO - Deep RL Crypto Trading System CLI
 Beautiful command-line interface inspired by Claude Code
+Optimized for low resource usage
 """
 
 import sys
 import os
 import argparse
 import subprocess
+import gc
 from pathlib import Path
 from typing import Optional
 
 from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn, TimeElapsedColumn
 from rich.table import Table
 from rich.prompt import Prompt, Confirm
 from rich.syntax import Syntax
@@ -21,6 +23,7 @@ from rich import box
 from rich.layout import Layout
 from rich.live import Live
 from rich.text import Text
+from rich.align import Align
 
 console = Console()
 
@@ -38,15 +41,17 @@ BANNER = """
 
  Deep RL Crypto Trading System
  GPU-Accelerated | Python 3.12 | CUDA 12.6
+ 🛡️ Risk Management: ATR-Based TP/SL + Trailing Stop
 """
 
 def print_banner():
     """Print beautiful startup banner"""
     console.print(
         Panel(
-            Text(BANNER, style="bold cyan", justify="center"),
+            Align.center(Text(BANNER, style="bold cyan")),
             border_style="bright_cyan",
-            box=box.DOUBLE
+            box=box.DOUBLE,
+            padding=(1, 2)
         )
     )
 
@@ -210,26 +215,46 @@ def train(
     reward_type: str = "sharpe",
     sample_data: bool = False
 ):
-    """Train model with beautiful progress tracking"""
-    console.print(f"\n[bold cyan]🚀 Training {model.upper()} Model[/bold cyan]\n")
+    """Train model with beautiful progress tracking and resource optimization"""
 
-    # Show configuration
-    config_table = Table(show_header=False, box=box.SIMPLE)
-    config_table.add_column("Parameter", style="cyan")
-    config_table.add_column("Value", style="white")
+    # Header with gradient
+    console.print(Panel(
+        "[bold cyan]🚀 Training D3QN Agent[/bold cyan]\n"
+        "[dim]Deep Dueling Double DQN with Experience Replay[/dim]",
+        border_style="cyan",
+        box=box.ROUNDED
+    ))
 
-    config_table.add_row("Symbol", symbol)
-    config_table.add_row("Model", model.upper())
-    config_table.add_row("Episodes", str(episodes))
-    config_table.add_row("Learning Rate", str(learning_rate))
-    config_table.add_row("Reward Type", reward_type.upper())
-    config_table.add_row("Sample Data", "Yes" if sample_data else "No")
+    # Show configuration in a beautiful table
+    config_table = Table(
+        show_header=True,
+        header_style="bold magenta",
+        box=box.ROUNDED,
+        title="[bold]Training Configuration[/bold]",
+        title_style="bold yellow"
+    )
+    config_table.add_column("Parameter", style="cyan", width=20)
+    config_table.add_column("Value", style="white bold", width=30)
+    config_table.add_column("Info", style="dim", width=30)
+
+    config_table.add_row("Symbol", symbol, "Trading pair")
+    config_table.add_row("Model", model.upper(), "D3QN architecture")
+    config_table.add_row("Episodes", str(episodes), "Training iterations")
+    config_table.add_row("Learning Rate", f"{learning_rate:.6f}", "Adam optimizer")
+    config_table.add_row("Reward Type", reward_type.upper(), "Profit signal")
+    config_table.add_row("Gamma", "0.99", "Discount factor")
+    config_table.add_row("Batch Size", "64", "Mini-batch for updates")
+    config_table.add_row("Buffer Size", "100,000", "Replay memory")
+    config_table.add_row("TP/SL Mode", "ATR-Based", "🛡️ Risk management")
+    config_table.add_row("Trailing Stop", "Enabled", "🎯 Lock profits")
+    config_table.add_row("Sample Data", "Yes" if sample_data else "No", "Using synthetic data" if sample_data else "Using real data")
 
     console.print(config_table)
     console.print()
 
     # Build command to run training as subprocess
     # This avoids sys.path issues and PyTorch DLL conflicts
+    # Also enables better memory management
     server_dir = Path(__file__).parent / "server"
 
     cmd = [
@@ -239,40 +264,76 @@ def train(
         "--episodes", str(episodes),
         "--lr", str(learning_rate),
         "--gamma", "0.99",  # Reduced to prevent Q-value spiral (research-based)
-        "--batch-size", "64",
-        "--buffer-size", "100000",
+        "--batch-size", "64",  # Optimized for RTX 2060 (6GB VRAM)
+        "--buffer-size", "100000",  # Reduced from 1M for memory efficiency
         "--reward", reward_type,
-        "--save-freq", "10"
+        "--save-freq", str(max(episodes // 10, 10))  # Save 10 checkpoints
     ]
 
     if sample_data:
         cmd.append("--sample-data")
 
     try:
-        console.print("\n[cyan]Starting training... (Real-time output)[/cyan]")
-        console.print("[dim]" + "=" * 70 + "[/dim]\n")
+        # Display start info
+        console.print(Panel(
+            "[cyan]Starting training with real-time output...[/cyan]\n"
+            "[dim]• Episodes will show live progress\n"
+            "• ATR-based TP/SL active on every position\n"
+            "• Trailing stop loss will lock in profits\n"
+            "• Last episode will be logged in detail[/dim]",
+            border_style="cyan",
+            box=box.SIMPLE
+        ))
+        console.print()
 
         # Run WITHOUT capture_output to show real-time progress
+        # Memory optimization: subprocess isolation prevents memory leaks
         result = subprocess.run(
             cmd,
-            cwd=server_dir
-            # NO capture_output - show everything live!
+            cwd=server_dir,
+            env={**os.environ, "PYTHONUNBUFFERED": "1"}  # Force unbuffered output
         )
 
-        console.print("\n[dim]" + "=" * 70 + "[/dim]")
+        # Force garbage collection after training
+        gc.collect()
+
+        console.print()
         if result.returncode == 0:
-            console.print(f"[green]✓ Training completed![/green]")
-            console.print(f"[dim]Model saved to: checkpoints/[/dim]")
-            console.print(f"[dim]Detailed logs saved to: logs/training_*.log[/dim]")
-            console.print(f"[dim]Episode details saved to: logs/episode_*.jsonl[/dim]\n")
+            # Success panel
+            console.print(Panel(
+                "[bold green]✓ Training Completed Successfully![/bold green]\n\n"
+                "[cyan]Outputs:[/cyan]\n"
+                "  • Model: [white]checkpoints/final_agent.pth[/white]\n"
+                "  • Best model: [white]checkpoints/best_agent.pth[/white]\n"
+                "  • Training logs: [white]logs/training_*.log[/white]\n"
+                "  • Episode details: [white]logs/episode_*.jsonl[/white]\n"
+                "  • Metrics: [white]logs/metrics_*.json[/white]\n\n"
+                "[dim]Next steps:[/dim]\n"
+                "  [yellow]python main.py backtest --model checkpoints/final_agent.pth[/yellow]",
+                border_style="green",
+                box=box.ROUNDED
+            ))
         else:
-            console.print(f"\n[red]✗ Training failed with exit code {result.returncode}[/red]\n")
+            console.print(Panel(
+                f"[bold red]✗ Training Failed[/bold red]\n\n"
+                f"Exit code: {result.returncode}\n"
+                f"Check [white]logs/training_*.log[/white] for details",
+                border_style="red",
+                box=box.ROUNDED
+            ))
             sys.exit(1)
 
+    except KeyboardInterrupt:
+        console.print("\n[yellow]⚠ Training interrupted by user[/yellow]\n")
+        sys.exit(130)
     except Exception as e:
-        console.print(f"\n[red]✗ Training failed: {e}[/red]\n")
+        console.print(Panel(
+            f"[bold red]✗ Training Error[/bold red]\n\n{str(e)}",
+            border_style="red",
+            box=box.ROUNDED
+        ))
         import traceback
-        traceback.print_exc()
+        console.print("[dim]" + traceback.format_exc() + "[/dim]")
         sys.exit(1)
 
 # ============================================================================

@@ -243,8 +243,8 @@ class MultiTimeframeLoader:
         df['returns'] = df['close'].pct_change()
         df['log_returns'] = np.log(df['close'] / df['close'].shift(1))
 
-        # Fill NaN
-        df = df.fillna(method='bfill').fillna(0)
+        # Fill NaN (backward fill then forward fill, finally zero)
+        df = df.bfill().ffill().fillna(0)
 
         return df.values
 

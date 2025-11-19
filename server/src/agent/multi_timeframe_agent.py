@@ -220,14 +220,14 @@ class MultiTimeframeD3QNAgent:
         # Sample batch
         batch = random.sample(self.replay_buffer, self.batch_size)
 
-        # Unpack batch
-        primary_states = torch.FloatTensor([e.primary_state for e in batch]).to(self.device)
-        detail_states = torch.FloatTensor([e.detail_state for e in batch]).to(self.device)
-        actions = torch.LongTensor([e.action for e in batch]).to(self.device)
-        rewards = torch.FloatTensor([e.reward for e in batch]).to(self.device)
-        next_primary_states = torch.FloatTensor([e.next_primary_state for e in batch]).to(self.device)
-        next_detail_states = torch.FloatTensor([e.next_detail_state for e in batch]).to(self.device)
-        dones = torch.FloatTensor([e.done for e in batch]).to(self.device)
+        # Unpack batch (convert to numpy first for speed)
+        primary_states = torch.FloatTensor(np.array([e.primary_state for e in batch])).to(self.device)
+        detail_states = torch.FloatTensor(np.array([e.detail_state for e in batch])).to(self.device)
+        actions = torch.LongTensor(np.array([e.action for e in batch])).to(self.device)
+        rewards = torch.FloatTensor(np.array([e.reward for e in batch])).to(self.device)
+        next_primary_states = torch.FloatTensor(np.array([e.next_primary_state for e in batch])).to(self.device)
+        next_detail_states = torch.FloatTensor(np.array([e.next_detail_state for e in batch])).to(self.device)
+        dones = torch.FloatTensor(np.array([e.done for e in batch])).to(self.device)
 
         # Current Q-value quantiles
         current_q_dist = self.policy_net(primary_states, detail_states)  # [batch, actions, quantiles]

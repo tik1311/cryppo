@@ -365,45 +365,65 @@ def run_train(args):
     console.print("  • Structure Score: Uptrend/Downtrend confirmation")
     console.print("  [yellow]→ Model can now learn quality entry points![/yellow]\n")
 
-    # Auto-limit data range if not specified (use last 3 months for efficiency)
-    if not args.start and not args.end:
-        from datetime import datetime, timedelta
-        end_date = datetime.now().strftime("%Y-%m-%d")
-        start_date = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
-        console.print(f"[yellow]⚡ Auto-limiting data to last 3 months ({start_date} to {end_date}) for efficiency[/yellow]")
-        args.start = start_date
-        args.end = end_date
+    # Load FULL dataset (not auto-limited)
+    console.print("[cyan]📊 Data Strategy:[/cyan]")
+    console.print("  • Loading FULL dataset (all available data)")
+    console.print("  • Train: ALL data except last 3 months")
+    console.print("  • Test: Last 3 months (for out-of-sample validation)")
+    console.print()
 
     # Log training configuration
     logger.info(f"Symbol: {args.symbol}")
     logger.info(f"Timeframes: {args.main_tf} + {args.detail_tf}")
     logger.info(f"Episodes: {args.episodes}")
     logger.info(f"Initial Balance: ${args.balance:.2f}")
-    logger.info(f"Date Range: {args.start} to {args.end}")
+    logger.info(f"Using FULL dataset - no date limits")
     logger.info("")
 
-    # 1. Load Data
+    # 1. Load FULL Data (no date limits unless user specifies)
     try:
         df_main, df_detail = load_multi_timeframe_data(
             symbol=args.symbol,
             main_timeframe=args.main_tf,
             detail_timeframe=args.detail_tf,
-            start_date=args.start,
-            end_date=args.end
+            start_date=args.start if args.start else None,
+            end_date=args.end if args.end else None
         )
     except Exception as e:
         console.print(f"[red]Error loading data: {e}[/red]")
+        logger.error(f"Error loading data: {e}")
         return
 
-    # 2. Prepare Data
-    data_dict = prepare_multi_timeframe_env_data(
-        df_main, df_detail, 
-        main_timeframe=args.main_tf, 
+    console.print(f"[green]✓[/green] Loaded {len(df_main)} main candles ({len(df_detail)} detail candles)")
+
+    # 2. Prepare and Split Data (Train on ALL except last 3 months)
+    full_data = prepare_multi_timeframe_env_data(
+        df_main, df_detail,
+        main_timeframe=args.main_tf,
         detail_timeframe=args.detail_tf
     )
-    
-    # 3. Init Env
-    env = TradingEnv(data_dict, initial_balance=args.balance, logger=logger)
+
+    # Calculate split point: reserve last 3 months (~2160 hours) for testing
+    total_steps = len(full_data['main'])
+    test_size = min(2160, int(total_steps * 0.15))  # 3 months or 15%, whichever is smaller
+    train_end = total_steps - test_size
+
+    # Split data
+    train_data = {
+        'main': full_data['main'][:train_end],
+        'detail': full_data['detail'][:train_end]
+    }
+
+    console.print(f"[cyan]Data Split:[/cyan]")
+    console.print(f"  • Training:   {len(train_data['main']):,} steps ({len(train_data['main'])/24:.0f} days)")
+    console.print(f"  • Test:       {test_size:,} steps (~3 months)")
+    console.print(f"  • Total:      {total_steps:,} steps")
+
+    logger.info(f"Data split: {len(train_data['main'])} train / {test_size} test")
+    logger.info("")
+
+    # 3. Init Env with TRAINING data only
+    env = TradingEnv(train_data, initial_balance=args.balance, logger=logger)
     logger.info(f"Environment initialized: {env.n_steps} steps")
     logger.info("")
 

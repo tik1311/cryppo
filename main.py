@@ -207,6 +207,29 @@ def paper_trade():
 
     run_command(args)
 
+def auto_tune():
+    """Auto-tune hyperparameters for maximum profitability"""
+    console.print("\n[bold yellow]🔧 Auto Tune Parameters[/bold yellow]")
+    console.print("[dim]This will automatically find the best parameters for profitability[/dim]\n")
+
+    symbol = Prompt.ask("Symbol", default="BTCUSDT")
+    trials = Prompt.ask("Number of trials", default="50")
+    train_episodes = Prompt.ask("Training episodes per trial", default="3")
+    use_full_data = Confirm.ask("Use full dataset (recommended)?", default=True)
+
+    args = [
+        sys.executable, "auto_tune.py",
+        "--symbol", symbol,
+        "--trials", trials,
+        "--train-episodes", train_episodes
+    ]
+
+    if use_full_data:
+        args.append("--full-data")
+
+    console.print("\n[cyan]Starting auto-tuning... This may take a while.[/cyan]")
+    subprocess.run(args)
+
 def main():
     """Main menu loop"""
     while True:
@@ -221,6 +244,7 @@ def main():
             "📥 Download Data",
             "📂 List Data",
             "🚀 Train Model",
+            "🔧 Auto Tune Parameters",
             "📊 Backtest",
             "📈 Paper Trade (Live Simulation)",
             "📁 List Models",
@@ -257,6 +281,10 @@ def main():
 
         elif choice == "🚀 Train Model":
             train_model()
+            Prompt.ask("\n[dim]Press Enter to continue...[/dim]")
+
+        elif choice == "🔧 Auto Tune Parameters":
+            auto_tune()
             Prompt.ask("\n[dim]Press Enter to continue...[/dim]")
 
         elif choice == "📊 Backtest":

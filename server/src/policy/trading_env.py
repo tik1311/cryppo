@@ -146,7 +146,7 @@ class TradingEnv(gym.Env):
         # Patience / Anti-Overtrading
         self.consecutive_holds = 0
         self.last_trade_step = -100
-        self.min_bars_between_trades = 5  # Increased from 2 to 5 to prevent overtrading
+        self.min_bars_between_trades = 3  # Balanced: not too restrictive, prevents spam
 
         return self._get_observation(), self._get_info()
 
@@ -224,13 +224,12 @@ class TradingEnv(gym.Env):
                     self._open_position('short', current_price)
                 self.last_trade_step = self.current_step
                 self.consecutive_holds = 0
-                # Small penalty for opening position to discourage overtrading
-                reward -= 0.05
+                # NO entry penalty - let model learn quality entries through TP/SL rewards
             else:
                 # HOLD or Invalid Open
                 self.consecutive_holds += 1
-                # Small reward for patience (waiting for good setup)
-                reward += 0.001  # Increased from 0.0001 to encourage patience
+                # Tiny reward for patience (don't make it too attractive)
+                reward += 0.0001
         else:
             # Already in position - Action is ignored (forced HOLD)
             self.hold_duration += 1
@@ -261,21 +260,22 @@ class TradingEnv(gym.Env):
                 normalized_pnl = np.tanh(trade_reward / 100.0)
                 reward += normalized_pnl
 
-                # Reward structure to encourage quality trades:
-                # - Entry penalty: -0.05 (discourages overtrading)
-                # - TP bonus: +0.5 (strong incentive for winning)
-                # - SL penalty: -0.3 (strong disincentive for losing)
-                # - Net for winning trade: +0.5 - 0.05 = +0.45 + PnL
-                # - Net for losing trade: -0.3 - 0.05 = -0.35 + PnL
+                # Reward structure for quality entry points:
+                # - Focus on learning WHEN to enter (quality over quantity)
+                # - TP = Good entry point → Strong positive reward
+                # - SL = Bad entry point → Moderate penalty (SL is risk management, not failure)
+                # - Win streak bonus = Consistent quality entries
                 if exit_reason == 'tp':
-                    reward += 0.5  # Strong bonus for winning
-                    # Bonus for win streak
+                    reward += 1.0  # Strong reward for hitting TP (good entry point)
+                    # Extra bonus for maintaining win streak (quality consistency)
                     if self.winning_trades > 0 and self.total_trades > 0:
                         recent_win_rate = self.winning_trades / self.total_trades
                         if recent_win_rate > 0.4:
-                            reward += 0.2  # Extra bonus for maintaining good win rate
+                            reward += 0.3  # Bonus for >40% win rate
+                        if recent_win_rate > 0.5:
+                            reward += 0.2  # Extra bonus for >50% win rate
                 elif exit_reason == 'sl':
-                    reward -= 0.3  # Stronger penalty for losing
+                    reward -= 0.5  # Penalty for hitting SL (poor entry point)
             
             # Time penalty to discourage holding forever
             if self.hold_duration > 100:

@@ -42,13 +42,14 @@ class TradingEnv(gym.Env):
         initial_balance: float = 10000.0,
         fee_rate: float = 0.0004,
         max_leverage: float = 1.0,
-        window_size: int = 72,
-        reward_type: str = 'sharpe',
-        min_episode_length: int = 1000,
+        window_size: int = 36,  # Reduced from 72 to 36 for efficiency
+        reward_type: str = 'pnl',  # Changed from 'sharpe' to 'pnl' for clearer signal
+        min_episode_length: int = 500,  # Reduced from 1000 to 500
         atr_period: int = 14,
         atr_sl_multiplier: float = 1.5,
-        atr_tp_multiplier: float = 4.5,
-        streaming_mode: bool = False
+        atr_tp_multiplier: float = 2.5,  # Reduced from 4.5 to 2.5 (better win rate)
+        streaming_mode: bool = False,
+        logger = None  # Add logger parameter
     ):
         super().__init__()
 
@@ -93,10 +94,12 @@ class TradingEnv(gym.Env):
         })
 
         # Logging
+        self.logger = logger
         self.log_dir = Path("logs")
         self.log_dir.mkdir(exist_ok=True, parents=True)
         self.step_log = []
         self.enable_detailed_logging = False
+        self.verbose_trades = True  # Always log trades
 
         self.reset()
 
@@ -143,7 +146,7 @@ class TradingEnv(gym.Env):
         # Patience / Anti-Overtrading
         self.consecutive_holds = 0
         self.last_trade_step = -100
-        self.min_bars_between_trades = 4
+        self.min_bars_between_trades = 3  # Balanced: not too restrictive, prevents spam
 
         return self._get_observation(), self._get_info()
 
@@ -221,10 +224,11 @@ class TradingEnv(gym.Env):
                     self._open_position('short', current_price)
                 self.last_trade_step = self.current_step
                 self.consecutive_holds = 0
+                # NO entry penalty - let model learn quality entries through TP/SL rewards
             else:
                 # HOLD or Invalid Open
                 self.consecutive_holds += 1
-                # Small reward for patience (waiting for good setup)
+                # Tiny reward for patience (don't make it too attractive)
                 reward += 0.0001
         else:
             # Already in position - Action is ignored (forced HOLD)
@@ -252,13 +256,26 @@ class TradingEnv(gym.Env):
             
             if exit_price:
                 trade_reward = self._close_position(exit_price, exit_reason)
-                reward += trade_reward
-                
-                # Bonus for TP, small penalty for SL (risk management is good)
+                # Normalize PnL to [-1, 1] range for stable learning
+                normalized_pnl = np.tanh(trade_reward / 100.0)
+                reward += normalized_pnl
+
+                # Reward structure for quality entry points:
+                # - Focus on learning WHEN to enter (quality over quantity)
+                # - TP = Good entry point → Strong positive reward
+                # - SL = Bad entry point → Moderate penalty (SL is risk management, not failure)
+                # - Win streak bonus = Consistent quality entries
                 if exit_reason == 'tp':
-                    reward += 0.1  # Bonus for winning
+                    reward += 1.0  # Strong reward for hitting TP (good entry point)
+                    # Extra bonus for maintaining win streak (quality consistency)
+                    if self.winning_trades > 0 and self.total_trades > 0:
+                        recent_win_rate = self.winning_trades / self.total_trades
+                        if recent_win_rate > 0.4:
+                            reward += 0.3  # Bonus for >40% win rate
+                        if recent_win_rate > 0.5:
+                            reward += 0.2  # Extra bonus for >50% win rate
                 elif exit_reason == 'sl':
-                    reward -= 0.01 # Small penalty for losing
+                    reward -= 0.5  # Penalty for hitting SL (poor entry point)
             
             # Time penalty to discourage holding forever
             if self.hold_duration > 100:
@@ -277,7 +294,7 @@ class TradingEnv(gym.Env):
         self.equity_history.append(self.equity)
         
         # 3. Check Termination
-        if self.current_step >= self.n_steps - 1:
+        if self.current_step >= self.n_steps:
             truncated = True
             if self.position:
                 self._close_position(current_price, 'timeout')
@@ -313,9 +330,12 @@ class TradingEnv(gym.Env):
             self.take_profit = price - (atr * self.atr_tp_multiplier)
             self.stop_loss = price + (atr * self.atr_sl_multiplier)
             
-        # Log
-        if self.total_trades < 5:
-            print(f"  [OPEN {pos_type.upper()}] @ {price:.2f} | TP: {self.take_profit:.2f} | SL: {self.stop_loss:.2f}")
+        # Log trade open
+        trade_msg = f"[OPEN {pos_type.upper()}] @ {price:.2f} | TP: {self.take_profit:.2f} | SL: {self.stop_loss:.2f} | Size: {self.position_size:.4f}"
+        if self.total_trades < 5 or self.verbose_trades:
+            print(f"  {trade_msg}")
+        if self.logger:
+            self.logger.info(f"Step {self.current_step} | {trade_msg}")
 
     def _close_position(self, price: float, reason: str) -> float:
         if not self.position: return 0.0
@@ -335,10 +355,17 @@ class TradingEnv(gym.Env):
         self.total_trades += 1
         if pnl > 0: self.winning_trades += 1
         
-        # Log
-        if self.total_trades < 5:
-            print(f"  [CLOSE {self.position.upper()}] @ {price:.2f} ({reason}) | PnL: {pnl:.2f}")
-            
+        # Calculate win rate
+        win_rate = (self.winning_trades / max(1, self.total_trades)) * 100
+        pnl_pct = (pnl / (self.entry_price * self.position_size)) * 100
+
+        # Log trade close
+        trade_msg = f"[CLOSE {self.position.upper()}] @ {price:.2f} ({reason}) | PnL: ${pnl:.2f} ({pnl_pct:+.2f}%) | Balance: ${self.balance:.2f} | Trades: {self.total_trades} | Win Rate: {win_rate:.1f}%"
+        if self.total_trades <= 10 or self.verbose_trades:
+            print(f"  {trade_msg}")
+        if self.logger:
+            self.logger.info(f"Step {self.current_step} | {trade_msg}")
+
         self.position = None
         return pnl
 

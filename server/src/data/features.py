@@ -103,6 +103,97 @@ def calculate_obv(close: np.ndarray, volume: np.ndarray) -> np.ndarray:
     return obv
 
 
+def detect_trend(sma_fast: np.ndarray, sma_slow: np.ndarray) -> np.ndarray:
+    """
+    Detect trend direction using SMA crossover
+    Returns: 1 (uptrend), 0 (sideways), -1 (downtrend)
+    """
+    trend = np.zeros_like(sma_fast)
+    # Uptrend: fast SMA > slow SMA
+    trend[sma_fast > sma_slow] = 1
+    # Downtrend: fast SMA < slow SMA
+    trend[sma_fast < sma_slow] = -1
+    return trend
+
+
+def detect_swing_points(high: np.ndarray, low: np.ndarray, period: int = 5) -> tuple:
+    """
+    Detect swing highs and swing lows
+    Swing High: highest point in surrounding period
+    Swing Low: lowest point in surrounding period
+    Returns: (swing_highs, swing_lows) as boolean arrays
+    """
+    n = len(high)
+    swing_highs = np.zeros(n, dtype=bool)
+    swing_lows = np.zeros(n, dtype=bool)
+
+    for i in range(period, n - period):
+        # Check if current high is highest in window
+        window_high = high[i-period:i+period+1]
+        if high[i] == np.max(window_high):
+            swing_highs[i] = True
+
+        # Check if current low is lowest in window
+        window_low = low[i-period:i+period+1]
+        if low[i] == np.min(window_low):
+            swing_lows[i] = True
+
+    return swing_highs, swing_lows
+
+
+def calculate_dow_theory_structure(high: np.ndarray, low: np.ndarray, close: np.ndarray,
+                                   swing_period: int = 5, lookback: int = 20) -> tuple:
+    """
+    Dow Theory: Detect Higher Highs, Higher Lows (uptrend) or Lower Highs, Lower Lows (downtrend)
+    Returns: (structure_score, is_uptrend, is_downtrend)
+    - structure_score: +1 for HH/HL pattern, -1 for LH/LL pattern, 0 for mixed
+    - is_uptrend: boolean array for confirmed uptrend
+    - is_downtrend: boolean array for confirmed downtrend
+    """
+    n = len(high)
+    structure_score = np.zeros(n)
+    is_uptrend = np.zeros(n, dtype=bool)
+    is_downtrend = np.zeros(n, dtype=bool)
+
+    # Detect swing points
+    swing_highs, swing_lows = detect_swing_points(high, low, swing_period)
+
+    # Find indices of swing points
+    swing_high_indices = np.where(swing_highs)[0]
+    swing_low_indices = np.where(swing_lows)[0]
+
+    # Analyze structure for each point
+    for i in range(lookback, n):
+        # Get recent swing highs and lows within lookback period
+        recent_high_idx = swing_high_indices[(swing_high_indices >= i-lookback) & (swing_high_indices < i)]
+        recent_low_idx = swing_low_indices[(swing_low_indices >= i-lookback) & (swing_low_indices < i)]
+
+        if len(recent_high_idx) >= 2 and len(recent_low_idx) >= 2:
+            # Check for Higher Highs (HH) and Higher Lows (HL) - Uptrend
+            recent_highs = high[recent_high_idx[-2:]]
+            recent_lows = low[recent_low_idx[-2:]]
+
+            hh = recent_highs[-1] > recent_highs[-2]  # Higher High
+            hl = recent_lows[-1] > recent_lows[-2]    # Higher Low
+
+            lh = recent_highs[-1] < recent_highs[-2]  # Lower High
+            ll = recent_lows[-1] < recent_lows[-2]    # Lower Low
+
+            if hh and hl:
+                # Confirmed uptrend
+                structure_score[i] = 1.0
+                is_uptrend[i] = True
+            elif lh and ll:
+                # Confirmed downtrend
+                structure_score[i] = -1.0
+                is_downtrend[i] = True
+            else:
+                # Mixed structure (consolidation)
+                structure_score[i] = 0.0
+
+    return structure_score, is_uptrend, is_downtrend
+
+
 def add_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
     """
     Add all technical indicators to dataframe
@@ -163,6 +254,59 @@ def add_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
     # Price position
     df['price_to_sma7'] = df['close'] / df['sma_7']
     df['price_to_sma25'] = df['close'] / df['sma_25']
+
+    # === NEW: Trend, Swing, and Dow Theory Features ===
+
+    # Trend Direction (SMA 7 vs SMA 25)
+    df['trend_direction'] = detect_trend(df['sma_7'].values, df['sma_25'].values)
+
+    # Trend Strength (distance between EMAs)
+    df['trend_strength'] = (df['ema_7'] - df['ema_25']) / df['close']
+
+    # Swing Points Detection
+    swing_highs, swing_lows = detect_swing_points(df['high'].values, df['low'].values, period=5)
+    df['is_swing_high'] = swing_highs.astype(float)
+    df['is_swing_low'] = swing_lows.astype(float)
+
+    # Distance to nearest swing points (helps identify support/resistance)
+    # Optimized version using vectorized operations
+    df['distance_to_swing_high'] = 0.0
+    df['distance_to_swing_low'] = 0.0
+
+    swing_high_indices = np.where(swing_highs)[0]
+    swing_low_indices = np.where(swing_lows)[0]
+
+    if len(swing_high_indices) > 0:
+        for i in range(len(df)):
+            # Find most recent swing high within last 20 bars
+            valid_highs = swing_high_indices[(swing_high_indices < i) & (swing_high_indices >= i-20)]
+            if len(valid_highs) > 0:
+                last_high_idx = valid_highs[-1]
+                df.iloc[i, df.columns.get_loc('distance_to_swing_high')] = (
+                    df.iloc[i]['close'] - df.iloc[last_high_idx]['high']
+                ) / df.iloc[i]['close']
+
+    if len(swing_low_indices) > 0:
+        for i in range(len(df)):
+            # Find most recent swing low within last 20 bars
+            valid_lows = swing_low_indices[(swing_low_indices < i) & (swing_low_indices >= i-20)]
+            if len(valid_lows) > 0:
+                last_low_idx = valid_lows[-1]
+                df.iloc[i, df.columns.get_loc('distance_to_swing_low')] = (
+                    df.iloc[i]['close'] - df.iloc[last_low_idx]['low']
+                ) / df.iloc[i]['close']
+
+    # Dow Theory Price Structure
+    structure_score, is_uptrend, is_downtrend = calculate_dow_theory_structure(
+        df['high'].values, df['low'].values, df['close'].values, swing_period=5, lookback=20
+    )
+    df['dow_structure'] = structure_score  # +1 uptrend, -1 downtrend, 0 sideways
+    df['is_uptrend'] = is_uptrend.astype(float)
+    df['is_downtrend'] = is_downtrend.astype(float)
+
+    # Additional trend confirmation
+    df['price_above_sma25'] = (df['close'] > df['sma_25']).astype(float)
+    df['price_above_sma99'] = (df['close'] > df['sma_99']).astype(float)
 
     return df
 

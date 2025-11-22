@@ -15,7 +15,7 @@ from .hybrid_network import HybridQNetwork
 Experience = namedtuple('Experience', ['state', 'action', 'reward', 'next_state', 'done'])
 
 class ReplayBuffer:
-    def __init__(self, capacity: int = 50000):
+    def __init__(self, capacity: int = 10000):  # Reduced from 50000 to 10000 for efficiency
         self.buffer = deque(maxlen=capacity)
 
     def push(self, state, action, reward, next_state, done):
@@ -50,7 +50,7 @@ class D3QNAgent:
         n_detail_features: int,
         detail_len: int,
         action_dim: int,
-        learning_rate: float = 0.0001,
+        learning_rate: float = 0.0003,  # Increased from 0.0001 to 0.0003 for faster learning
         gamma: float = 0.99,
         device: str = "cuda" if torch.cuda.is_available() else "cpu"
     ):
@@ -58,8 +58,8 @@ class D3QNAgent:
         self.gamma = gamma
         self.device = torch.device(device)
         self.epsilon = 1.0
-        self.epsilon_min = 0.1
-        self.epsilon_decay = 0.9995
+        self.epsilon_min = 0.15  # Increased from 0.1 to 0.15 for more exploration
+        self.epsilon_decay = 0.9998  # Slower decay (was 0.9995) for better learning
         
         self.policy_net = HybridQNetwork(
             window_size, n_main_features, n_detail_features, detail_len, action_dim
@@ -71,8 +71,10 @@ class D3QNAgent:
         
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)
-        self.memory = ReplayBuffer(50000)
+        self.memory = ReplayBuffer(10000)  # Reduced for efficiency
         self.steps = 0
+        self.batch_size = 32  # Reduced from 64 to 32 for efficiency
+        self.target_update_freq = 5000  # Increased from 1000 to 5000
 
     def select_action(self, state: Dict[str, np.ndarray], training: bool = True, action_mask: Optional[np.ndarray] = None) -> int:
         if training and random.random() < self.epsilon:
@@ -100,9 +102,10 @@ class D3QNAgent:
         self.memory.push(state, action, reward, next_state, done)
 
     def update(self):
-        if len(self.memory) < 64: return
-        
-        states, actions, rewards, next_states, dones = self.memory.sample(64)
+        if len(self.memory) < self.batch_size:
+            return None
+
+        states, actions, rewards, next_states, dones = self.memory.sample(self.batch_size)
         
         # Move to device
         states['main'] = states['main'].to(self.device)
@@ -126,15 +129,16 @@ class D3QNAgent:
         
         self.optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.policy_net.parameters(), 1.0)  # Gradient clipping for stability
         self.optimizer.step()
-        
+
         self.steps += 1
-        if self.steps % 1000 == 0:
+        if self.steps % self.target_update_freq == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
-            
+
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-            
+
         return loss.item()
 
     def save(self, path):

@@ -30,7 +30,7 @@ from src.agent.d3qn_agent import D3QNAgent
 
 console = Console()
 
-def setup_logger(mode: str, debug: bool = False) -> logging.Logger:
+def setup_logger(mode: str, debug: bool = True) -> logging.Logger:
     """
     Setup logger for train/backtest/live modes
     Creates separate log files: train.log, backtest.log, live.log
@@ -39,6 +39,7 @@ def setup_logger(mode: str, debug: bool = False) -> logging.Logger:
     Args:
         mode: 'train', 'backtest', or 'live'
         debug: If True, enable DEBUG level logging (detailed Q-values, confidence, etc.)
+               Default is TRUE to show all detailed decision-making logs
     """
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
@@ -73,6 +74,29 @@ def setup_logger(mode: str, debug: bool = False) -> logging.Logger:
     logger.info("="*60)
 
     return logger
+
+def cleanup_logger(logger: logging.Logger):
+    """
+    Properly close and cleanup logger resources
+    Call this at the end of each mode (train/backtest/live)
+    """
+    if logger:
+        for handler in logger.handlers[:]:
+            handler.close()
+            logger.removeHandler(handler)
+        logging.shutdown()
+
+def cleanup_resources():
+    """
+    Clean up system resources (GPU memory, etc.)
+    Call this at the end of each mode
+    """
+    # Clear GPU cache if using CUDA
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+    # Force garbage collection
+    gc.collect()
 
 def check_system():
     """Perform system checks"""
@@ -237,6 +261,10 @@ def run_backtest(args):
 
     console.print(f"[dim]Log saved to: logs/backtest.log[/dim]")
 
+    # Cleanup resources
+    cleanup_logger(logger)
+    cleanup_resources()
+
 def run_paper_trade(args):
     """Run paper trading simulation on test set"""
     # Setup logger
@@ -378,6 +406,10 @@ def run_paper_trade(args):
     logger.info("="*60)
 
     console.print(f"[dim]Log saved to: logs/live.log[/dim]")
+
+    # Cleanup resources
+    cleanup_logger(logger)
+    cleanup_resources()
 
 def run_train(args):
     """Run training"""
@@ -599,6 +631,10 @@ def run_train(args):
     logger.info(f"Model saved to: {save_path}")
     console.print(f"[bold green]Training Complete! Model saved to {save_path}[/bold green]")
     console.print(f"[dim]Log saved to: logs/train.log[/dim]")
+
+    # Cleanup resources
+    cleanup_logger(logger)
+    cleanup_resources()
 
 def main():
     parser = argparse.ArgumentParser(description="CRYPPO Trading System")

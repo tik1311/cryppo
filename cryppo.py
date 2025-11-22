@@ -95,27 +95,28 @@ def check_system():
         console.print("Data Directory: [yellow]Not Found (will be created)[/yellow]")
 
 def run_backtest(args):
-    """Run backtest"""
+    """Run backtest on test set (last 3 months)"""
     # Setup logger
     logger = setup_logger("backtest")
 
     console.print(f"[bold cyan]Running Backtest ({args.symbol})[/bold cyan]")
+    console.print("[dim]Testing on last 3 months (out-of-sample)[/dim]\n")
 
     # Log configuration
     logger.info(f"Symbol: {args.symbol}")
     logger.info(f"Timeframes: {args.main_tf} + {args.detail_tf}")
     logger.info(f"Initial Balance: ${args.balance:.2f}")
-    logger.info(f"Date Range: {args.start} to {args.end}")
+    logger.info(f"Testing on last 3 months (out-of-sample)")
     logger.info("")
 
-    # 1. Load Data
+    # 1. Load FULL Data
     try:
         df_main, df_detail = load_multi_timeframe_data(
             symbol=args.symbol,
             main_timeframe=args.main_tf,
             detail_timeframe=args.detail_tf,
-            start_date=args.start,
-            end_date=args.end
+            start_date=args.start if args.start else None,
+            end_date=args.end if args.end else None
         )
     except Exception as e:
         console.print(f"[red]Error loading data: {e}[/red]")
@@ -123,14 +124,31 @@ def run_backtest(args):
         return
 
     # 2. Prepare Data
-    data_dict = prepare_multi_timeframe_env_data(
-        df_main, df_detail, 
-        main_timeframe=args.main_tf, 
+    full_data = prepare_multi_timeframe_env_data(
+        df_main, df_detail,
+        main_timeframe=args.main_tf,
         detail_timeframe=args.detail_tf
     )
-    
-    # 3. Init Env
-    env = TradingEnv(data_dict, initial_balance=args.balance, logger=logger)
+
+    # 3. Use TEST split (last 3 months)
+    total_steps = len(full_data['main'])
+    test_size = min(2160, int(total_steps * 0.15))
+    train_end = total_steps - test_size
+
+    test_data = {
+        'main': full_data['main'][train_end:],
+        'detail': full_data['detail'][train_end:]
+    }
+
+    console.print(f"[cyan]Using test data:[/cyan]")
+    console.print(f"  • Test set: {len(test_data['main']):,} steps (last 3 months)")
+    console.print()
+
+    logger.info(f"Test set: {len(test_data['main'])} steps")
+    logger.info("")
+
+    # 4. Init Env with TEST data
+    env = TradingEnv(test_data, initial_balance=args.balance, logger=logger)
     logger.info(f"Environment initialized: {env.n_steps} steps")
     logger.info("")
 
@@ -213,28 +231,28 @@ def run_backtest(args):
     console.print(f"[dim]Log saved to: logs/backtest.log[/dim]")
 
 def run_paper_trade(args):
-    """Run paper trading simulation"""
+    """Run paper trading simulation on test set"""
     # Setup logger
     logger = setup_logger("live")
 
     console.print(Panel(f"Starting Paper Trade Simulation ({args.symbol})", style="bold red"))
-    console.print("[dim]Simulating live market execution...[/dim]")
+    console.print("[dim]Simulating live market execution on last 3 months...[/dim]\n")
 
     # Log configuration
     logger.info(f"Symbol: {args.symbol}")
     logger.info(f"Timeframes: {args.main_tf} + {args.detail_tf}")
     logger.info(f"Initial Balance: ${args.balance:.2f}")
-    logger.info(f"Date Range: {args.start} to {args.end}")
+    logger.info(f"Using test data (last 3 months)")
     logger.info("")
 
-    # 1. Load Data (Use recent data for simulation)
+    # 1. Load FULL Data
     try:
         df_main, df_detail = load_multi_timeframe_data(
             symbol=args.symbol,
             main_timeframe=args.main_tf,
             detail_timeframe=args.detail_tf,
-            start_date=args.start,
-            end_date=args.end
+            start_date=args.start if args.start else None,
+            end_date=args.end if args.end else None
         )
     except Exception as e:
         console.print(f"[red]Error loading data: {e}[/red]")
@@ -242,14 +260,31 @@ def run_paper_trade(args):
         return
 
     # 2. Prepare Data
-    data_dict = prepare_multi_timeframe_env_data(
-        df_main, df_detail, 
-        main_timeframe=args.main_tf, 
+    full_data = prepare_multi_timeframe_env_data(
+        df_main, df_detail,
+        main_timeframe=args.main_tf,
         detail_timeframe=args.detail_tf
     )
-    
-    # 3. Init Env with streaming mode
-    env = TradingEnv(data_dict, initial_balance=args.balance, streaming_mode=True, logger=logger)
+
+    # 3. Use TEST split (last 3 months)
+    total_steps = len(full_data['main'])
+    test_size = min(2160, int(total_steps * 0.15))
+    train_end = total_steps - test_size
+
+    test_data = {
+        'main': full_data['main'][train_end:],
+        'detail': full_data['detail'][train_end:]
+    }
+
+    console.print(f"[cyan]Paper trading on test data:[/cyan]")
+    console.print(f"  • Test set: {len(test_data['main']):,} steps (last 3 months)")
+    console.print()
+
+    logger.info(f"Test set: {len(test_data['main'])} steps")
+    logger.info("")
+
+    # 4. Init Env with streaming mode
+    env = TradingEnv(test_data, initial_balance=args.balance, streaming_mode=True, logger=logger)
     logger.info(f"Environment initialized: {env.n_steps} steps")
     logger.info("")
 

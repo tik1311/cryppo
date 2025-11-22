@@ -53,7 +53,7 @@ class D3QNAgent:
         learning_rate: float = 0.0003,
         gamma: float = 0.99,
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
-        confidence_threshold: float = 0.05,  # LOWERED: Start with lower threshold (was 0.15)
+        confidence_threshold: float = 0.01,  # LOWERED: Was 0.05, now 0.01 (easier to pass)
         logger = None
     ):
         self.action_dim = action_dim
@@ -118,26 +118,31 @@ class D3QNAgent:
 
             # ===== FORCED EXPLORATION PHASE =====
             # Problem: Cold start - model won't trade without experience → stuck in HOLD loop
-            # Solution: When epsilon > 0.5, force random trading to build experience
-            # This allows model to learn from actual trades instead of only holding
-            if training and self.epsilon > 0.5:
-                # Forced exploration phase - bypass confidence check
-                if random.random() < self.epsilon:
+            # Solution: ALWAYS force some random trading to continuously build experience
+            # This allows model to learn from actual trades throughout training
+            if training:
+                # Calculate effective exploration rate
+                # - High epsilon: Use epsilon directly (strong exploration)
+                # - Low epsilon: Use minimum 10% exploration (continuous learning)
+                effective_epsilon = max(self.epsilon, 0.10)
+
+                # Forced exploration - bypass confidence check
+                if random.random() < effective_epsilon:
                     # Force random trading (LONG or SHORT only, no HOLD)
                     action = random.choice([1, 2])
                     if self.logger and step % 100 == 0:
                         action_name = "LONG" if action == 1 else "SHORT"
                         self.logger.info(
                             f"Step {step} | FORCED EXPLORATION → {action_name} | "
-                            f"Epsilon={self.epsilon:.4f} > 0.5 (Building initial experience)"
+                            f"Epsilon={self.epsilon:.4f} Effective={effective_epsilon:.4f}"
                         )
                     return action
                 # Else continue to normal confidence check below
 
             # ===== ADAPTIVE CONFIDENCE THRESHOLD =====
-            # After forced exploration phase (epsilon <= 0.5), use confidence-based trading
-            # - epsilon=0.5 (transition): threshold starts to increase
-            # - epsilon=0.15 (end): threshold = base_threshold (quality focus)
+            # When not in forced exploration, use confidence-based trading
+            # - epsilon=1.0 (start): threshold = 0 (very permissive)
+            # - epsilon=0.15 (end): threshold = base_threshold (0.01, selective)
             # Formula: threshold = base * (1 - epsilon) / (1 - epsilon_min)
             epsilon_normalized = (1.0 - self.epsilon) / (1.0 - self.epsilon_min)
             adaptive_threshold = self.base_confidence_threshold * epsilon_normalized

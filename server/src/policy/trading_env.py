@@ -232,10 +232,11 @@ class TradingEnv(gym.Env):
                 self.consecutive_holds = 0
                 # NO entry penalty - let model learn quality entries through TP/SL rewards
             else:
-                # HOLD or Invalid Open
+                # HOLD - neutral (no reward/penalty)
                 self.consecutive_holds += 1
-                # Tiny reward for patience (don't make it too attractive)
-                reward += 0.0001
+                # Small penalty if holding too long without trading (encourages action when confident)
+                if self.consecutive_holds > 20:  # 20 hours without trade
+                    reward -= 0.001  # Small penalty for excessive patience
         else:
             # Already in position - Action is ignored (forced HOLD)
             self.hold_duration += 1
@@ -271,22 +272,21 @@ class TradingEnv(gym.Env):
                 normalized_pnl = np.tanh(trade_reward / 100.0)
                 reward += normalized_pnl
 
-                # Reward structure for quality entry points:
-                # - Focus on learning WHEN to enter (quality over quantity)
-                # - TP = Good entry point → Strong positive reward
-                # - SL = Bad entry point → Moderate penalty (SL is risk management, not failure)
-                # - Win streak bonus = Consistent quality entries
+                # Reward structure for QUALITY trading (not quantity):
+                # - TP = Excellent entry point → Very strong reward
+                # - SL = Poor entry point → Strong penalty
+                # - Win rate bonus = Reward consistent quality
                 if exit_reason == 'tp':
-                    reward += 1.0  # Strong reward for hitting TP (good entry point)
-                    # Extra bonus for maintaining win streak (quality consistency)
-                    if self.winning_trades > 0 and self.total_trades > 0:
-                        recent_win_rate = self.winning_trades / self.total_trades
-                        if recent_win_rate > 0.4:
-                            reward += 0.3  # Bonus for >40% win rate
-                        if recent_win_rate > 0.5:
-                            reward += 0.2  # Extra bonus for >50% win rate
+                    reward += 2.0  # Very strong reward for quality entry (increased from 1.0)
+                    # Bonus for maintaining high win rate (consistent quality)
+                    if self.total_trades >= 10:  # Need enough samples
+                        win_rate = self.winning_trades / self.total_trades
+                        if win_rate >= 0.5:  # 50%+ win rate
+                            reward += 0.5  # Strong bonus for consistent wins
+                        elif win_rate >= 0.4:  # 40-50% win rate
+                            reward += 0.2  # Moderate bonus
                 elif exit_reason == 'sl':
-                    reward -= 0.5  # Penalty for hitting SL (poor entry point)
+                    reward -= 1.0  # Strong penalty for poor entry (increased from 0.5)
             
             # Time penalty to discourage holding forever
             if self.hold_duration > 100:

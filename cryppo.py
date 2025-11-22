@@ -318,9 +318,18 @@ def run_paper_trade(args):
     agent.epsilon = 0.0
     
     console.print("\n[yellow]Press Ctrl+C to stop simulation[/yellow]\n")
-    
+    console.print("[cyan]Note: Each step = 1 hour. Simulation runs at full speed (no delay).[/cyan]\n")
+
     try:
-        with Live(console=console, refresh_per_second=4) as live:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            console=console
+        ) as progress:
+            task = progress.add_task("Running paper trade simulation", total=env.n_steps)
+
             while not done:
                 mask = env.get_action_mask()
                 action = agent.select_action(state, training=False, action_mask=mask)
@@ -328,20 +337,14 @@ def run_paper_trade(args):
                 done = terminated or truncated
                 state = next_state
                 total_reward += reward
-                
-                # Update Status
-                status_text = f"""
-[bold cyan]Status[/bold cyan]
-Step: {env.current_step}/{env.n_steps}
-Balance: ${env.balance:.2f}
-Equity: ${env.equity:.2f}
-Position: {env.position if env.position else 'NONE'}
-Trades: {env.total_trades} (Wins: {env.winning_trades})
-                """
-                live.update(Panel(status_text, title="Live Simulation"))
-                
-                # Simulate delay
-                time.sleep(0.1) 
+
+                # Update progress (no delay - run at full speed!)
+                progress.update(task, advance=1)
+
+                # Print trade notifications
+                if env.total_trades > 0 and env.current_step % 100 == 0:
+                    win_rate = (env.winning_trades / env.total_trades) * 100
+                    console.print(f"[dim]Step {env.current_step}/{env.n_steps} | Trades: {env.total_trades} | WR: {win_rate:.1f}%[/dim]") 
                 
     except KeyboardInterrupt:
         console.print("\n[yellow]Simulation stopped by user.[/yellow]")

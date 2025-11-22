@@ -50,16 +50,20 @@ class D3QNAgent:
         n_detail_features: int,
         detail_len: int,
         action_dim: int,
-        learning_rate: float = 0.0003,  # Increased from 0.0001 to 0.0003 for faster learning
+        learning_rate: float = 0.0003,
         gamma: float = 0.99,
-        device: str = "cuda" if torch.cuda.is_available() else "cpu"
+        device: str = "cuda" if torch.cuda.is_available() else "cpu",
+        confidence_threshold: float = 0.15  # NEW: Confidence threshold for trading
     ):
         self.action_dim = action_dim
         self.gamma = gamma
         self.device = torch.device(device)
         self.epsilon = 1.0
-        self.epsilon_min = 0.15  # Increased from 0.1 to 0.15 for more exploration
-        self.epsilon_decay = 0.9998  # Slower decay (was 0.9995) for better learning
+        self.epsilon_min = 0.15
+        self.epsilon_decay = 0.9998
+
+        # Confidence-based trading: Only trade when agent is confident
+        self.confidence_threshold = confidence_threshold  # Min Q-value difference to trade
         
         self.policy_net = HybridQNetwork(
             window_size, n_main_features, n_detail_features, detail_len, action_dim
@@ -77,6 +81,11 @@ class D3QNAgent:
         self.target_update_freq = 5000  # Increased from 1000 to 5000
 
     def select_action(self, state: Dict[str, np.ndarray], training: bool = True, action_mask: Optional[np.ndarray] = None) -> int:
+        """
+        Select action with confidence-based trading:
+        - Only open position (LONG/SHORT) if confident (Q-value difference > threshold)
+        - Otherwise, HOLD to wait for better opportunity
+        """
         if training and random.random() < self.epsilon:
             if action_mask is not None:
                 valid_actions = np.where(action_mask > 0)[0]
@@ -90,13 +99,31 @@ class D3QNAgent:
                 'detail': torch.FloatTensor(state['detail']).unsqueeze(0).to(self.device)
             }
             q_values = self.policy_net(state_tensor)
-            
+            q_values_np = q_values.cpu().numpy()[0]
+
+            # Apply action mask
             if action_mask is not None:
-                q_values_np = q_values.cpu().numpy()[0]
                 q_values_np[action_mask == 0] = -np.inf
-                return np.argmax(q_values_np)
-                
-            return q_values.argmax().item()
+
+            # Confidence-based trading (QUALITY OVER QUANTITY)
+            # Only trade if agent is confident (Q-value difference is significant)
+            hold_q = q_values_np[0]  # Q-value for HOLD
+            long_q = q_values_np[1] if action_mask is None or action_mask[1] > 0 else -np.inf
+            short_q = q_values_np[2] if action_mask is None or action_mask[2] > 0 else -np.inf
+
+            # Find best trading action (LONG or SHORT)
+            best_trade_q = max(long_q, short_q)
+            best_trade_action = 1 if long_q > short_q else 2
+
+            # Only trade if confident: Q(trade) - Q(hold) > threshold
+            confidence = best_trade_q - hold_q
+
+            if confidence > self.confidence_threshold:
+                # Confident → Trade
+                return best_trade_action
+            else:
+                # Not confident → Wait for better opportunity
+                return 0  # HOLD
 
     def store_transition(self, state, action, reward, next_state, done):
         self.memory.push(state, action, reward, next_state, done)

@@ -194,9 +194,39 @@ def calculate_dow_theory_structure(high: np.ndarray, low: np.ndarray, close: np.
     return structure_score, is_uptrend, is_downtrend
 
 
+def add_minimal_indicators(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
+    """
+    Add minimal indicators for detail timeframe (1m)
+    Purpose: Detail timeframe is used only for accurate TP/SL execution tracking
+    We only need: OHLCV + ATR (for TP/SL calculation)
+
+    Args:
+        df: DataFrame with columns [open, high, low, close, volume]
+        verbose: Print progress messages
+
+    Returns:
+        DataFrame with minimal indicators (OHLCV + ATR only)
+    """
+    if verbose:
+        print(f"  [Detail TF] Adding minimal indicators... ({len(df):,} candles)")
+
+    df = df.copy()
+
+    # Only ATR for TP/SL calculation
+    df['atr'] = calculate_atr(df['high'].values, df['low'].values, df['close'].values)
+
+    # Fill NaN with forward fill
+    df['atr'] = df['atr'].ffill().bfill()
+
+    if verbose:
+        print(f"  ✓ Detail timeframe ready! (OHLCV + ATR only)")
+
+    return df
+
+
 def add_technical_indicators(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
     """
-    Add all technical indicators to dataframe
+    Add all technical indicators to dataframe (for MAIN timeframe)
 
     Args:
         df: DataFrame with columns [open, high, low, close, volume]

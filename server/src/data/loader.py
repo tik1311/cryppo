@@ -9,7 +9,7 @@ import glob
 import os
 from pathlib import Path
 from typing import Optional, Tuple, Dict, List
-from .features import add_technical_indicators, normalize_features
+from .features import add_technical_indicators, add_minimal_indicators, normalize_features
 
 
 def get_project_root() -> Path:
@@ -161,29 +161,36 @@ def prepare_multi_timeframe_env_data(
     """
     print("\n[INFO] Preprocessing Multi-Timeframe Data...")
 
-    # 1. Add indicators to both
+    # 1. Add indicators
     if add_indicators:
-        df_main = add_technical_indicators(df_main)
-        # Optimize: Only add essential indicators to detail timeframe
-        if use_efficient_mode:
-            df_detail = add_technical_indicators(df_detail)
-        else:
-            df_detail = add_technical_indicators(df_detail)
-        
+        # Main timeframe: Full indicators (for decision making)
+        df_main = add_technical_indicators(df_main, verbose=True)
+
+        # Detail timeframe: Minimal indicators (OHLCV + ATR only)
+        # Purpose: Detail is ONLY for accurate TP/SL tracking, not for model decisions
+        # User clarification: "1 นาทีใช้เป็นแค่ดีเทลเฉยๆไม่ใช่ส่วนหลักในการคำนวณหลัก"
+        df_detail = add_minimal_indicators(df_detail, verbose=True)
+
         # Drop NaNs
         df_main = df_main.dropna()
         df_detail = df_detail.dropna()
 
     # 2. Select features
     price_cols = ['open', 'high', 'low', 'close', 'volume']
-    indicator_cols = [
+    main_indicator_cols = [
         'returns', 'rsi', 'macd', 'macd_signal', 'bb_upper', 'bb_middle', 'bb_lower',
         'atr', 'stoch_k', 'stoch_d', 'volume_ratio', 'volatility'
     ]
-    
-    # Filter available columns
-    main_cols = [c for c in (price_cols + indicator_cols) if c in df_main.columns]
-    detail_cols = [c for c in (price_cols + indicator_cols) if c in df_detail.columns]
+
+    # Main timeframe: All indicators
+    main_cols = [c for c in (price_cols + main_indicator_cols) if c in df_main.columns]
+
+    # Detail timeframe: ONLY OHLCV + ATR (for TP/SL tracking)
+    detail_minimal_cols = ['open', 'high', 'low', 'close', 'volume', 'atr']
+    detail_cols = [c for c in detail_minimal_cols if c in df_detail.columns]
+
+    print(f"  - Main timeframe features: {len(main_cols)} ({', '.join(main_cols[:5])}...)")
+    print(f"  - Detail timeframe features: {len(detail_cols)} (OHLCV + ATR only)")
     
     # 3. Normalize
     if normalize:

@@ -193,17 +193,14 @@ def backtest_model():
     run_command(args)
 
 def paper_trade():
-    """Run paper trade simulation"""
-    console.print("\n[bold red]📈 Paper Trade (Live Simulation)[/bold red]")
-    console.print("[dim]Simulating live trading with real-time visualization...[/dim]")
+    """Run paper trade simulation (historical data)"""
+    console.print("\n[bold red]📈 Paper Trade (Historical Simulation)[/bold red]")
+    console.print("[dim]Note: This uses historical data. For real-time, use: python paper_trade_live.py[/dim]\n")
     symbol = Prompt.ask("Symbol", default="BTCUSDT")
 
-    use_date_range = Confirm.ask("Filter by date range?", default=False)
+    # Paper trade uses test set (last 3 months) - no date range needed
     args = ["paper", "--symbol", symbol]
-
-    if use_date_range:
-        start, end = get_date_range()
-        args.extend(["--start", start, "--end", end])
+    console.print("[cyan]Using test set (last 3 months of data)[/cyan]\n")
 
     run_command(args)
 

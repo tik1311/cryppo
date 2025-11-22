@@ -82,18 +82,14 @@ class D3QNAgent:
 
     def select_action(self, state: Dict[str, np.ndarray], training: bool = True, action_mask: Optional[np.ndarray] = None) -> int:
         """
-        Select action with confidence-based trading:
-        - Only open position (LONG/SHORT) if confident (Q-value difference > threshold)
-        - Otherwise, HOLD to wait for better opportunity
+        Select action with ALWAYS-ON confidence-based trading:
+        - ALWAYS check confidence FIRST (even during exploration)
+        - If not confident → HOLD (wait for better opportunity)
+        - If confident → Explore or exploit
+        - This prevents random overtrading during epsilon exploration
         """
-        if training and random.random() < self.epsilon:
-            if action_mask is not None:
-                valid_actions = np.where(action_mask > 0)[0]
-                return np.random.choice(valid_actions)
-            return random.randrange(self.action_dim)
-
         with torch.no_grad():
-            # Convert to tensor
+            # ALWAYS calculate Q-values FIRST
             state_tensor = {
                 'main': torch.FloatTensor(state['main']).unsqueeze(0).to(self.device),
                 'detail': torch.FloatTensor(state['detail']).unsqueeze(0).to(self.device)
@@ -105,25 +101,33 @@ class D3QNAgent:
             if action_mask is not None:
                 q_values_np[action_mask == 0] = -np.inf
 
-            # Confidence-based trading (QUALITY OVER QUANTITY)
-            # Only trade if agent is confident (Q-value difference is significant)
-            hold_q = q_values_np[0]  # Q-value for HOLD
+            # Confidence check ALWAYS (even during training/exploration)
+            hold_q = q_values_np[0]
             long_q = q_values_np[1] if action_mask is None or action_mask[1] > 0 else -np.inf
             short_q = q_values_np[2] if action_mask is None or action_mask[2] > 0 else -np.inf
 
-            # Find best trading action (LONG or SHORT)
             best_trade_q = max(long_q, short_q)
             best_trade_action = 1 if long_q > short_q else 2
-
-            # Only trade if confident: Q(trade) - Q(hold) > threshold
             confidence = best_trade_q - hold_q
 
-            if confidence > self.confidence_threshold:
-                # Confident → Trade
-                return best_trade_action
+            # If NOT confident, ALWAYS HOLD (regardless of epsilon)
+            if confidence <= self.confidence_threshold:
+                return 0  # HOLD - wait for better opportunity
+
+            # If confident, THEN decide between exploration and exploitation
+            if training and random.random() < self.epsilon:
+                # Exploration: Choose randomly among TRADING actions (not HOLD)
+                # Since we're already confident, only explore LONG vs SHORT
+                if action_mask is not None:
+                    valid_actions = np.where(action_mask > 0)[0]
+                    trade_actions = [a for a in valid_actions if a != 0]  # Exclude HOLD
+                    if trade_actions:
+                        return np.random.choice(trade_actions)
+                    return 0
+                return random.choice([1, 2])  # Random between LONG and SHORT
             else:
-                # Not confident → Wait for better opportunity
-                return 0  # HOLD
+                # Exploitation: Use best confident action
+                return best_trade_action
 
     def store_transition(self, state, action, reward, next_state, done):
         self.memory.push(state, action, reward, next_state, done)

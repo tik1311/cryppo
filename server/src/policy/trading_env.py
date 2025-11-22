@@ -272,21 +272,28 @@ class TradingEnv(gym.Env):
                 normalized_pnl = np.tanh(trade_reward / 100.0)
                 reward += normalized_pnl
 
-                # Reward structure for QUALITY trading (not quantity):
-                # - TP = Excellent entry point → Very strong reward
-                # - SL = Poor entry point → Strong penalty
-                # - Win rate bonus = Reward consistent quality
+                # Reward structure for QUALITY trading (2025 research-based):
+                # - TP = Excellent entry → VERY strong reward
+                # - SL = Poor entry → VERY strong penalty
+                # - Asymmetric rewards: Reward quality MORE than punish mistakes
                 if exit_reason == 'tp':
-                    reward += 2.0  # Very strong reward for quality entry (increased from 1.0)
-                    # Bonus for maintaining high win rate (consistent quality)
+                    reward += 3.0  # VERY strong reward for quality entry (increased from 2.0)
+                    # Win rate bonus (encourage consistency)
                     if self.total_trades >= 10:  # Need enough samples
                         win_rate = self.winning_trades / self.total_trades
                         if win_rate >= 0.5:  # 50%+ win rate
-                            reward += 0.5  # Strong bonus for consistent wins
-                        elif win_rate >= 0.4:  # 40-50% win rate
+                            reward += 1.0  # STRONG bonus for excellent consistency
+                        elif win_rate >= 0.45:  # 45-50% win rate
+                            reward += 0.5  # Good bonus
+                        elif win_rate >= 0.4:  # 40-45% win rate
                             reward += 0.2  # Moderate bonus
                 elif exit_reason == 'sl':
-                    reward -= 1.0  # Strong penalty for poor entry (increased from 0.5)
+                    reward -= 2.0  # VERY strong penalty for poor entry (increased from 1.0)
+                    # Extra penalty if win rate is too low (discourage low-quality trading)
+                    if self.total_trades >= 10:
+                        win_rate = self.winning_trades / self.total_trades
+                        if win_rate < 0.35:  # Below 35% win rate
+                            reward -= 0.5  # Extra penalty for poor quality
             
             # Time penalty to discourage holding forever
             if self.hold_duration > 100:

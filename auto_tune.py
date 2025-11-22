@@ -32,19 +32,31 @@ console = Console()
 
 class ParameterTuner:
     """
-    Auto-tune hyperparameters for maximum profitability
+    Auto-tune hyperparameters for maximum profitability (2025 Edition)
 
-    Search Space:
-    - window_size: [50, 60, 72, 100, 120]
+    Enhanced Search Space (Based on 2025 Research):
+
+    Environment Parameters:
+    - window_size: [36, 50, 72, 100] (shorter for efficiency)
+    - atr_tp_multiplier: [2.5, 6.0] (wider range, focus on high R:R)
+    - atr_sl_multiplier: [0.8, 1.5] (tighter SL options)
+    - min_bars_between_trades: [2, 8] (anti-overtrading)
+    - position_size_pct: [0.5, 1.0] (risk per trade)
+
+    Agent Hyperparameters:
     - learning_rate: [0.0001, 0.001] (log scale)
-    - epsilon_min: [0.05, 0.20]
-    - epsilon_decay: [0.995, 0.9999]
-    - batch_size: [16, 32, 64]
-    - atr_tp_multiplier: [2.0, 5.0]
-    - atr_sl_multiplier: [1.0, 2.5]
-    - min_bars_between_trades: [2, 5]
-    - update_frequency: [1, 2, 4, 8]
-    - gamma (discount): [0.95, 0.99]
+    - gamma: [0.95, 0.99] (discount factor)
+    - epsilon_min: [0.05, 0.25] (exploration)
+    - epsilon_decay: [0.995, 0.9999] (decay rate)
+    - batch_size: [16, 32, 64] (training batch)
+    - update_frequency: [1, 2, 4, 8] (update interval)
+    - target_update_freq: [1000, 5000, 10000] (target net sync)
+
+    Reward Shaping:
+    - reward_type: ['pnl', 'sharpe', 'sortino'] (reward function)
+    - tp_reward_multiplier: [1.0, 3.0] (TP bonus)
+    - sl_penalty_multiplier: [0.3, 1.5] (SL penalty)
+    - hold_penalty_threshold: [20, 60] (consecutive holds)
     """
 
     def __init__(
@@ -122,27 +134,39 @@ class ParameterTuner:
         Optuna objective function
         Returns: Sharpe ratio * win_rate * total_return (composite score)
         """
-        # Sample hyperparameters
+        # Sample hyperparameters (2025 Enhanced Search Space)
         params = {
-            # Environment parameters
-            'window_size': trial.suggest_categorical('window_size', [50, 60, 72, 100, 120]),
-            'atr_tp_multiplier': trial.suggest_float('atr_tp_multiplier', 2.0, 5.0),
-            'atr_sl_multiplier': trial.suggest_float('atr_sl_multiplier', 1.0, 2.5),
-            'min_bars_between_trades': trial.suggest_int('min_bars_between_trades', 2, 5),
+            # ========== Environment Parameters ==========
+            'window_size': trial.suggest_categorical('window_size', [36, 50, 72, 100]),
 
-            # Agent parameters
+            # TP/SL Strategy (Focus on High R:R for profitability)
+            'atr_tp_multiplier': trial.suggest_float('atr_tp_multiplier', 2.5, 6.0),
+            'atr_sl_multiplier': trial.suggest_float('atr_sl_multiplier', 0.8, 1.5),
+            # Calculate R:R ratio for logging
+            'rr_ratio': None,  # Will be calculated below
+
+            # Risk Management
+            'min_bars_between_trades': trial.suggest_int('min_bars_between_trades', 2, 8),
+            'position_size_pct': trial.suggest_float('position_size_pct', 0.5, 1.0),
+
+            # ========== Agent Hyperparameters ==========
             'learning_rate': trial.suggest_float('learning_rate', 1e-4, 1e-3, log=True),
             'gamma': trial.suggest_float('gamma', 0.95, 0.99),
-            'epsilon_min': trial.suggest_float('epsilon_min', 0.05, 0.20),
+            'epsilon_min': trial.suggest_float('epsilon_min', 0.05, 0.25),
             'epsilon_decay': trial.suggest_float('epsilon_decay', 0.995, 0.9999),
             'batch_size': trial.suggest_categorical('batch_size', [16, 32, 64]),
             'update_frequency': trial.suggest_categorical('update_frequency', [1, 2, 4, 8]),
+            'target_update_freq': trial.suggest_categorical('target_update_freq', [1000, 5000, 10000]),
 
-            # Reward shaping
-            'tp_reward': trial.suggest_float('tp_reward', 0.5, 2.0),
-            'sl_penalty': trial.suggest_float('sl_penalty', 0.3, 1.0),
-            'win_streak_bonus': trial.suggest_float('win_streak_bonus', 0.1, 0.5),
+            # ========== Reward Function (2025 Research) ==========
+            'reward_type': trial.suggest_categorical('reward_type', ['pnl', 'sharpe']),
+            'tp_reward_multiplier': trial.suggest_float('tp_reward_multiplier', 1.0, 3.0),
+            'sl_penalty_multiplier': trial.suggest_float('sl_penalty_multiplier', 0.3, 1.5),
+            'hold_penalty_threshold': trial.suggest_int('hold_penalty_threshold', 20, 60),
         }
+
+        # Calculate R:R ratio for analysis
+        params['rr_ratio'] = params['atr_tp_multiplier'] / params['atr_sl_multiplier']
 
         try:
             # Train on train set
@@ -174,10 +198,18 @@ class ParameterTuner:
                 'score': score
             })
 
-            # Print progress
-            console.print(f"[yellow]Trial {trial.number}[/yellow] | Score: [cyan]{score:.4f}[/cyan] | "
-                         f"Val Return: [green]{val_metrics['total_return']:.2f}%[/green] | "
-                         f"WR: {val_metrics['win_rate']:.1f}%")
+            # Enhanced progress display with R:R ratio
+            console.print(
+                f"[yellow]Trial {trial.number}[/yellow] | "
+                f"Score: [cyan]{score:.4f}[/cyan] | "
+                f"Return: [green]{val_metrics['total_return']:.2f}%[/green] | "
+                f"WR: {val_metrics['win_rate']:.1f}% | "
+                f"R:R: [magenta]{params['rr_ratio']:.2f}:1[/magenta] | "
+                f"Trades: {val_metrics['total_trades']}"
+            )
+
+            # Detailed logging to file
+            self._log_trial_details(trial.number, params, train_metrics, val_metrics, score)
 
             return score
 
@@ -195,7 +227,7 @@ class ParameterTuner:
     ) -> Dict[str, float]:
         """Train agent and return metrics"""
 
-        # Create environment with tuned parameters
+        # Create environment with tuned parameters (2025 Enhanced)
         # Disable bust protection for training trials (to allow full episode completion)
         env = TradingEnv(
             data,
@@ -203,11 +235,13 @@ class ParameterTuner:
             window_size=params['window_size'],
             atr_tp_multiplier=params['atr_tp_multiplier'],
             atr_sl_multiplier=params['atr_sl_multiplier'],
+            reward_type=params.get('reward_type', 'pnl'),  # Use tuned reward function
             enable_bust_protection=(mode == 'val')  # Only enable for validation
         )
 
-        # Temporarily modify min_bars_between_trades
+        # Apply risk management parameters
         env.min_bars_between_trades = params['min_bars_between_trades']
+        # Note: position_size_pct would need environment modification to support
 
         # Create agent with tuned parameters
         obs_shape = env.observation_space['main'].shape
@@ -223,10 +257,11 @@ class ParameterTuner:
             gamma=params['gamma']
         )
 
-        # Override agent parameters
+        # Override agent parameters (2025 Enhanced)
         agent.epsilon_min = params['epsilon_min']
         agent.epsilon_decay = params['epsilon_decay']
         agent.batch_size = params['batch_size']
+        agent.target_update_freq = params['target_update_freq']
 
         if load_weights and os.path.exists('.tune_checkpoint.pth'):
             agent.load('.tune_checkpoint.pth')
@@ -247,11 +282,16 @@ class ParameterTuner:
                     next_state, reward, terminated, truncated, _ = env.step(action)
                     done = terminated or truncated
 
-                    # Modify reward based on tuned parameters
+                    # Apply reward shaping based on tuned parameters (2025 Enhanced)
                     if env.position is None and reward > 0:  # TP hit
-                        reward = reward * params['tp_reward']
+                        reward = reward * params['tp_reward_multiplier']
                     elif env.position is None and reward < 0:  # SL hit
-                        reward = reward * params['sl_penalty']
+                        reward = reward * params['sl_penalty_multiplier']
+
+                    # Hold penalty based on tuned threshold
+                    if env.consecutive_holds > params['hold_penalty_threshold']:
+                        hold_penalty = -0.001 * (env.consecutive_holds - params['hold_penalty_threshold'])
+                        reward += hold_penalty
 
                     agent.store_transition(state, action, reward, next_state, done)
 
@@ -295,6 +335,51 @@ class ParameterTuner:
             'final_balance': final_balance,
             'total_trades': total_trades
         }
+
+    def _log_trial_details(self, trial_num: int, params: Dict, train_metrics: Dict, val_metrics: Dict, score: float):
+        """
+        Log detailed trial information to file
+        Saves: parameters, metrics, R:R analysis, profitability breakdown
+        """
+        log_dir = Path("tuning_results/logs")
+        log_dir.mkdir(exist_ok=True, parents=True)
+
+        log_file = log_dir / f"trial_{trial_num:04d}.json"
+
+        # Calculate breakeven win rate for this R:R
+        rr_ratio = params['rr_ratio']
+        breakeven_wr = 1.0 / (1.0 + rr_ratio) * 100
+
+        log_data = {
+            'trial': trial_num,
+            'score': score,
+            'timestamp': datetime.now().isoformat(),
+
+            # Parameters
+            'params': params,
+
+            # R:R Analysis
+            'rr_analysis': {
+                'rr_ratio': rr_ratio,
+                'breakeven_wr': breakeven_wr,
+                'actual_wr': val_metrics['win_rate'],
+                'wr_above_breakeven': val_metrics['win_rate'] > breakeven_wr,
+                'expectancy': (val_metrics['win_rate']/100 * rr_ratio) - ((100-val_metrics['win_rate'])/100)
+            },
+
+            # Train Metrics
+            'train': train_metrics,
+
+            # Validation Metrics
+            'val': val_metrics,
+
+            # Profitability Assessment
+            'profitable': val_metrics['total_return'] > 0,
+            'return_per_trade': val_metrics['total_return'] / max(1, val_metrics['total_trades'])
+        }
+
+        with open(log_file, 'w') as f:
+            json.dump(log_data, f, indent=2)
 
     def _calculate_score(self, metrics: Dict[str, float]) -> float:
         """

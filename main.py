@@ -41,21 +41,28 @@ custom_style = Style([
 ])
 
 def print_logo():
-    """Print CRYPPO ASCII logo with beautiful border"""
-    logo = """
-╔══════════════════════════════════════════════════════╗
-║         ██████╗██████╗ ██╗   ██╗██████╗ ██████╗      ║
-║        ██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗     ║
-║        ██║     ██████╔╝ ╚████╔╝ ██████╔╝██████╔╝     ║
-║        ██║     ██╔══██╗  ╚██╔╝  ██╔═══╝ ██╔═══╝      ║
-║        ╚██████╗██║  ██║   ██║   ██║     ██║          ║
-║         ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═╝          ║
-║                                                      ║
-║        Deep RL Crypto Trading System                 ║
-║        🛡️ Risk Management: ATR-Based TP/SL            ║
-╚══════════════════════════════════════════════════════╝
-"""
-    console.print(logo, style="bold cyan")
+    """Print CRYPPO logo with beautiful Rich panel (Claude Code style)"""
+    # Create beautiful ASCII art text
+    logo_text = Text()
+    logo_text.append("  ██████╗██████╗ ██╗   ██╗██████╗ ██████╗ \n", style="bold cyan")
+    logo_text.append(" ██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗\n", style="bold cyan")
+    logo_text.append(" ██║     ██████╔╝ ╚████╔╝ ██████╔╝██████╔╝\n", style="bold cyan")
+    logo_text.append(" ██║     ██╔══██╗  ╚██╔╝  ██╔═══╝ ██╔═══╝ \n", style="bold cyan")
+    logo_text.append(" ╚██████╗██║  ██║   ██║   ██║     ██║     \n", style="bold cyan")
+    logo_text.append("  ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═╝     \n", style="bold cyan")
+    logo_text.append("\n")
+    logo_text.append("      Deep RL Crypto Trading System\n", style="bold white")
+    logo_text.append("   Risk Management: ATR-Based TP/SL", style="dim")
+
+    # Create panel like Claude Code
+    panel = Panel(
+        logo_text,
+        border_style="cyan",
+        padding=(1, 2),
+        title="[bold cyan]CRYPPO v2.0[/bold cyan]",
+        subtitle="[dim]Powered by D3QN + Multi-Timeframe[/dim]"
+    )
+    console.print(panel)
 
 def run_command(args):
     """Run cryppo.py with given arguments"""

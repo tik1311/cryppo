@@ -49,6 +49,7 @@ class TradingEnv(gym.Env):
         atr_sl_multiplier: float = 1.5,
         atr_tp_multiplier: float = 2.5,  # Reduced from 4.5 to 2.5 (better win rate)
         streaming_mode: bool = False,
+        enable_bust_protection: bool = True,  # Disable for training, enable for backtest/paper
         logger = None  # Add logger parameter
     ):
         super().__init__()
@@ -67,6 +68,7 @@ class TradingEnv(gym.Env):
         self.atr_sl_multiplier = atr_sl_multiplier
         self.atr_tp_multiplier = atr_tp_multiplier
         self.streaming_mode = streaming_mode
+        self.enable_bust_protection = enable_bust_protection
 
         self.n_main_features = self.main_data.shape[1]
         self.n_detail_features = self.detail_data.shape[2]
@@ -298,10 +300,13 @@ class TradingEnv(gym.Env):
             truncated = True
             if self.position:
                 self._close_position(current_price, 'timeout')
-        
-        if self.equity <= self.initial_balance * 0.5:  # Bust
+
+        # Bust protection (can be disabled for training to allow full episode completion)
+        if self.enable_bust_protection and self.equity <= self.initial_balance * 0.5:
             terminated = True
             reward -= 1.0
+            if hasattr(self, 'logger') and self.logger:
+                self.logger.warning(f"BUST PROTECTION TRIGGERED at step {self.current_step} (Equity: ${self.equity:.2f})")
 
         info = self._get_info()
         observation = self._get_observation()

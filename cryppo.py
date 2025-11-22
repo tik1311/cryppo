@@ -390,6 +390,7 @@ def run_train(args):
     console.print("  • NO entry penalty - Learn through TP/SL rewards")
     console.print("  • Reward: TP +1.0, SL -0.5, Hold +0.0001")
     console.print("  • Win streak bonus: >40% +0.3, >50% +0.5")
+    console.print("  • [yellow]Bust protection DISABLED[/yellow] - Train on 100% of data")
 
     console.print("\n[cyan]📊 NEW: Trend & Swing Features (Dow Theory):[/cyan]")
     console.print("  • Trend Direction: SMA 7 vs 25 crossover")
@@ -457,9 +458,10 @@ def run_train(args):
     logger.info(f"Data split: {len(train_data['main'])} train / {test_size} test")
     logger.info("")
 
-    # 3. Init Env with TRAINING data only
-    env = TradingEnv(train_data, initial_balance=args.balance, logger=logger)
+    # 3. Init Env with TRAINING data only (bust protection disabled for full episode completion)
+    env = TradingEnv(train_data, initial_balance=args.balance, enable_bust_protection=False, logger=logger)
     logger.info(f"Environment initialized: {env.n_steps} steps")
+    logger.info(f"Bust protection: DISABLED (training will complete all data even if losing)")
     logger.info("")
 
     # 4. Init Agent

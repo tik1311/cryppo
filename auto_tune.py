@@ -347,39 +347,65 @@ class ParameterTuner:
         log_file = log_dir / f"trial_{trial_num:04d}.json"
 
         # Calculate breakeven win rate for this R:R
-        rr_ratio = params['rr_ratio']
-        breakeven_wr = 1.0 / (1.0 + rr_ratio) * 100
+        rr_ratio = float(params['rr_ratio'])
+        breakeven_wr = float(1.0 / (1.0 + rr_ratio) * 100)
+
+        # Convert metrics to native Python types (avoid numpy types)
+        actual_wr = float(val_metrics['win_rate'])
+        total_return = float(val_metrics['total_return'])
+        total_trades = int(val_metrics['total_trades'])
 
         log_data = {
-            'trial': trial_num,
-            'score': score,
+            'trial': int(trial_num),
+            'score': float(score),
             'timestamp': datetime.now().isoformat(),
 
-            # Parameters
-            'params': params,
+            # Parameters (convert all to native types)
+            'params': self._convert_to_native_types(params),
 
             # R:R Analysis
             'rr_analysis': {
                 'rr_ratio': rr_ratio,
                 'breakeven_wr': breakeven_wr,
-                'actual_wr': val_metrics['win_rate'],
-                'wr_above_breakeven': val_metrics['win_rate'] > breakeven_wr,
-                'expectancy': (val_metrics['win_rate']/100 * rr_ratio) - ((100-val_metrics['win_rate'])/100)
+                'actual_wr': actual_wr,
+                'wr_above_breakeven': bool(actual_wr > breakeven_wr),
+                'expectancy': float((actual_wr/100 * rr_ratio) - ((100-actual_wr)/100))
             },
 
             # Train Metrics
-            'train': train_metrics,
+            'train': self._convert_to_native_types(train_metrics),
 
             # Validation Metrics
-            'val': val_metrics,
+            'val': self._convert_to_native_types(val_metrics),
 
             # Profitability Assessment
-            'profitable': val_metrics['total_return'] > 0,
-            'return_per_trade': val_metrics['total_return'] / max(1, val_metrics['total_trades'])
+            'profitable': bool(total_return > 0),
+            'return_per_trade': float(total_return / max(1, total_trades))
         }
 
         with open(log_file, 'w') as f:
             json.dump(log_data, f, indent=2)
+
+    def _convert_to_native_types(self, obj):
+        """
+        Convert numpy types to native Python types for JSON serialization
+        """
+        import numpy as np
+
+        if isinstance(obj, dict):
+            return {key: self._convert_to_native_types(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self._convert_to_native_types(item) for item in obj]
+        elif isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        else:
+            return obj
 
     def _calculate_score(self, metrics: Dict[str, float]) -> float:
         """

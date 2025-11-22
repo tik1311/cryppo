@@ -30,11 +30,15 @@ from src.agent.d3qn_agent import D3QNAgent
 
 console = Console()
 
-def setup_logger(mode: str) -> logging.Logger:
+def setup_logger(mode: str, debug: bool = False) -> logging.Logger:
     """
     Setup logger for train/backtest/live modes
     Creates separate log files: train.log, backtest.log, live.log
     Overwrites previous log (keeps only latest run)
+
+    Args:
+        mode: 'train', 'backtest', or 'live'
+        debug: If True, enable DEBUG level logging (detailed Q-values, confidence, etc.)
     """
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
@@ -43,14 +47,15 @@ def setup_logger(mode: str) -> logging.Logger:
 
     # Create logger
     logger = logging.getLogger(f"cryppo_{mode}")
-    logger.setLevel(logging.INFO)
+    log_level = logging.DEBUG if debug else logging.INFO
+    logger.setLevel(log_level)
 
     # Remove existing handlers
     logger.handlers.clear()
 
     # File handler (mode='w' to overwrite)
     file_handler = logging.FileHandler(log_file, mode='w', encoding='utf-8')
-    file_handler.setLevel(logging.INFO)
+    file_handler.setLevel(log_level)
 
     # Formatter
     formatter = logging.Formatter(
@@ -156,13 +161,14 @@ def run_backtest(args):
     # 4. Load Agent
     obs_shape = env.observation_space['main'].shape
     detail_shape = env.observation_space['detail'].shape
-    
+
     agent = D3QNAgent(
         window_size=obs_shape[0],
         n_main_features=obs_shape[1],
         n_detail_features=detail_shape[2],
         detail_len=detail_shape[1],
-        action_dim=env.action_space.n
+        action_dim=env.action_space.n,
+        logger=logger  # Pass logger for detailed action selection logging
     )
     
     model_path = args.model_path
@@ -195,7 +201,7 @@ def run_backtest(args):
         
         while not done:
             mask = env.get_action_mask()
-            action = agent.select_action(state, training=False, action_mask=mask)
+            action = agent.select_action(state, training=False, action_mask=mask, step=env.current_step)
             next_state, reward, terminated, truncated, info = env.step(action)
             done = terminated or truncated
             state = next_state
@@ -292,13 +298,14 @@ def run_paper_trade(args):
     # 4. Load Agent
     obs_shape = env.observation_space['main'].shape
     detail_shape = env.observation_space['detail'].shape
-    
+
     agent = D3QNAgent(
         window_size=obs_shape[0],
         n_main_features=obs_shape[1],
         n_detail_features=detail_shape[2],
         detail_len=detail_shape[1],
-        action_dim=env.action_space.n
+        action_dim=env.action_space.n,
+        logger=logger  # Pass logger for detailed action selection logging
     )
     
     model_path = args.model_path
@@ -332,7 +339,7 @@ def run_paper_trade(args):
 
             while not done:
                 mask = env.get_action_mask()
-                action = agent.select_action(state, training=False, action_mask=mask)
+                action = agent.select_action(state, training=False, action_mask=mask, step=env.current_step)
                 next_state, reward, terminated, truncated, info = env.step(action)
                 done = terminated or truncated
                 state = next_state
@@ -471,13 +478,14 @@ def run_train(args):
     # 4. Init Agent
     obs_shape = env.observation_space['main'].shape
     detail_shape = env.observation_space['detail'].shape
-    
+
     agent = D3QNAgent(
         window_size=obs_shape[0],
         n_main_features=obs_shape[1],
         n_detail_features=detail_shape[2],
         detail_len=detail_shape[1],
-        action_dim=env.action_space.n
+        action_dim=env.action_space.n,
+        logger=logger  # Pass logger for detailed action selection logging
     )
     
     # 5. Train Loop
@@ -511,7 +519,7 @@ def run_train(args):
 
             while not done:
                 mask = env.get_action_mask()
-                action = agent.select_action(state, action_mask=mask)
+                action = agent.select_action(state, training=True, action_mask=mask, step=env.current_step)
                 next_state, reward, terminated, truncated, _ = env.step(action)
                 done = terminated or truncated
 

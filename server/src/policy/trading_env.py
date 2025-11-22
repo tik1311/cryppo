@@ -234,9 +234,24 @@ class TradingEnv(gym.Env):
             else:
                 # HOLD - neutral (no reward/penalty)
                 self.consecutive_holds += 1
+
+                # Log HOLD action periodically
+                if self.logger and self.current_step % 100 == 0:
+                    self.logger.debug(
+                        f"Step {self.current_step} | ACTION: HOLD | "
+                        f"Consecutive Holds: {self.consecutive_holds} | "
+                        f"Bars since last trade: {self.current_step - self.last_trade_step}"
+                    )
+
                 # Small penalty if holding too long without trading (encourages action when confident)
                 if self.consecutive_holds > 20:  # 20 hours without trade
-                    reward -= 0.001  # Small penalty for excessive patience
+                    hold_penalty = -0.001
+                    reward += hold_penalty  # Small penalty for excessive patience
+                    if self.logger and self.consecutive_holds % 10 == 0:
+                        self.logger.warning(
+                            f"Step {self.current_step} | EXCESSIVE HOLD PENALTY: {hold_penalty:.4f} | "
+                            f"Consecutive Holds: {self.consecutive_holds}"
+                        )
         else:
             # Already in position - Action is ignored (forced HOLD)
             self.hold_duration += 1
@@ -272,28 +287,69 @@ class TradingEnv(gym.Env):
                 normalized_pnl = np.tanh(trade_reward / 100.0)
                 reward += normalized_pnl
 
+                # Detailed reward breakdown tracking
+                reward_breakdown = {
+                    'normalized_pnl': normalized_pnl,
+                    'tp_sl_reward': 0.0,
+                    'win_rate_bonus': 0.0
+                }
+
                 # Reward structure for QUALITY trading (2025 research-based):
                 # - TP = Excellent entry → VERY strong reward
                 # - SL = Poor entry → VERY strong penalty
                 # - Asymmetric rewards: Reward quality MORE than punish mistakes
                 if exit_reason == 'tp':
-                    reward += 3.0  # VERY strong reward for quality entry (increased from 2.0)
+                    tp_reward = 3.0  # VERY strong reward for quality entry (increased from 2.0)
+                    reward += tp_reward
+                    reward_breakdown['tp_sl_reward'] = tp_reward
+
                     # Win rate bonus (encourage consistency)
                     if self.total_trades >= 10:  # Need enough samples
                         win_rate = self.winning_trades / self.total_trades
+                        win_rate_bonus = 0.0
                         if win_rate >= 0.5:  # 50%+ win rate
-                            reward += 1.0  # STRONG bonus for excellent consistency
+                            win_rate_bonus = 1.0  # STRONG bonus for excellent consistency
                         elif win_rate >= 0.45:  # 45-50% win rate
-                            reward += 0.5  # Good bonus
+                            win_rate_bonus = 0.5  # Good bonus
                         elif win_rate >= 0.4:  # 40-45% win rate
-                            reward += 0.2  # Moderate bonus
+                            win_rate_bonus = 0.2  # Moderate bonus
+
+                        if win_rate_bonus > 0:
+                            reward += win_rate_bonus
+                            reward_breakdown['win_rate_bonus'] = win_rate_bonus
+                            if self.logger:
+                                self.logger.info(
+                                    f"Step {self.current_step} | WIN RATE BONUS: {win_rate_bonus:.2f} | "
+                                    f"WR={win_rate*100:.1f}%"
+                                )
+
                 elif exit_reason == 'sl':
-                    reward -= 2.0  # VERY strong penalty for poor entry (increased from 1.0)
+                    sl_penalty = -2.0  # VERY strong penalty for poor entry (increased from 1.0)
+                    reward += sl_penalty
+                    reward_breakdown['tp_sl_reward'] = sl_penalty
+
                     # Extra penalty if win rate is too low (discourage low-quality trading)
                     if self.total_trades >= 10:
                         win_rate = self.winning_trades / self.total_trades
                         if win_rate < 0.35:  # Below 35% win rate
-                            reward -= 0.5  # Extra penalty for poor quality
+                            win_rate_penalty = -0.5  # Extra penalty for poor quality
+                            reward += win_rate_penalty
+                            reward_breakdown['win_rate_bonus'] = win_rate_penalty
+                            if self.logger:
+                                self.logger.warning(
+                                    f"Step {self.current_step} | WIN RATE PENALTY: {win_rate_penalty:.2f} | "
+                                    f"WR={win_rate*100:.1f}% (Below 35%)"
+                                )
+
+                # Log detailed reward breakdown
+                if self.logger:
+                    self.logger.info(
+                        f"Step {self.current_step} | REWARD BREAKDOWN: "
+                        f"Total={reward:.4f} | "
+                        f"NormPnL={reward_breakdown['normalized_pnl']:.4f} | "
+                        f"TP/SL={reward_breakdown['tp_sl_reward']:.2f} | "
+                        f"WinRateBonus={reward_breakdown['win_rate_bonus']:.2f}"
+                    )
             
             # Time penalty to discourage holding forever
             if self.hold_duration > 100:

@@ -1,286 +1,689 @@
-2025-11-22 15:37:35 | INFO | ============================================================
-2025-11-22 15:37:35 | INFO | CRYPPO - BACKTEST Mode
-2025-11-22 15:37:35 | INFO | Session started: 2025-11-22 15:37:35
-2025-11-22 15:37:35 | INFO | ============================================================
-2025-11-22 15:37:35 | INFO | Symbol: BTCUSDT
-2025-11-22 15:37:35 | INFO | Timeframes: 1h + 1m
-2025-11-22 15:37:35 | INFO | Initial Balance: $10000.00
-2025-11-22 15:37:35 | INFO | Testing on last 3 months (out-of-sample)
-2025-11-22 15:37:35 | INFO | 
-2025-11-22 15:37:38 | INFO | Test set: 2160 steps
-2025-11-22 15:37:38 | INFO | 
-2025-11-22 15:37:38 | INFO | Environment initialized: 2160 steps
-2025-11-22 15:37:38 | INFO | 
-2025-11-22 15:37:40 | DEBUG | Step 1582 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:40 | INFO | Step 1582 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:40 | INFO | Step 1582 | [OPEN LONG] @ 113235.20 | TP: 113998.76 | SL: 112777.07 | Size: 0.0883
-2025-11-22 15:37:40 | INFO | Step 1584 | [CLOSE LONG] @ 113998.76 (tp) | PnL: $63.40 (+0.63%) | Balance: $10059.40 | Trades: 1 | Win Rate: 100.0%
-2025-11-22 15:37:40 | INFO | Step 1584 | REWARD BREAKDOWN: Total=3.5608 | NormPnL=0.5608 | TP/SL=3.00 | WinRateBonus=0.00
-2025-11-22 15:37:40 | DEBUG | Step 1585 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:40 | INFO | Step 1585 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:40 | INFO | Step 1585 | [OPEN LONG] @ 113515.20 | TP: 114609.70 | SL: 112858.50 | Size: 0.0886
-2025-11-22 15:37:40 | INFO | Step 1592 | [CLOSE LONG] @ 112858.50 (sl) | PnL: $-62.20 (-0.62%) | Balance: $9993.18 | Trades: 2 | Win Rate: 50.0%
-2025-11-22 15:37:40 | INFO | Step 1592 | REWARD BREAKDOWN: Total=-2.5525 | NormPnL=-0.5525 | TP/SL=-2.00 | WinRateBonus=0.00
-2025-11-22 15:37:40 | DEBUG | Step 1593 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:40 | INFO | Step 1593 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:40 | INFO | Step 1593 | [OPEN LONG] @ 114631.80 | TP: 115929.39 | SL: 113853.24 | Size: 0.0872
-2025-11-22 15:37:40 | DEBUG | Step 1600 | Q[HOLD]=-0.2098 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
-2025-11-22 15:37:40 | INFO | Step 1601 | [CLOSE LONG] @ 115929.39 (tp) | PnL: $109.08 (+1.09%) | Balance: $10098.26 | Trades: 3 | Win Rate: 66.7%
-2025-11-22 15:37:40 | INFO | Step 1601 | REWARD BREAKDOWN: Total=3.7972 | NormPnL=0.7972 | TP/SL=3.00 | WinRateBonus=0.00
-2025-11-22 15:37:40 | DEBUG | Step 1602 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:40 | INFO | Step 1602 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:40 | INFO | Step 1602 | [OPEN LONG] @ 115522.50 | TP: 117091.46 | SL: 114581.12 | Size: 0.0874
-2025-11-22 15:37:40 | INFO | Step 1608 | [CLOSE LONG] @ 114581.12 (sl) | PnL: $-86.30 (-0.85%) | Balance: $10007.93 | Trades: 4 | Win Rate: 50.0%
-2025-11-22 15:37:40 | INFO | Step 1608 | REWARD BREAKDOWN: Total=-2.6978 | NormPnL=-0.6978 | TP/SL=-2.00 | WinRateBonus=0.00
-2025-11-22 15:37:40 | DEBUG | Step 1609 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:40 | INFO | Step 1609 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:40 | INFO | Step 1609 | [OPEN LONG] @ 114751.00 | TP: 116272.84 | SL: 113837.90 | Size: 0.0872
-2025-11-22 15:37:40 | INFO | Step 1618 | [CLOSE LONG] @ 113837.90 (sl) | PnL: $-83.61 (-0.84%) | Balance: $9920.32 | Trades: 5 | Win Rate: 40.0%
-2025-11-22 15:37:40 | INFO | Step 1618 | REWARD BREAKDOWN: Total=-2.6837 | NormPnL=-0.6837 | TP/SL=-2.00 | WinRateBonus=0.00
-2025-11-22 15:37:40 | DEBUG | Step 1619 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:40 | INFO | Step 1619 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:40 | INFO | Step 1619 | [OPEN LONG] @ 113921.60 | TP: 115324.03 | SL: 113080.15 | Size: 0.0871
-2025-11-22 15:37:40 | INFO | Step 1632 | [CLOSE LONG] @ 115324.03 (tp) | PnL: $118.11 (+1.19%) | Balance: $10034.46 | Trades: 6 | Win Rate: 50.0%
-2025-11-22 15:37:40 | INFO | Step 1632 | REWARD BREAKDOWN: Total=3.8278 | NormPnL=0.8278 | TP/SL=3.00 | WinRateBonus=0.00
-2025-11-22 15:37:40 | DEBUG | Step 1633 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:40 | INFO | Step 1633 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:40 | INFO | Step 1633 | [OPEN LONG] @ 115021.80 | TP: 116296.58 | SL: 114256.92 | Size: 0.0872
-2025-11-22 15:37:40 | INFO | Step 1638 | [CLOSE LONG] @ 114256.92 (sl) | PnL: $-70.71 (-0.70%) | Balance: $9959.73 | Trades: 7 | Win Rate: 42.9%
-2025-11-22 15:37:40 | INFO | Step 1638 | REWARD BREAKDOWN: Total=-2.6089 | NormPnL=-0.6089 | TP/SL=-2.00 | WinRateBonus=0.00
-2025-11-22 15:37:40 | DEBUG | Step 1639 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:40 | INFO | Step 1639 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:40 | INFO | Step 1639 | [OPEN LONG] @ 112744.60 | TP: 114570.73 | SL: 111648.93 | Size: 0.0883
-2025-11-22 15:37:40 | INFO | Step 1658 | [CLOSE LONG] @ 111648.93 (sl) | PnL: $-100.74 (-1.01%) | Balance: $9855.01 | Trades: 8 | Win Rate: 37.5%
-2025-11-22 15:37:40 | INFO | Step 1658 | REWARD BREAKDOWN: Total=-2.7647 | NormPnL=-0.7647 | TP/SL=-2.00 | WinRateBonus=0.00
-2025-11-22 15:37:40 | DEBUG | Step 1659 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:40 | INFO | Step 1659 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:40 | INFO | Step 1659 | [OPEN LONG] @ 111060.00 | TP: 112417.46 | SL: 110245.52 | Size: 0.0887
-2025-11-22 15:37:40 | INFO | Step 1661 | [CLOSE LONG] @ 110245.52 (sl) | PnL: $-76.19 (-0.77%) | Balance: $9774.88 | Trades: 9 | Win Rate: 33.3%
-2025-11-22 15:37:40 | INFO | Step 1661 | REWARD BREAKDOWN: Total=-2.6422 | NormPnL=-0.6422 | TP/SL=-2.00 | WinRateBonus=0.00
-2025-11-22 15:37:40 | DEBUG | Step 1662 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:40 | INFO | Step 1662 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:40 | INFO | Step 1662 | [OPEN LONG] @ 110605.60 | TP: 112557.26 | SL: 109434.60 | Size: 0.0884
-2025-11-22 15:37:40 | INFO | Step 1671 | [CLOSE LONG] @ 109434.60 (sl) | PnL: $-107.36 (-1.10%) | Balance: $9663.61 | Trades: 10 | Win Rate: 30.0%
-2025-11-22 15:37:40 | WARNING | Step 1671 | WIN RATE PENALTY: -0.50 | WR=30.0% (Below 35%)
-2025-11-22 15:37:40 | INFO | Step 1671 | REWARD BREAKDOWN: Total=-3.2908 | NormPnL=-0.7908 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:40 | DEBUG | Step 1672 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:40 | INFO | Step 1672 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:40 | INFO | Step 1672 | [OPEN LONG] @ 110199.70 | TP: 113044.29 | SL: 108492.95 | Size: 0.0877
-2025-11-22 15:37:41 | INFO | Step 1679 | [CLOSE LONG] @ 108492.95 (sl) | PnL: $-153.47 (-1.59%) | Balance: $9506.28 | Trades: 11 | Win Rate: 27.3%
-2025-11-22 15:37:41 | WARNING | Step 1679 | WIN RATE PENALTY: -0.50 | WR=27.3% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1679 | REWARD BREAKDOWN: Total=-3.4112 | NormPnL=-0.9112 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1680 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1680 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1680 | [OPEN LONG] @ 107582.20 | TP: 110200.18 | SL: 106011.42 | Size: 0.0884
-2025-11-22 15:37:41 | DEBUG | Step 1700 | Q[HOLD]=-0.2098 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
-2025-11-22 15:37:41 | INFO | Step 1700 | [CLOSE LONG] @ 110200.18 (tp) | PnL: $227.44 (+2.39%) | Balance: $9729.91 | Trades: 12 | Win Rate: 33.3%
-2025-11-22 15:37:41 | INFO | Step 1700 | REWARD BREAKDOWN: Total=3.9791 | NormPnL=0.9791 | TP/SL=3.00 | WinRateBonus=0.00
-2025-11-22 15:37:41 | DEBUG | Step 1701 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1701 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1701 | [OPEN LONG] @ 109780.10 | TP: 111810.08 | SL: 108562.11 | Size: 0.0886
-2025-11-22 15:37:41 | INFO | Step 1766 | [CLOSE LONG] @ 108562.11 (sl) | PnL: $-111.80 (-1.15%) | Balance: $9614.22 | Trades: 13 | Win Rate: 30.8%
-2025-11-22 15:37:41 | WARNING | Step 1766 | WIN RATE PENALTY: -0.50 | WR=30.8% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1766 | REWARD BREAKDOWN: Total=-3.3069 | NormPnL=-0.8069 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1767 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1767 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1767 | [OPEN LONG] @ 107843.80 | TP: 109288.12 | SL: 106977.20 | Size: 0.0891
-2025-11-22 15:37:41 | INFO | Step 1769 | [CLOSE LONG] @ 106977.20 (sl) | PnL: $-81.07 (-0.84%) | Balance: $9529.30 | Trades: 14 | Win Rate: 28.6%
-2025-11-22 15:37:41 | WARNING | Step 1769 | WIN RATE PENALTY: -0.50 | WR=28.6% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1769 | REWARD BREAKDOWN: Total=-3.1700 | NormPnL=-0.6700 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1770 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1770 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1770 | [OPEN LONG] @ 107420.50 | TP: 108970.11 | SL: 106490.73 | Size: 0.0887
-2025-11-22 15:37:41 | INFO | Step 1778 | [CLOSE LONG] @ 106490.73 (sl) | PnL: $-86.26 (-0.91%) | Balance: $9439.23 | Trades: 15 | Win Rate: 26.7%
-2025-11-22 15:37:41 | WARNING | Step 1778 | WIN RATE PENALTY: -0.50 | WR=26.7% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1778 | REWARD BREAKDOWN: Total=-3.1976 | NormPnL=-0.6976 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1779 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1779 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1779 | [OPEN LONG] @ 106644.00 | TP: 108986.28 | SL: 105238.63 | Size: 0.0885
-2025-11-22 15:37:41 | INFO | Step 1792 | [CLOSE LONG] @ 105238.63 (sl) | PnL: $-128.12 (-1.36%) | Balance: $9307.34 | Trades: 16 | Win Rate: 25.0%
-2025-11-22 15:37:41 | WARNING | Step 1792 | WIN RATE PENALTY: -0.50 | WR=25.0% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1792 | REWARD BREAKDOWN: Total=-3.3568 | NormPnL=-0.8568 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1793 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1793 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1793 | [OPEN LONG] @ 104702.40 | TP: 107421.56 | SL: 103070.90 | Size: 0.0889
-2025-11-22 15:37:41 | DEBUG | Step 1800 | Q[HOLD]=-0.2098 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
-2025-11-22 15:37:41 | INFO | Step 1801 | [CLOSE LONG] @ 103070.90 (sl) | PnL: $-148.69 (-1.60%) | Balance: $9154.92 | Trades: 17 | Win Rate: 23.5%
-2025-11-22 15:37:41 | WARNING | Step 1801 | WIN RATE PENALTY: -0.50 | WR=23.5% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1801 | REWARD BREAKDOWN: Total=-3.4028 | NormPnL=-0.9028 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1802 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1802 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1802 | [OPEN LONG] @ 103157.70 | TP: 105638.76 | SL: 101669.07 | Size: 0.0887
-2025-11-22 15:37:41 | INFO | Step 1804 | [CLOSE LONG] @ 101669.07 (sl) | PnL: $-135.72 (-1.48%) | Balance: $9015.54 | Trades: 18 | Win Rate: 22.2%
-2025-11-22 15:37:41 | WARNING | Step 1804 | WIN RATE PENALTY: -0.50 | WR=22.2% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1804 | REWARD BREAKDOWN: Total=-3.3757 | NormPnL=-0.8757 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1805 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1805 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1805 | [OPEN LONG] @ 101317.30 | TP: 104093.47 | SL: 99651.59 | Size: 0.0890
-2025-11-22 15:37:41 | INFO | Step 1807 | [CLOSE LONG] @ 99651.59 (sl) | PnL: $-151.77 (-1.68%) | Balance: $8860.16 | Trades: 19 | Win Rate: 21.1%
-2025-11-22 15:37:41 | WARNING | Step 1807 | WIN RATE PENALTY: -0.50 | WR=21.1% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1807 | REWARD BREAKDOWN: Total=-3.4083 | NormPnL=-0.9083 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1808 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1808 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1808 | [OPEN LONG] @ 100274.10 | TP: 103080.01 | SL: 98590.55 | Size: 0.0884
-2025-11-22 15:37:41 | INFO | Step 1824 | [CLOSE LONG] @ 103080.01 (tp) | PnL: $244.29 (+2.76%) | Balance: $9100.91 | Trades: 20 | Win Rate: 25.0%
-2025-11-22 15:37:41 | INFO | Step 1824 | REWARD BREAKDOWN: Total=3.9850 | NormPnL=0.9850 | TP/SL=3.00 | WinRateBonus=0.00
-2025-11-22 15:37:41 | DEBUG | Step 1825 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1825 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1825 | [OPEN LONG] @ 103162.60 | TP: 105489.82 | SL: 101766.27 | Size: 0.0882
-2025-11-22 15:37:41 | INFO | Step 1850 | [CLOSE LONG] @ 101766.27 (sl) | PnL: $-126.77 (-1.39%) | Balance: $8970.49 | Trades: 21 | Win Rate: 23.8%
-2025-11-22 15:37:41 | WARNING | Step 1850 | WIN RATE PENALTY: -0.50 | WR=23.8% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1850 | REWARD BREAKDOWN: Total=-3.3532 | NormPnL=-0.8532 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1851 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1851 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1851 | [OPEN LONG] @ 100830.60 | TP: 102867.41 | SL: 99608.52 | Size: 0.0890
-2025-11-22 15:37:41 | INFO | Step 1871 | [CLOSE LONG] @ 99608.52 (sl) | PnL: $-112.27 (-1.25%) | Balance: $8854.64 | Trades: 22 | Win Rate: 22.7%
-2025-11-22 15:37:41 | WARNING | Step 1871 | WIN RATE PENALTY: -0.50 | WR=22.7% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1871 | REWARD BREAKDOWN: Total=-3.3085 | NormPnL=-0.8085 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1872 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1872 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1872 | [OPEN LONG] @ 100295.10 | TP: 102104.14 | SL: 99209.68 | Size: 0.0883
-2025-11-22 15:37:41 | INFO | Step 1876 | [CLOSE LONG] @ 102104.14 (tp) | PnL: $156.11 (+1.76%) | Balance: $9007.20 | Trades: 23 | Win Rate: 26.1%
-2025-11-22 15:37:41 | INFO | Step 1876 | REWARD BREAKDOWN: Total=3.9156 | NormPnL=0.9156 | TP/SL=3.00 | WinRateBonus=0.00
-2025-11-22 15:37:41 | DEBUG | Step 1877 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1877 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1877 | [OPEN LONG] @ 102551.30 | TP: 104881.33 | SL: 101153.28 | Size: 0.0878
-2025-11-22 15:37:41 | DEBUG | Step 1900 | Q[HOLD]=-0.2098 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
-2025-11-22 15:37:41 | INFO | Step 1927 | [CLOSE LONG] @ 104881.33 (tp) | PnL: $200.97 (+2.23%) | Balance: $9204.56 | Trades: 24 | Win Rate: 29.2%
-2025-11-22 15:37:41 | INFO | Step 1927 | REWARD BREAKDOWN: Total=3.9647 | NormPnL=0.9647 | TP/SL=3.00 | WinRateBonus=0.00
-2025-11-22 15:37:41 | DEBUG | Step 1928 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1928 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1928 | [OPEN LONG] @ 104483.60 | TP: 106187.87 | SL: 103461.04 | Size: 0.0881
-2025-11-22 15:37:41 | INFO | Step 1931 | [CLOSE LONG] @ 106187.87 (tp) | PnL: $146.40 (+1.59%) | Balance: $9347.28 | Trades: 25 | Win Rate: 32.0%
-2025-11-22 15:37:41 | INFO | Step 1931 | REWARD BREAKDOWN: Total=3.8984 | NormPnL=0.8984 | TP/SL=3.00 | WinRateBonus=0.00
-2025-11-22 15:37:41 | DEBUG | Step 1932 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1932 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1932 | [OPEN LONG] @ 105683.00 | TP: 107933.75 | SL: 104332.55 | Size: 0.0884
-2025-11-22 15:37:41 | INFO | Step 1968 | [CLOSE LONG] @ 104332.55 (sl) | PnL: $-123.13 (-1.32%) | Balance: $9220.40 | Trades: 26 | Win Rate: 30.8%
-2025-11-22 15:37:41 | WARNING | Step 1968 | WIN RATE PENALTY: -0.50 | WR=30.8% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1968 | REWARD BREAKDOWN: Total=-3.3430 | NormPnL=-0.8430 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1969 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1969 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1969 | [OPEN LONG] @ 104517.80 | TP: 106394.62 | SL: 103391.70 | Size: 0.0882
-2025-11-22 15:37:41 | INFO | Step 1970 | [CLOSE LONG] @ 103391.70 (sl) | PnL: $-102.99 (-1.12%) | Balance: $9113.73 | Trades: 27 | Win Rate: 29.6%
-2025-11-22 15:37:41 | WARNING | Step 1970 | WIN RATE PENALTY: -0.50 | WR=29.6% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1970 | REWARD BREAKDOWN: Total=-3.2739 | NormPnL=-0.7739 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1971 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1971 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | DEBUG | Step 1972 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1972 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1972 | [OPEN LONG] @ 103294.00 | TP: 104984.46 | SL: 102279.72 | Size: 0.0882
-2025-11-22 15:37:41 | INFO | Step 1988 | [CLOSE LONG] @ 104984.46 (tp) | PnL: $145.45 (+1.60%) | Balance: $9255.53 | Trades: 28 | Win Rate: 32.1%
-2025-11-22 15:37:41 | INFO | Step 1988 | REWARD BREAKDOWN: Total=3.8966 | NormPnL=0.8966 | TP/SL=3.00 | WinRateBonus=0.00
-2025-11-22 15:37:41 | DEBUG | Step 1989 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1989 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1989 | [OPEN LONG] @ 104844.90 | TP: 106276.76 | SL: 103985.78 | Size: 0.0883
-2025-11-22 15:37:41 | INFO | Step 1993 | [CLOSE LONG] @ 103985.78 (sl) | PnL: $-79.51 (-0.86%) | Balance: $9172.31 | Trades: 29 | Win Rate: 31.0%
-2025-11-22 15:37:41 | WARNING | Step 1993 | WIN RATE PENALTY: -0.50 | WR=31.0% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1993 | REWARD BREAKDOWN: Total=-3.1613 | NormPnL=-0.6613 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1994 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1994 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1994 | [OPEN LONG] @ 102124.90 | TP: 103681.93 | SL: 101190.68 | Size: 0.0898
-2025-11-22 15:37:41 | INFO | Step 1998 | [CLOSE LONG] @ 101190.68 (sl) | PnL: $-87.54 (-0.95%) | Balance: $9081.10 | Trades: 30 | Win Rate: 30.0%
-2025-11-22 15:37:41 | WARNING | Step 1998 | WIN RATE PENALTY: -0.50 | WR=30.0% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 1998 | REWARD BREAKDOWN: Total=-3.2041 | NormPnL=-0.7041 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 1999 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 1999 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 1999 | [OPEN LONG] @ 101494.90 | TP: 103625.61 | SL: 100216.47 | Size: 0.0895
-2025-11-22 15:37:41 | DEBUG | Step 2000 | Q[HOLD]=-0.2098 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
-2025-11-22 15:37:41 | INFO | Step 2000 | NOT CONFIDENT → HOLD | Confidence=-inf < Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 2009 | [CLOSE LONG] @ 103625.61 (tp) | PnL: $186.93 (+2.06%) | Balance: $9264.40 | Trades: 31 | Win Rate: 32.3%
-2025-11-22 15:37:41 | INFO | Step 2009 | REWARD BREAKDOWN: Total=3.9535 | NormPnL=0.9535 | TP/SL=3.00 | WinRateBonus=0.00
-2025-11-22 15:37:41 | DEBUG | Step 2010 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 2010 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 2010 | [OPEN LONG] @ 103430.90 | TP: 105403.15 | SL: 102247.55 | Size: 0.0896
-2025-11-22 15:37:41 | INFO | Step 2016 | [CLOSE LONG] @ 102247.55 (sl) | PnL: $-109.66 (-1.18%) | Balance: $9151.04 | Trades: 32 | Win Rate: 31.2%
-2025-11-22 15:37:41 | WARNING | Step 2016 | WIN RATE PENALTY: -0.50 | WR=31.2% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 2016 | REWARD BREAKDOWN: Total=-3.2993 | NormPnL=-0.7993 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 2017 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 2017 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 2017 | [OPEN LONG] @ 102823.40 | TP: 104926.59 | SL: 101561.48 | Size: 0.0890
-2025-11-22 15:37:41 | INFO | Step 2018 | [CLOSE LONG] @ 101561.48 (sl) | PnL: $-115.92 (-1.27%) | Balance: $9031.45 | Trades: 33 | Win Rate: 30.3%
-2025-11-22 15:37:41 | WARNING | Step 2018 | WIN RATE PENALTY: -0.50 | WR=30.3% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 2018 | REWARD BREAKDOWN: Total=-3.3208 | NormPnL=-0.8208 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 2019 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 2019 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | DEBUG | Step 2020 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 2020 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 2020 | [OPEN LONG] @ 99601.40 | TP: 102214.57 | SL: 98033.49 | Size: 0.0907
-2025-11-22 15:37:41 | INFO | Step 2023 | [CLOSE LONG] @ 98033.49 (sl) | PnL: $-145.73 (-1.61%) | Balance: $8882.12 | Trades: 34 | Win Rate: 29.4%
-2025-11-22 15:37:41 | WARNING | Step 2023 | WIN RATE PENALTY: -0.50 | WR=29.4% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 2023 | REWARD BREAKDOWN: Total=-3.3971 | NormPnL=-0.8971 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 2024 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 2024 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 2024 | [OPEN LONG] @ 98764.10 | TP: 101408.54 | SL: 97177.44 | Size: 0.0899
-2025-11-22 15:37:41 | INFO | Step 2031 | [CLOSE LONG] @ 97177.44 (sl) | PnL: $-146.19 (-1.65%) | Balance: $8732.37 | Trades: 35 | Win Rate: 28.6%
-2025-11-22 15:37:41 | WARNING | Step 2031 | WIN RATE PENALTY: -0.50 | WR=28.6% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 2031 | REWARD BREAKDOWN: Total=-3.3980 | NormPnL=-0.8980 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 2032 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 2032 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 2032 | [OPEN LONG] @ 97491.90 | TP: 100547.29 | SL: 95658.66 | Size: 0.0896
-2025-11-22 15:37:41 | INFO | Step 2038 | [CLOSE LONG] @ 95658.66 (sl) | PnL: $-167.63 (-1.92%) | Balance: $8561.25 | Trades: 36 | Win Rate: 27.8%
-2025-11-22 15:37:41 | WARNING | Step 2038 | WIN RATE PENALTY: -0.50 | WR=27.8% (Below 35%)
-2025-11-22 15:37:41 | INFO | Step 2038 | REWARD BREAKDOWN: Total=-3.4324 | NormPnL=-0.9324 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:41 | DEBUG | Step 2039 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:41 | INFO | Step 2039 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:41 | INFO | Step 2039 | [OPEN LONG] @ 95327.00 | TP: 98106.80 | SL: 93659.12 | Size: 0.0898
-2025-11-22 15:37:42 | INFO | Step 2096 | [CLOSE LONG] @ 93659.12 (sl) | PnL: $-153.16 (-1.79%) | Balance: $8404.67 | Trades: 37 | Win Rate: 27.0%
-2025-11-22 15:37:42 | WARNING | Step 2096 | WIN RATE PENALTY: -0.50 | WR=27.0% (Below 35%)
-2025-11-22 15:37:42 | INFO | Step 2096 | REWARD BREAKDOWN: Total=-3.4107 | NormPnL=-0.9107 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:42 | DEBUG | Step 2097 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:42 | INFO | Step 2097 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:42 | INFO | Step 2097 | [OPEN LONG] @ 94156.70 | TP: 96131.02 | SL: 92972.11 | Size: 0.0893
-2025-11-22 15:37:42 | INFO | Step 2098 | [CLOSE LONG] @ 92972.11 (sl) | PnL: $-109.06 (-1.30%) | Balance: $8292.25 | Trades: 38 | Win Rate: 26.3%
-2025-11-22 15:37:42 | WARNING | Step 2098 | WIN RATE PENALTY: -0.50 | WR=26.3% (Below 35%)
-2025-11-22 15:37:42 | INFO | Step 2098 | REWARD BREAKDOWN: Total=-3.2971 | NormPnL=-0.7971 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:42 | DEBUG | Step 2099 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:42 | INFO | Step 2099 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:42 | DEBUG | Step 2100 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:42 | INFO | Step 2100 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:42 | INFO | Step 2100 | [OPEN LONG] @ 94732.50 | TP: 97304.59 | SL: 93189.25 | Size: 0.0875
-2025-11-22 15:37:42 | INFO | Step 2115 | [CLOSE LONG] @ 93189.25 (sl) | PnL: $-138.35 (-1.67%) | Balance: $8150.58 | Trades: 39 | Win Rate: 25.6%
-2025-11-22 15:37:42 | WARNING | Step 2115 | WIN RATE PENALTY: -0.50 | WR=25.6% (Below 35%)
-2025-11-22 15:37:42 | INFO | Step 2115 | REWARD BREAKDOWN: Total=-3.3817 | NormPnL=-0.8817 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:42 | DEBUG | Step 2116 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:42 | INFO | Step 2116 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:42 | INFO | Step 2116 | [OPEN LONG] @ 92724.00 | TP: 94836.09 | SL: 91456.75 | Size: 0.0879
-2025-11-22 15:37:42 | INFO | Step 2119 | [CLOSE LONG] @ 91456.75 (sl) | PnL: $-114.61 (-1.41%) | Balance: $8032.71 | Trades: 40 | Win Rate: 25.0%
-2025-11-22 15:37:42 | WARNING | Step 2119 | WIN RATE PENALTY: -0.50 | WR=25.0% (Below 35%)
-2025-11-22 15:37:42 | INFO | Step 2119 | REWARD BREAKDOWN: Total=-3.3165 | NormPnL=-0.8165 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:42 | DEBUG | Step 2120 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:42 | INFO | Step 2120 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:42 | INFO | Step 2120 | [OPEN LONG] @ 91925.70 | TP: 94474.03 | SL: 90396.71 | Size: 0.0874
-2025-11-22 15:37:42 | INFO | Step 2126 | [CLOSE LONG] @ 90396.71 (sl) | PnL: $-136.77 (-1.70%) | Balance: $7892.73 | Trades: 41 | Win Rate: 24.4%
-2025-11-22 15:37:42 | WARNING | Step 2126 | WIN RATE PENALTY: -0.50 | WR=24.4% (Below 35%)
-2025-11-22 15:37:42 | INFO | Step 2126 | REWARD BREAKDOWN: Total=-3.3782 | NormPnL=-0.8782 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:42 | DEBUG | Step 2127 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:42 | INFO | Step 2127 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:42 | INFO | Step 2127 | [OPEN LONG] @ 90049.40 | TP: 92810.29 | SL: 88392.86 | Size: 0.0876
-2025-11-22 15:37:42 | INFO | Step 2138 | [CLOSE LONG] @ 92810.29 (tp) | PnL: $238.74 (+3.02%) | Balance: $8128.31 | Trades: 42 | Win Rate: 26.2%
-2025-11-22 15:37:42 | INFO | Step 2138 | REWARD BREAKDOWN: Total=3.9833 | NormPnL=0.9833 | TP/SL=3.00 | WinRateBonus=0.00
-2025-11-22 15:37:42 | DEBUG | Step 2139 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:42 | INFO | Step 2139 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:42 | INFO | Step 2139 | [OPEN LONG] @ 93447.30 | TP: 95974.67 | SL: 91930.87 | Size: 0.0870
-2025-11-22 15:37:42 | INFO | Step 2147 | [CLOSE LONG] @ 91930.87 (sl) | PnL: $-135.10 (-1.66%) | Balance: $7989.96 | Trades: 43 | Win Rate: 25.6%
-2025-11-22 15:37:42 | WARNING | Step 2147 | WIN RATE PENALTY: -0.50 | WR=25.6% (Below 35%)
-2025-11-22 15:37:42 | INFO | Step 2147 | REWARD BREAKDOWN: Total=-3.3743 | NormPnL=-0.8743 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:42 | DEBUG | Step 2148 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:42 | INFO | Step 2148 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:42 | INFO | Step 2148 | [OPEN LONG] @ 92410.20 | TP: 94607.52 | SL: 91091.81 | Size: 0.0865
-2025-11-22 15:37:42 | INFO | Step 2152 | [CLOSE LONG] @ 91091.81 (sl) | PnL: $-117.14 (-1.47%) | Balance: $7869.62 | Trades: 44 | Win Rate: 25.0%
-2025-11-22 15:37:42 | WARNING | Step 2152 | WIN RATE PENALTY: -0.50 | WR=25.0% (Below 35%)
-2025-11-22 15:37:42 | INFO | Step 2152 | REWARD BREAKDOWN: Total=-3.3247 | NormPnL=-0.8247 | TP/SL=-2.00 | WinRateBonus=-0.50
-2025-11-22 15:37:42 | DEBUG | Step 2153 | Q[HOLD]=-0.2098 Q[LONG]=-0.1911 Q[SHORT]=-0.2006 | Confidence=0.0188 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
-2025-11-22 15:37:42 | INFO | Step 2153 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0188 > Threshold=0.0118
-2025-11-22 15:37:42 | INFO | Step 2153 | [OPEN LONG] @ 90938.50 | TP: 92998.62 | SL: 89702.43 | Size: 0.0865
-2025-11-22 15:37:42 | INFO | Step 2160 | [CLOSE LONG] @ 91404.30 (timeout) | PnL: $37.15 (+0.47%) | Balance: $7903.62 | Trades: 45 | Win Rate: 26.7%
-2025-11-22 15:37:42 | INFO | ============================================================
-2025-11-22 15:37:42 | INFO | BACKTEST RESULTS
-2025-11-22 15:37:42 | INFO | Initial Balance: $10000.00
-2025-11-22 15:37:42 | INFO | Final Balance: $7903.62
-2025-11-22 15:37:42 | INFO | Total Return: -20.96%
-2025-11-22 15:37:42 | INFO | Total Trades: 45
-2025-11-22 15:37:42 | INFO | Winning Trades: 12
-2025-11-22 15:37:42 | INFO | Win Rate: 26.67%
-2025-11-22 15:37:42 | INFO | Total PnL: $-1931.49
-2025-11-22 15:37:42 | INFO | ============================================================
+2025-11-22 18:49:53 | INFO | ============================================================
+2025-11-22 18:49:53 | INFO | CRYPPO - BACKTEST Mode
+2025-11-22 18:49:53 | INFO | Session started: 2025-11-22 18:49:53
+2025-11-22 18:49:53 | INFO | ============================================================
+2025-11-22 18:49:53 | INFO | Symbol: BTCUSDT
+2025-11-22 18:49:53 | INFO | Timeframes: 1h + 1m
+2025-11-22 18:49:53 | INFO | Initial Balance: $10000.00
+2025-11-22 18:49:53 | INFO | Testing on last 3 months (out-of-sample)
+2025-11-22 18:49:53 | INFO | 
+2025-11-22 18:49:56 | INFO | Test set: 2160 steps
+2025-11-22 18:49:56 | INFO | 
+2025-11-22 18:49:56 | INFO | Environment initialized: 2160 steps
+2025-11-22 18:49:56 | INFO | 
+2025-11-22 18:49:58 | DEBUG | Step 1298 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1298 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1298 | [OPEN LONG] @ 112823.00 | TP: 114764.39 | SL: 111852.31 | Size: 0.0886
+2025-11-22 18:49:58 | DEBUG | Step 1300 | Q[HOLD]=-0.2672 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
+2025-11-22 18:49:58 | INFO | Step 1300 | [CLOSE LONG] @ 111852.31 (sl) | PnL: $-90.00 (-0.90%) | Balance: $9906.00 | Trades: 1 | Win Rate: 0.0%
+2025-11-22 18:49:58 | INFO | Step 1300 | REWARD BREAKDOWN: Total=-2.7163 | NormPnL=-0.7163 | TP/SL=-2.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1301 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1301 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1301 | [OPEN LONG] @ 112784.20 | TP: 115048.62 | SL: 111652.00 | Size: 0.0878
+2025-11-22 18:49:58 | INFO | Step 1318 | [CLOSE LONG] @ 111652.00 (sl) | PnL: $-103.37 (-1.04%) | Balance: $9798.67 | Trades: 2 | Win Rate: 0.0%
+2025-11-22 18:49:58 | INFO | Step 1318 | REWARD BREAKDOWN: Total=-2.7754 | NormPnL=-0.7754 | TP/SL=-2.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1319 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1319 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1319 | [OPEN LONG] @ 111656.80 | TP: 113121.04 | SL: 110924.67 | Size: 0.0878
+2025-11-22 18:49:58 | INFO | Step 1320 | [CLOSE LONG] @ 110924.67 (sl) | PnL: $-68.14 (-0.70%) | Balance: $9726.61 | Trades: 3 | Win Rate: 0.0%
+2025-11-22 18:49:58 | INFO | Step 1320 | REWARD BREAKDOWN: Total=-2.5924 | NormPnL=-0.5924 | TP/SL=-2.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1321 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1321 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | DEBUG | Step 1322 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1322 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1322 | [OPEN LONG] @ 110757.50 | TP: 112456.50 | SL: 109908.00 | Size: 0.0878
+2025-11-22 18:49:58 | INFO | Step 1340 | [CLOSE LONG] @ 109908.00 (sl) | PnL: $-78.46 (-0.81%) | Balance: $9644.25 | Trades: 4 | Win Rate: 0.0%
+2025-11-22 18:49:58 | INFO | Step 1340 | REWARD BREAKDOWN: Total=-2.6554 | NormPnL=-0.6554 | TP/SL=-2.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1341 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1341 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1341 | [OPEN LONG] @ 111422.30 | TP: 113171.27 | SL: 110547.81 | Size: 0.0866
+2025-11-22 18:49:58 | INFO | Step 1345 | [CLOSE LONG] @ 110547.81 (sl) | PnL: $-79.52 (-0.82%) | Balance: $9560.88 | Trades: 5 | Win Rate: 0.0%
+2025-11-22 18:49:58 | INFO | Step 1345 | REWARD BREAKDOWN: Total=-2.6613 | NormPnL=-0.6613 | TP/SL=-2.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1346 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1346 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1346 | [OPEN LONG] @ 108474.00 | TP: 110356.77 | SL: 107532.61 | Size: 0.0881
+2025-11-22 18:49:58 | INFO | Step 1347 | [CLOSE LONG] @ 107532.61 (sl) | PnL: $-86.76 (-0.91%) | Balance: $9470.29 | Trades: 6 | Win Rate: 0.0%
+2025-11-22 18:49:58 | INFO | Step 1347 | REWARD BREAKDOWN: Total=-2.7002 | NormPnL=-0.7002 | TP/SL=-2.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1348 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1348 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | DEBUG | Step 1349 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1349 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1349 | [OPEN LONG] @ 108600.00 | TP: 110919.03 | SL: 107440.48 | Size: 0.0872
+2025-11-22 18:49:58 | INFO | Step 1351 | [CLOSE LONG] @ 107440.48 (sl) | PnL: $-104.86 (-1.11%) | Balance: $9361.64 | Trades: 7 | Win Rate: 0.0%
+2025-11-22 18:49:58 | INFO | Step 1351 | REWARD BREAKDOWN: Total=-2.7813 | NormPnL=-0.7813 | TP/SL=-2.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1352 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1352 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1352 | [OPEN LONG] @ 108374.50 | TP: 110777.99 | SL: 107172.76 | Size: 0.0864
+2025-11-22 18:49:58 | INFO | Step 1361 | [CLOSE LONG] @ 107172.76 (sl) | PnL: $-107.51 (-1.15%) | Balance: $9250.38 | Trades: 8 | Win Rate: 0.0%
+2025-11-22 18:49:58 | INFO | Step 1361 | REWARD BREAKDOWN: Total=-2.7914 | NormPnL=-0.7914 | TP/SL=-2.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1362 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1362 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1362 | [OPEN LONG] @ 105578.30 | TP: 107297.32 | SL: 104718.78 | Size: 0.0876
+2025-11-22 18:49:58 | INFO | Step 1363 | [CLOSE LONG] @ 104718.78 (sl) | PnL: $-78.98 (-0.85%) | Balance: $9167.70 | Trades: 9 | Win Rate: 0.0%
+2025-11-22 18:49:58 | INFO | Step 1363 | REWARD BREAKDOWN: Total=-2.6583 | NormPnL=-0.6583 | TP/SL=-2.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1364 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1364 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | DEBUG | Step 1365 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1365 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1365 | [OPEN LONG] @ 104728.50 | TP: 106546.28 | SL: 103819.61 | Size: 0.0875
+2025-11-22 18:49:58 | INFO | Step 1366 | [CLOSE LONG] @ 106546.28 (tp) | PnL: $155.39 (+1.70%) | Balance: $9319.43 | Trades: 10 | Win Rate: 10.0%
+2025-11-22 18:49:58 | INFO | Step 1366 | REWARD BREAKDOWN: Total=3.9144 | NormPnL=0.9144 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1367 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1367 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | DEBUG | Step 1368 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1368 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1368 | [OPEN LONG] @ 105769.90 | TP: 107822.57 | SL: 104743.56 | Size: 0.0881
+2025-11-22 18:49:58 | INFO | Step 1369 | [CLOSE LONG] @ 104743.56 (sl) | PnL: $-94.12 (-1.01%) | Balance: $9221.58 | Trades: 11 | Win Rate: 9.1%
+2025-11-22 18:49:58 | WARNING | Step 1369 | WIN RATE PENALTY: -0.50 | WR=9.1% (Below 35%)
+2025-11-22 18:49:58 | INFO | Step 1369 | REWARD BREAKDOWN: Total=-3.2358 | NormPnL=-0.7358 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:58 | DEBUG | Step 1370 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1370 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | DEBUG | Step 1371 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1371 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1371 | [OPEN LONG] @ 106331.20 | TP: 108712.35 | SL: 105140.63 | Size: 0.0867
+2025-11-22 18:49:58 | DEBUG | Step 1400 | Q[HOLD]=-0.2672 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
+2025-11-22 18:49:58 | INFO | Step 1419 | [CLOSE LONG] @ 108712.35 (tp) | PnL: $202.73 (+2.20%) | Balance: $9420.62 | Trades: 12 | Win Rate: 16.7%
+2025-11-22 18:49:58 | INFO | Step 1419 | REWARD BREAKDOWN: Total=3.9659 | NormPnL=0.9659 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1420 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1420 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1420 | [OPEN LONG] @ 109036.30 | TP: 110395.94 | SL: 108356.48 | Size: 0.0864
+2025-11-22 18:49:58 | INFO | Step 1427 | [CLOSE LONG] @ 108356.48 (sl) | PnL: $-62.48 (-0.66%) | Balance: $9354.38 | Trades: 13 | Win Rate: 15.4%
+2025-11-22 18:49:58 | WARNING | Step 1427 | WIN RATE PENALTY: -0.50 | WR=15.4% (Below 35%)
+2025-11-22 18:49:58 | INFO | Step 1427 | REWARD BREAKDOWN: Total=-3.0545 | NormPnL=-0.5545 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:58 | DEBUG | Step 1428 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1428 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1428 | [OPEN LONG] @ 108011.80 | TP: 109223.27 | SL: 107406.06 | Size: 0.0866
+2025-11-22 18:49:58 | INFO | Step 1430 | [CLOSE LONG] @ 109223.27 (tp) | PnL: $101.14 (+1.08%) | Balance: $9451.77 | Trades: 14 | Win Rate: 21.4%
+2025-11-22 18:49:58 | INFO | Step 1430 | REWARD BREAKDOWN: Total=3.7663 | NormPnL=0.7663 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1431 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1431 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1431 | [OPEN LONG] @ 110369.30 | TP: 111800.75 | SL: 109653.57 | Size: 0.0856
+2025-11-22 18:49:58 | INFO | Step 1452 | [CLOSE LONG] @ 109653.57 (sl) | PnL: $-65.05 (-0.69%) | Balance: $9382.94 | Trades: 15 | Win Rate: 20.0%
+2025-11-22 18:49:58 | WARNING | Step 1452 | WIN RATE PENALTY: -0.50 | WR=20.0% (Below 35%)
+2025-11-22 18:49:58 | INFO | Step 1452 | REWARD BREAKDOWN: Total=-3.0720 | NormPnL=-0.5720 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:58 | DEBUG | Step 1453 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1453 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1453 | [OPEN LONG] @ 109459.30 | TP: 110887.97 | SL: 108744.96 | Size: 0.0857
+2025-11-22 18:49:58 | INFO | Step 1455 | [CLOSE LONG] @ 108744.96 (sl) | PnL: $-64.96 (-0.69%) | Balance: $9314.22 | Trades: 16 | Win Rate: 18.8%
+2025-11-22 18:49:58 | WARNING | Step 1455 | WIN RATE PENALTY: -0.50 | WR=18.8% (Below 35%)
+2025-11-22 18:49:58 | INFO | Step 1455 | REWARD BREAKDOWN: Total=-3.0714 | NormPnL=-0.5714 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:58 | DEBUG | Step 1456 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1456 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1456 | [OPEN LONG] @ 107498.00 | TP: 109039.71 | SL: 106727.14 | Size: 0.0866
+2025-11-22 18:49:58 | INFO | Step 1463 | [CLOSE LONG] @ 109039.71 (tp) | PnL: $129.80 (+1.39%) | Balance: $9440.30 | Trades: 17 | Win Rate: 23.5%
+2025-11-22 18:49:58 | INFO | Step 1463 | REWARD BREAKDOWN: Total=3.8612 | NormPnL=0.8612 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1464 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1464 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1464 | [OPEN LONG] @ 108384.40 | TP: 109804.24 | SL: 107674.48 | Size: 0.0871
+2025-11-22 18:49:58 | INFO | Step 1465 | [CLOSE LONG] @ 109804.24 (tp) | PnL: $119.84 (+1.27%) | Balance: $9556.37 | Trades: 18 | Win Rate: 27.8%
+2025-11-22 18:49:58 | INFO | Step 1465 | REWARD BREAKDOWN: Total=3.8332 | NormPnL=0.8332 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1466 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1466 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | DEBUG | Step 1467 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1467 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1467 | [OPEN LONG] @ 112507.20 | TP: 114664.45 | SL: 111428.58 | Size: 0.0849
+2025-11-22 18:49:58 | INFO | Step 1469 | [CLOSE LONG] @ 111428.58 (sl) | PnL: $-95.40 (-1.00%) | Balance: $9457.14 | Trades: 19 | Win Rate: 26.3%
+2025-11-22 18:49:58 | WARNING | Step 1469 | WIN RATE PENALTY: -0.50 | WR=26.3% (Below 35%)
+2025-11-22 18:49:58 | INFO | Step 1469 | REWARD BREAKDOWN: Total=-3.2416 | NormPnL=-0.7416 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:58 | DEBUG | Step 1470 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1470 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1470 | [OPEN LONG] @ 111720.70 | TP: 114044.55 | SL: 110558.78 | Size: 0.0846
+2025-11-22 18:49:58 | INFO | Step 1471 | [CLOSE LONG] @ 110558.78 (sl) | PnL: $-102.10 (-1.08%) | Balance: $9351.26 | Trades: 20 | Win Rate: 25.0%
+2025-11-22 18:49:58 | WARNING | Step 1471 | WIN RATE PENALTY: -0.50 | WR=25.0% (Below 35%)
+2025-11-22 18:49:58 | INFO | Step 1471 | REWARD BREAKDOWN: Total=-3.2703 | NormPnL=-0.7703 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:58 | DEBUG | Step 1472 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1472 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | DEBUG | Step 1473 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1473 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1473 | [OPEN LONG] @ 109008.00 | TP: 111493.67 | SL: 107765.16 | Size: 0.0858
+2025-11-22 18:49:58 | INFO | Step 1482 | [CLOSE LONG] @ 107765.16 (sl) | PnL: $-110.31 (-1.18%) | Balance: $9237.20 | Trades: 21 | Win Rate: 23.8%
+2025-11-22 18:49:58 | WARNING | Step 1482 | WIN RATE PENALTY: -0.50 | WR=23.8% (Below 35%)
+2025-11-22 18:49:58 | INFO | Step 1482 | REWARD BREAKDOWN: Total=-3.3016 | NormPnL=-0.8016 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:58 | DEBUG | Step 1483 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1483 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1483 | [OPEN LONG] @ 108171.20 | TP: 109979.88 | SL: 107266.87 | Size: 0.0854
+2025-11-22 18:49:58 | INFO | Step 1486 | [CLOSE LONG] @ 107266.87 (sl) | PnL: $-80.89 (-0.88%) | Balance: $9152.62 | Trades: 22 | Win Rate: 22.7%
+2025-11-22 18:49:58 | WARNING | Step 1486 | WIN RATE PENALTY: -0.50 | WR=22.7% (Below 35%)
+2025-11-22 18:49:58 | INFO | Step 1486 | REWARD BREAKDOWN: Total=-3.1690 | NormPnL=-0.6690 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:58 | DEBUG | Step 1487 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1487 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1487 | [OPEN LONG] @ 107976.90 | TP: 109662.98 | SL: 107133.86 | Size: 0.0848
+2025-11-22 18:49:58 | INFO | Step 1496 | [CLOSE LONG] @ 107133.86 (sl) | PnL: $-75.09 (-0.82%) | Balance: $9073.87 | Trades: 23 | Win Rate: 21.7%
+2025-11-22 18:49:58 | WARNING | Step 1496 | WIN RATE PENALTY: -0.50 | WR=21.7% (Below 35%)
+2025-11-22 18:49:58 | INFO | Step 1496 | REWARD BREAKDOWN: Total=-3.1357 | NormPnL=-0.6357 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:58 | DEBUG | Step 1497 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1497 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1497 | [OPEN LONG] @ 107142.60 | TP: 109094.07 | SL: 106166.87 | Size: 0.0847
+2025-11-22 18:49:58 | DEBUG | Step 1500 | Q[HOLD]=-0.2672 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
+2025-11-22 18:49:58 | INFO | Step 1500 | NOT CONFIDENT → HOLD | Confidence=-inf < Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1505 | [CLOSE LONG] @ 109094.07 (tp) | PnL: $161.57 (+1.78%) | Balance: $9231.81 | Trades: 24 | Win Rate: 25.0%
+2025-11-22 18:49:58 | INFO | Step 1505 | REWARD BREAKDOWN: Total=3.9240 | NormPnL=0.9240 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1506 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1506 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1506 | [OPEN LONG] @ 109228.60 | TP: 110677.13 | SL: 108504.34 | Size: 0.0845
+2025-11-22 18:49:58 | INFO | Step 1516 | [CLOSE LONG] @ 110677.13 (tp) | PnL: $118.69 (+1.29%) | Balance: $9346.80 | Trades: 25 | Win Rate: 28.0%
+2025-11-22 18:49:58 | INFO | Step 1516 | REWARD BREAKDOWN: Total=3.8296 | NormPnL=0.8296 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1517 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1517 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1517 | [OPEN LONG] @ 110518.10 | TP: 112156.00 | SL: 109699.15 | Size: 0.0846
+2025-11-22 18:49:58 | INFO | Step 1519 | [CLOSE LONG] @ 109699.15 (sl) | PnL: $-72.97 (-0.78%) | Balance: $9270.09 | Trades: 26 | Win Rate: 26.9%
+2025-11-22 18:49:58 | WARNING | Step 1519 | WIN RATE PENALTY: -0.50 | WR=26.9% (Below 35%)
+2025-11-22 18:49:58 | INFO | Step 1519 | REWARD BREAKDOWN: Total=-3.1229 | NormPnL=-0.6229 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:58 | DEBUG | Step 1520 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1520 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1520 | [OPEN LONG] @ 109493.30 | TP: 111130.70 | SL: 108674.60 | Size: 0.0847
+2025-11-22 18:49:58 | INFO | Step 1527 | [CLOSE LONG] @ 111130.70 (tp) | PnL: $134.86 (+1.45%) | Balance: $9401.25 | Trades: 27 | Win Rate: 29.6%
+2025-11-22 18:49:58 | INFO | Step 1527 | REWARD BREAKDOWN: Total=3.8737 | NormPnL=0.8737 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:58 | DEBUG | Step 1528 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1528 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1528 | [OPEN LONG] @ 111193.00 | TP: 112695.23 | SL: 110441.89 | Size: 0.0845
+2025-11-22 18:49:58 | INFO | Step 1536 | [CLOSE LONG] @ 110441.89 (sl) | PnL: $-67.24 (-0.72%) | Balance: $9330.25 | Trades: 28 | Win Rate: 28.6%
+2025-11-22 18:49:58 | WARNING | Step 1536 | WIN RATE PENALTY: -0.50 | WR=28.6% (Below 35%)
+2025-11-22 18:49:58 | INFO | Step 1536 | REWARD BREAKDOWN: Total=-3.0866 | NormPnL=-0.5866 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:58 | DEBUG | Step 1537 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:58 | INFO | Step 1537 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:58 | INFO | Step 1537 | [OPEN LONG] @ 110177.70 | TP: 111520.79 | SL: 109506.16 | Size: 0.0847
+2025-11-22 18:49:59 | INFO | Step 1554 | [CLOSE LONG] @ 111520.79 (tp) | PnL: $109.96 (+1.18%) | Balance: $9436.48 | Trades: 29 | Win Rate: 31.0%
+2025-11-22 18:49:59 | INFO | Step 1554 | REWARD BREAKDOWN: Total=3.8004 | NormPnL=0.8004 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:59 | DEBUG | Step 1555 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1555 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1555 | [OPEN LONG] @ 111716.00 | TP: 112476.77 | SL: 111335.61 | Size: 0.0845
+2025-11-22 18:49:59 | INFO | Step 1557 | [CLOSE LONG] @ 111335.61 (sl) | PnL: $-35.89 (-0.38%) | Balance: $9396.81 | Trades: 30 | Win Rate: 30.0%
+2025-11-22 18:49:59 | WARNING | Step 1557 | WIN RATE PENALTY: -0.50 | WR=30.0% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1557 | REWARD BREAKDOWN: Total=-2.8443 | NormPnL=-0.3443 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1558 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1558 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1558 | [OPEN LONG] @ 111522.70 | TP: 112220.45 | SL: 111173.83 | Size: 0.0843
+2025-11-22 18:49:59 | INFO | Step 1563 | [CLOSE LONG] @ 111173.83 (sl) | PnL: $-33.14 (-0.35%) | Balance: $9359.91 | Trades: 31 | Win Rate: 29.0%
+2025-11-22 18:49:59 | WARNING | Step 1563 | WIN RATE PENALTY: -0.50 | WR=29.0% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1563 | REWARD BREAKDOWN: Total=-2.8198 | NormPnL=-0.3198 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1564 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1564 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1564 | [OPEN LONG] @ 111322.00 | TP: 112000.79 | SL: 110982.61 | Size: 0.0841
+2025-11-22 18:49:59 | INFO | Step 1580 | [CLOSE LONG] @ 112000.79 (tp) | PnL: $53.31 (+0.57%) | Balance: $9409.47 | Trades: 32 | Win Rate: 31.2%
+2025-11-22 18:49:59 | INFO | Step 1580 | REWARD BREAKDOWN: Total=3.4877 | NormPnL=0.4877 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:59 | DEBUG | Step 1581 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1581 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1581 | [OPEN LONG] @ 112425.20 | TP: 113021.62 | SL: 112127.00 | Size: 0.0837
+2025-11-22 18:49:59 | INFO | Step 1582 | [CLOSE LONG] @ 113021.62 (tp) | PnL: $46.13 (+0.49%) | Balance: $9451.84 | Trades: 33 | Win Rate: 33.3%
+2025-11-22 18:49:59 | INFO | Step 1582 | REWARD BREAKDOWN: Total=3.4312 | NormPnL=0.4312 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:59 | DEBUG | Step 1583 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1583 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | DEBUG | Step 1584 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1584 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1584 | [OPEN LONG] @ 113669.40 | TP: 114455.91 | SL: 113276.14 | Size: 0.0832
+2025-11-22 18:49:59 | INFO | Step 1587 | [CLOSE LONG] @ 113276.14 (sl) | PnL: $-36.47 (-0.39%) | Balance: $9411.59 | Trades: 34 | Win Rate: 32.4%
+2025-11-22 18:49:59 | WARNING | Step 1587 | WIN RATE PENALTY: -0.50 | WR=32.4% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1587 | REWARD BREAKDOWN: Total=-2.8493 | NormPnL=-0.3493 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1588 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1588 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1588 | [OPEN LONG] @ 113397.10 | TP: 114302.26 | SL: 112944.52 | Size: 0.0830
+2025-11-22 18:49:59 | INFO | Step 1592 | [CLOSE LONG] @ 112944.52 (sl) | PnL: $-41.31 (-0.44%) | Balance: $9366.51 | Trades: 35 | Win Rate: 31.4%
+2025-11-22 18:49:59 | WARNING | Step 1592 | WIN RATE PENALTY: -0.50 | WR=31.4% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1592 | REWARD BREAKDOWN: Total=-2.8911 | NormPnL=-0.3911 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1593 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1593 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1593 | [OPEN LONG] @ 114631.80 | TP: 115669.87 | SL: 114112.76 | Size: 0.0817
+2025-11-22 18:49:59 | DEBUG | Step 1600 | Q[HOLD]=-0.2672 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
+2025-11-22 18:49:59 | INFO | Step 1601 | [CLOSE LONG] @ 115669.87 (tp) | PnL: $81.04 (+0.87%) | Balance: $9443.81 | Trades: 36 | Win Rate: 33.3%
+2025-11-22 18:49:59 | INFO | Step 1601 | REWARD BREAKDOWN: Total=3.6698 | NormPnL=0.6698 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:59 | DEBUG | Step 1602 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1602 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1602 | [OPEN LONG] @ 115522.50 | TP: 116777.67 | SL: 114894.91 | Size: 0.0817
+2025-11-22 18:49:59 | INFO | Step 1603 | [CLOSE LONG] @ 114894.91 (sl) | PnL: $-55.06 (-0.58%) | Balance: $9384.97 | Trades: 37 | Win Rate: 32.4%
+2025-11-22 18:49:59 | WARNING | Step 1603 | WIN RATE PENALTY: -0.50 | WR=32.4% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1603 | REWARD BREAKDOWN: Total=-3.0010 | NormPnL=-0.5010 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1604 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1604 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | DEBUG | Step 1605 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1605 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1605 | [OPEN LONG] @ 115411.80 | TP: 116846.54 | SL: 114694.42 | Size: 0.0813
+2025-11-22 18:49:59 | INFO | Step 1608 | [CLOSE LONG] @ 114694.42 (sl) | PnL: $-62.07 (-0.66%) | Balance: $9319.15 | Trades: 38 | Win Rate: 31.6%
+2025-11-22 18:49:59 | WARNING | Step 1608 | WIN RATE PENALTY: -0.50 | WR=31.6% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1608 | REWARD BREAKDOWN: Total=-3.0516 | NormPnL=-0.5516 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1609 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1609 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1609 | [OPEN LONG] @ 114751.00 | TP: 115968.47 | SL: 114142.26 | Size: 0.0812
+2025-11-22 18:49:59 | INFO | Step 1616 | [CLOSE LONG] @ 114142.26 (sl) | PnL: $-53.14 (-0.57%) | Balance: $9262.28 | Trades: 39 | Win Rate: 30.8%
+2025-11-22 18:49:59 | WARNING | Step 1616 | WIN RATE PENALTY: -0.50 | WR=30.8% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1616 | REWARD BREAKDOWN: Total=-2.9865 | NormPnL=-0.4865 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1617 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1617 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1617 | [OPEN LONG] @ 114078.90 | TP: 115249.21 | SL: 113493.74 | Size: 0.0812
+2025-11-22 18:49:59 | INFO | Step 1621 | [CLOSE LONG] @ 113493.74 (sl) | PnL: $-51.20 (-0.55%) | Balance: $9207.38 | Trades: 40 | Win Rate: 30.0%
+2025-11-22 18:49:59 | WARNING | Step 1621 | WIN RATE PENALTY: -0.50 | WR=30.0% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1621 | REWARD BREAKDOWN: Total=-2.9715 | NormPnL=-0.4715 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1622 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1622 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1622 | [OPEN LONG] @ 113863.90 | TP: 115099.15 | SL: 113246.27 | Size: 0.0809
+2025-11-22 18:49:59 | INFO | Step 1632 | [CLOSE LONG] @ 115099.15 (tp) | PnL: $96.16 (+1.04%) | Balance: $9299.86 | Trades: 41 | Win Rate: 31.7%
+2025-11-22 18:49:59 | INFO | Step 1632 | REWARD BREAKDOWN: Total=3.7450 | NormPnL=0.7450 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:59 | DEBUG | Step 1633 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1633 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1633 | [OPEN LONG] @ 115021.80 | TP: 116041.63 | SL: 114511.88 | Size: 0.0809
+2025-11-22 18:49:59 | INFO | Step 1634 | [CLOSE LONG] @ 114511.88 (sl) | PnL: $-44.93 (-0.48%) | Balance: $9251.20 | Trades: 42 | Win Rate: 31.0%
+2025-11-22 18:49:59 | WARNING | Step 1634 | WIN RATE PENALTY: -0.50 | WR=31.0% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1634 | REWARD BREAKDOWN: Total=-2.9213 | NormPnL=-0.4213 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1635 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1635 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | DEBUG | Step 1636 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1636 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1636 | [OPEN LONG] @ 115246.70 | TP: 116507.28 | SL: 114616.42 | Size: 0.0803
+2025-11-22 18:49:59 | INFO | Step 1637 | [CLOSE LONG] @ 114616.42 (sl) | PnL: $-54.28 (-0.59%) | Balance: $9193.23 | Trades: 43 | Win Rate: 30.2%
+2025-11-22 18:49:59 | WARNING | Step 1637 | WIN RATE PENALTY: -0.50 | WR=30.2% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1637 | REWARD BREAKDOWN: Total=-2.9951 | NormPnL=-0.4951 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1638 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1638 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | DEBUG | Step 1639 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1639 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1639 | [OPEN LONG] @ 112744.60 | TP: 114205.50 | SL: 112014.15 | Size: 0.0815
+2025-11-22 18:49:59 | INFO | Step 1658 | [CLOSE LONG] @ 112014.15 (sl) | PnL: $-63.21 (-0.69%) | Balance: $9126.34 | Trades: 44 | Win Rate: 29.5%
+2025-11-22 18:49:59 | WARNING | Step 1658 | WIN RATE PENALTY: -0.50 | WR=29.5% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1658 | REWARD BREAKDOWN: Total=-3.0595 | NormPnL=-0.5595 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1659 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1659 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1659 | [OPEN LONG] @ 111060.00 | TP: 112145.97 | SL: 110517.01 | Size: 0.0822
+2025-11-22 18:49:59 | INFO | Step 1661 | [CLOSE LONG] @ 110517.01 (sl) | PnL: $-48.25 (-0.53%) | Balance: $9074.43 | Trades: 45 | Win Rate: 28.9%
+2025-11-22 18:49:59 | WARNING | Step 1661 | WIN RATE PENALTY: -0.50 | WR=28.9% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1661 | REWARD BREAKDOWN: Total=-2.9483 | NormPnL=-0.4483 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1662 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1662 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1662 | [OPEN LONG] @ 110605.60 | TP: 112166.93 | SL: 109824.94 | Size: 0.0820
+2025-11-22 18:49:59 | INFO | Step 1666 | [CLOSE LONG] @ 109824.94 (sl) | PnL: $-67.65 (-0.75%) | Balance: $9003.15 | Trades: 46 | Win Rate: 28.3%
+2025-11-22 18:49:59 | WARNING | Step 1666 | WIN RATE PENALTY: -0.50 | WR=28.3% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1666 | REWARD BREAKDOWN: Total=-3.0893 | NormPnL=-0.5893 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1667 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1667 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1667 | [OPEN LONG] @ 110496.30 | TP: 112416.52 | SL: 109536.18 | Size: 0.0815
+2025-11-22 18:49:59 | INFO | Step 1671 | [CLOSE LONG] @ 109536.18 (sl) | PnL: $-81.80 (-0.91%) | Balance: $8917.75 | Trades: 47 | Win Rate: 27.7%
+2025-11-22 18:49:59 | WARNING | Step 1671 | WIN RATE PENALTY: -0.50 | WR=27.7% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1671 | REWARD BREAKDOWN: Total=-3.1740 | NormPnL=-0.6740 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1672 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1672 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1672 | [OPEN LONG] @ 110199.70 | TP: 112475.37 | SL: 109061.87 | Size: 0.0809
+2025-11-22 18:49:59 | INFO | Step 1679 | [CLOSE LONG] @ 109061.87 (sl) | PnL: $-95.61 (-1.07%) | Balance: $8818.58 | Trades: 48 | Win Rate: 27.1%
+2025-11-22 18:49:59 | WARNING | Step 1679 | WIN RATE PENALTY: -0.50 | WR=27.1% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1679 | REWARD BREAKDOWN: Total=-3.2425 | NormPnL=-0.7425 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1680 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1680 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1680 | [OPEN LONG] @ 107582.20 | TP: 109676.59 | SL: 106535.01 | Size: 0.0820
+2025-11-22 18:49:59 | INFO | Step 1686 | [CLOSE LONG] @ 106535.01 (sl) | PnL: $-89.33 (-1.01%) | Balance: $8725.72 | Trades: 49 | Win Rate: 26.5%
+2025-11-22 18:49:59 | WARNING | Step 1686 | WIN RATE PENALTY: -0.50 | WR=26.5% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1686 | REWARD BREAKDOWN: Total=-3.2130 | NormPnL=-0.7130 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1687 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1687 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1687 | [OPEN LONG] @ 107441.20 | TP: 109265.52 | SL: 106529.05 | Size: 0.0812
+2025-11-22 18:49:59 | INFO | Step 1691 | [CLOSE LONG] @ 109265.52 (tp) | PnL: $144.61 (+1.66%) | Balance: $8866.84 | Trades: 50 | Win Rate: 28.0%
+2025-11-22 18:49:59 | INFO | Step 1691 | REWARD BREAKDOWN: Total=3.8949 | NormPnL=0.8949 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:59 | DEBUG | Step 1692 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1692 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1692 | [OPEN LONG] @ 109585.30 | TP: 111491.67 | SL: 108632.11 | Size: 0.0809
+2025-11-22 18:49:59 | INFO | Step 1693 | [CLOSE LONG] @ 108632.11 (sl) | PnL: $-80.64 (-0.91%) | Balance: $8782.65 | Trades: 51 | Win Rate: 27.5%
+2025-11-22 18:49:59 | WARNING | Step 1693 | WIN RATE PENALTY: -0.50 | WR=27.5% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1693 | REWARD BREAKDOWN: Total=-3.1676 | NormPnL=-0.6676 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1694 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1694 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | DEBUG | Step 1695 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1695 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1695 | [OPEN LONG] @ 110052.50 | TP: 111876.87 | SL: 109140.31 | Size: 0.0798
+2025-11-22 18:49:59 | DEBUG | Step 1700 | Q[HOLD]=-0.2672 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
+2025-11-22 18:49:59 | INFO | Step 1707 | [CLOSE LONG] @ 109140.31 (sl) | PnL: $-76.28 (-0.87%) | Balance: $8702.86 | Trades: 52 | Win Rate: 26.9%
+2025-11-22 18:49:59 | WARNING | Step 1707 | WIN RATE PENALTY: -0.50 | WR=26.9% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1707 | REWARD BREAKDOWN: Total=-3.1427 | NormPnL=-0.6427 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1708 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1708 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1708 | [OPEN LONG] @ 109269.50 | TP: 111085.20 | SL: 108361.65 | Size: 0.0796
+2025-11-22 18:49:59 | INFO | Step 1750 | [CLOSE LONG] @ 111085.20 (tp) | PnL: $141.07 (+1.62%) | Balance: $8840.45 | Trades: 53 | Win Rate: 28.3%
+2025-11-22 18:49:59 | INFO | Step 1750 | REWARD BREAKDOWN: Total=3.8877 | NormPnL=0.8877 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:59 | DEBUG | Step 1751 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1751 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1751 | [OPEN LONG] @ 110690.80 | TP: 111521.27 | SL: 110275.56 | Size: 0.0799
+2025-11-22 18:49:59 | INFO | Step 1752 | [CLOSE LONG] @ 110275.56 (sl) | PnL: $-36.69 (-0.41%) | Balance: $8800.23 | Trades: 54 | Win Rate: 27.8%
+2025-11-22 18:49:59 | WARNING | Step 1752 | WIN RATE PENALTY: -0.50 | WR=27.8% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1752 | REWARD BREAKDOWN: Total=-2.8512 | NormPnL=-0.3512 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1753 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1753 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | DEBUG | Step 1754 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1754 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1754 | [OPEN LONG] @ 110066.10 | TP: 111045.26 | SL: 109576.52 | Size: 0.0800
+2025-11-22 18:49:59 | INFO | Step 1761 | [CLOSE LONG] @ 109576.52 (sl) | PnL: $-42.65 (-0.48%) | Balance: $8754.06 | Trades: 55 | Win Rate: 27.3%
+2025-11-22 18:49:59 | WARNING | Step 1761 | WIN RATE PENALTY: -0.50 | WR=27.3% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1761 | REWARD BREAKDOWN: Total=-2.9024 | NormPnL=-0.4024 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1762 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1762 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1762 | [OPEN LONG] @ 110494.90 | TP: 111401.70 | SL: 110041.50 | Size: 0.0792
+2025-11-22 18:49:59 | INFO | Step 1763 | [CLOSE LONG] @ 110041.50 (sl) | PnL: $-39.41 (-0.45%) | Balance: $8711.15 | Trades: 56 | Win Rate: 26.8%
+2025-11-22 18:49:59 | WARNING | Step 1763 | WIN RATE PENALTY: -0.50 | WR=26.8% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1763 | REWARD BREAKDOWN: Total=-2.8749 | NormPnL=-0.3749 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1764 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1764 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | DEBUG | Step 1765 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1765 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1765 | [OPEN LONG] @ 108991.70 | TP: 109981.26 | SL: 108496.92 | Size: 0.0799
+2025-11-22 18:49:59 | INFO | Step 1766 | [CLOSE LONG] @ 108496.92 (sl) | PnL: $-43.01 (-0.49%) | Balance: $8664.65 | Trades: 57 | Win Rate: 26.3%
+2025-11-22 18:49:59 | WARNING | Step 1766 | WIN RATE PENALTY: -0.50 | WR=26.3% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1766 | REWARD BREAKDOWN: Total=-2.9054 | NormPnL=-0.4054 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1767 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1767 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | DEBUG | Step 1768 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1768 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1768 | [OPEN LONG] @ 107556.90 | TP: 108716.73 | SL: 106976.98 | Size: 0.0806
+2025-11-22 18:49:59 | INFO | Step 1769 | [CLOSE LONG] @ 106976.98 (sl) | PnL: $-50.16 (-0.58%) | Balance: $8611.02 | Trades: 58 | Win Rate: 25.9%
+2025-11-22 18:49:59 | WARNING | Step 1769 | WIN RATE PENALTY: -0.50 | WR=25.9% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1769 | REWARD BREAKDOWN: Total=-2.9634 | NormPnL=-0.4634 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1770 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1770 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | DEBUG | Step 1771 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1771 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1771 | [OPEN LONG] @ 107548.60 | TP: 108835.09 | SL: 106905.36 | Size: 0.0801
+2025-11-22 18:49:59 | INFO | Step 1773 | [CLOSE LONG] @ 106905.36 (sl) | PnL: $-54.93 (-0.64%) | Balance: $8552.65 | Trades: 59 | Win Rate: 25.4%
+2025-11-22 18:49:59 | WARNING | Step 1773 | WIN RATE PENALTY: -0.50 | WR=25.4% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1773 | REWARD BREAKDOWN: Total=-3.0000 | NormPnL=-0.5000 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1774 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1774 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1774 | [OPEN LONG] @ 107737.40 | TP: 109263.50 | SL: 106974.35 | Size: 0.0794
+2025-11-22 18:49:59 | INFO | Step 1778 | [CLOSE LONG] @ 106974.35 (sl) | PnL: $-63.97 (-0.75%) | Balance: $8485.26 | Trades: 60 | Win Rate: 25.0%
+2025-11-22 18:49:59 | WARNING | Step 1778 | WIN RATE PENALTY: -0.50 | WR=25.0% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1778 | REWARD BREAKDOWN: Total=-3.0647 | NormPnL=-0.5647 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1779 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1779 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1779 | [OPEN LONG] @ 106644.00 | TP: 108517.83 | SL: 105707.09 | Size: 0.0796
+2025-11-22 18:49:59 | INFO | Step 1792 | [CLOSE LONG] @ 105707.09 (sl) | PnL: $-77.91 (-0.92%) | Balance: $8403.95 | Trades: 61 | Win Rate: 24.6%
+2025-11-22 18:49:59 | WARNING | Step 1792 | WIN RATE PENALTY: -0.50 | WR=24.6% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1792 | REWARD BREAKDOWN: Total=-3.1522 | NormPnL=-0.6522 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1793 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1793 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1793 | [OPEN LONG] @ 104702.40 | TP: 106877.73 | SL: 103614.73 | Size: 0.0803
+2025-11-22 18:49:59 | INFO | Step 1796 | [CLOSE LONG] @ 103614.73 (sl) | PnL: $-90.63 (-1.08%) | Balance: $8309.96 | Trades: 62 | Win Rate: 24.2%
+2025-11-22 18:49:59 | WARNING | Step 1796 | WIN RATE PENALTY: -0.50 | WR=24.2% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1796 | REWARD BREAKDOWN: Total=-3.2193 | NormPnL=-0.7193 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1797 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1797 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1797 | [OPEN LONG] @ 103787.00 | TP: 105760.79 | SL: 102800.11 | Size: 0.0801
+2025-11-22 18:49:59 | DEBUG | Step 1800 | Q[HOLD]=-0.2672 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
+2025-11-22 18:49:59 | INFO | Step 1803 | [CLOSE LONG] @ 102800.11 (sl) | PnL: $-82.31 (-0.99%) | Balance: $8224.33 | Trades: 63 | Win Rate: 23.8%
+2025-11-22 18:49:59 | WARNING | Step 1803 | WIN RATE PENALTY: -0.50 | WR=23.8% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1803 | REWARD BREAKDOWN: Total=-3.1768 | NormPnL=-0.6768 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1804 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1804 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1804 | [OPEN LONG] @ 101074.80 | TP: 103230.00 | SL: 99997.20 | Size: 0.0814
+2025-11-22 18:49:59 | INFO | Step 1805 | [CLOSE LONG] @ 99997.20 (sl) | PnL: $-90.94 (-1.11%) | Balance: $8130.10 | Trades: 64 | Win Rate: 23.4%
+2025-11-22 18:49:59 | WARNING | Step 1805 | WIN RATE PENALTY: -0.50 | WR=23.4% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1805 | REWARD BREAKDOWN: Total=-3.2208 | NormPnL=-0.7208 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1806 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1806 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | DEBUG | Step 1807 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1807 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1807 | [OPEN LONG] @ 100710.10 | TP: 102879.13 | SL: 99625.59 | Size: 0.0807
+2025-11-22 18:49:59 | INFO | Step 1808 | [CLOSE LONG] @ 99625.59 (sl) | PnL: $-90.77 (-1.12%) | Balance: $8036.08 | Trades: 65 | Win Rate: 23.1%
+2025-11-22 18:49:59 | WARNING | Step 1808 | WIN RATE PENALTY: -0.50 | WR=23.1% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1808 | REWARD BREAKDOWN: Total=-3.2200 | NormPnL=-0.7200 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1809 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1809 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | DEBUG | Step 1810 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1810 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1810 | [OPEN LONG] @ 101450.30 | TP: 104009.91 | SL: 100170.49 | Size: 0.0792
+2025-11-22 18:49:59 | INFO | Step 1812 | [CLOSE LONG] @ 100170.49 (sl) | PnL: $-104.55 (-1.30%) | Balance: $7928.32 | Trades: 66 | Win Rate: 22.7%
+2025-11-22 18:49:59 | WARNING | Step 1812 | WIN RATE PENALTY: -0.50 | WR=22.7% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1812 | REWARD BREAKDOWN: Total=-3.2801 | NormPnL=-0.7801 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1813 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1813 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1813 | [OPEN LONG] @ 101633.70 | TP: 104524.85 | SL: 100188.13 | Size: 0.0780
+2025-11-22 18:49:59 | INFO | Step 1870 | [CLOSE LONG] @ 100188.13 (sl) | PnL: $-115.89 (-1.46%) | Balance: $7809.25 | Trades: 67 | Win Rate: 22.4%
+2025-11-22 18:49:59 | WARNING | Step 1870 | WIN RATE PENALTY: -0.50 | WR=22.4% (Below 35%)
+2025-11-22 18:49:59 | INFO | Step 1870 | REWARD BREAKDOWN: Total=-3.3207 | NormPnL=-0.8207 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:49:59 | DEBUG | Step 1871 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1871 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1871 | [OPEN LONG] @ 99608.90 | TP: 100928.07 | SL: 98949.31 | Size: 0.0784
+2025-11-22 18:49:59 | INFO | Step 1874 | [CLOSE LONG] @ 100928.07 (tp) | PnL: $100.26 (+1.28%) | Balance: $7906.38 | Trades: 68 | Win Rate: 23.5%
+2025-11-22 18:49:59 | INFO | Step 1874 | REWARD BREAKDOWN: Total=3.7627 | NormPnL=0.7627 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:59 | DEBUG | Step 1875 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1875 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1875 | [OPEN LONG] @ 101128.40 | TP: 102741.01 | SL: 100322.09 | Size: 0.0782
+2025-11-22 18:49:59 | INFO | Step 1877 | [CLOSE LONG] @ 102741.01 (tp) | PnL: $122.86 (+1.55%) | Balance: $8026.09 | Trades: 69 | Win Rate: 24.6%
+2025-11-22 18:49:59 | INFO | Step 1877 | REWARD BREAKDOWN: Total=3.8422 | NormPnL=0.8422 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:49:59 | DEBUG | Step 1878 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:49:59 | INFO | Step 1878 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:49:59 | INFO | Step 1878 | [OPEN LONG] @ 103350.00 | TP: 105226.09 | SL: 102411.96 | Size: 0.0777
+2025-11-22 18:50:00 | INFO | Step 1887 | [CLOSE LONG] @ 102411.96 (sl) | PnL: $-76.03 (-0.95%) | Balance: $7946.85 | Trades: 70 | Win Rate: 24.3%
+2025-11-22 18:50:00 | WARNING | Step 1887 | WIN RATE PENALTY: -0.50 | WR=24.3% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 1887 | REWARD BREAKDOWN: Total=-3.1412 | NormPnL=-0.6412 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 1888 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1888 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1888 | [OPEN LONG] @ 102257.40 | TP: 103839.83 | SL: 101466.18 | Size: 0.0777
+2025-11-22 18:50:00 | INFO | Step 1897 | [CLOSE LONG] @ 101466.18 (sl) | PnL: $-64.64 (-0.81%) | Balance: $7879.03 | Trades: 71 | Win Rate: 23.9%
+2025-11-22 18:50:00 | WARNING | Step 1897 | WIN RATE PENALTY: -0.50 | WR=23.9% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 1897 | REWARD BREAKDOWN: Total=-3.0693 | NormPnL=-0.5693 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 1898 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1898 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1898 | [OPEN LONG] @ 101678.00 | TP: 102741.70 | SL: 101146.15 | Size: 0.0775
+2025-11-22 18:50:00 | DEBUG | Step 1900 | Q[HOLD]=-0.2672 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
+2025-11-22 18:50:00 | INFO | Step 1920 | [CLOSE LONG] @ 102741.70 (tp) | PnL: $79.24 (+1.01%) | Balance: $7955.12 | Trades: 72 | Win Rate: 25.0%
+2025-11-22 18:50:00 | INFO | Step 1920 | REWARD BREAKDOWN: Total=3.6598 | NormPnL=0.6598 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:50:00 | DEBUG | Step 1921 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1921 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1921 | [OPEN LONG] @ 102994.40 | TP: 103924.87 | SL: 102529.16 | Size: 0.0772
+2025-11-22 18:50:00 | INFO | Step 1922 | [CLOSE LONG] @ 103924.87 (tp) | PnL: $68.66 (+0.86%) | Balance: $8020.59 | Trades: 73 | Win Rate: 26.0%
+2025-11-22 18:50:00 | INFO | Step 1922 | REWARD BREAKDOWN: Total=3.5958 | NormPnL=0.5958 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:50:00 | DEBUG | Step 1923 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1923 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | DEBUG | Step 1924 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1924 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1924 | [OPEN LONG] @ 103607.60 | TP: 104757.04 | SL: 103032.88 | Size: 0.0774
+2025-11-22 18:50:00 | INFO | Step 1926 | [CLOSE LONG] @ 104757.04 (tp) | PnL: $85.74 (+1.07%) | Balance: $8103.12 | Trades: 74 | Win Rate: 27.0%
+2025-11-22 18:50:00 | INFO | Step 1926 | REWARD BREAKDOWN: Total=3.6949 | NormPnL=0.6949 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:50:00 | DEBUG | Step 1927 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1927 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1927 | [OPEN LONG] @ 104585.50 | TP: 105890.92 | SL: 103932.79 | Size: 0.0775
+2025-11-22 18:50:00 | INFO | Step 1931 | [CLOSE LONG] @ 105890.92 (tp) | PnL: $97.86 (+1.21%) | Balance: $8197.74 | Trades: 75 | Win Rate: 28.0%
+2025-11-22 18:50:00 | INFO | Step 1931 | REWARD BREAKDOWN: Total=3.7525 | NormPnL=0.7525 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:50:00 | DEBUG | Step 1932 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1932 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1932 | [OPEN LONG] @ 105683.00 | TP: 107483.60 | SL: 104782.70 | Size: 0.0776
+2025-11-22 18:50:00 | INFO | Step 1945 | [CLOSE LONG] @ 104782.70 (sl) | PnL: $-73.09 (-0.89%) | Balance: $8121.37 | Trades: 76 | Win Rate: 27.6%
+2025-11-22 18:50:00 | WARNING | Step 1945 | WIN RATE PENALTY: -0.50 | WR=27.6% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 1945 | REWARD BREAKDOWN: Total=-3.1236 | NormPnL=-0.6236 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 1946 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1946 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1946 | [OPEN LONG] @ 105028.90 | TP: 106311.66 | SL: 104387.52 | Size: 0.0773
+2025-11-22 18:50:00 | INFO | Step 1956 | [CLOSE LONG] @ 106311.66 (tp) | PnL: $95.90 (+1.18%) | Balance: $8214.03 | Trades: 77 | Win Rate: 28.6%
+2025-11-22 18:50:00 | INFO | Step 1956 | REWARD BREAKDOWN: Total=3.7438 | NormPnL=0.7438 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:50:00 | DEBUG | Step 1957 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1957 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1957 | [OPEN LONG] @ 106595.80 | TP: 108217.56 | SL: 105784.92 | Size: 0.0771
+2025-11-22 18:50:00 | INFO | Step 1959 | [CLOSE LONG] @ 105784.92 (sl) | PnL: $-65.75 (-0.80%) | Balance: $8145.00 | Trades: 78 | Win Rate: 28.2%
+2025-11-22 18:50:00 | WARNING | Step 1959 | WIN RATE PENALTY: -0.50 | WR=28.2% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 1959 | REWARD BREAKDOWN: Total=-3.0767 | NormPnL=-0.5767 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 1960 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1960 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1960 | [OPEN LONG] @ 105203.40 | TP: 106852.03 | SL: 104379.08 | Size: 0.0774
+2025-11-22 18:50:00 | INFO | Step 1967 | [CLOSE LONG] @ 104379.08 (sl) | PnL: $-67.05 (-0.82%) | Balance: $8074.69 | Trades: 79 | Win Rate: 27.8%
+2025-11-22 18:50:00 | WARNING | Step 1967 | WIN RATE PENALTY: -0.50 | WR=27.8% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 1967 | REWARD BREAKDOWN: Total=-3.0853 | NormPnL=-0.5853 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 1968 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1968 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1968 | [OPEN LONG] @ 104350.10 | TP: 105837.34 | SL: 103606.48 | Size: 0.0774
+2025-11-22 18:50:00 | INFO | Step 1970 | [CLOSE LONG] @ 103606.48 (sl) | PnL: $-60.75 (-0.75%) | Balance: $8010.71 | Trades: 80 | Win Rate: 27.5%
+2025-11-22 18:50:00 | WARNING | Step 1970 | WIN RATE PENALTY: -0.50 | WR=27.5% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 1970 | REWARD BREAKDOWN: Total=-3.0424 | NormPnL=-0.5424 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 1971 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1971 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1971 | [OPEN LONG] @ 103366.60 | TP: 104867.49 | SL: 102616.16 | Size: 0.0775
+2025-11-22 18:50:00 | INFO | Step 1975 | [CLOSE LONG] @ 102616.16 (sl) | PnL: $-61.34 (-0.77%) | Balance: $7946.16 | Trades: 81 | Win Rate: 27.2%
+2025-11-22 18:50:00 | WARNING | Step 1975 | WIN RATE PENALTY: -0.50 | WR=27.2% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 1975 | REWARD BREAKDOWN: Total=-3.0465 | NormPnL=-0.5465 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 1976 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1976 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1976 | [OPEN LONG] @ 102598.40 | TP: 103928.24 | SL: 101933.48 | Size: 0.0774
+2025-11-22 18:50:00 | INFO | Step 1987 | [CLOSE LONG] @ 103928.24 (tp) | PnL: $99.78 (+1.26%) | Balance: $8042.76 | Trades: 82 | Win Rate: 28.0%
+2025-11-22 18:50:00 | INFO | Step 1987 | REWARD BREAKDOWN: Total=3.7606 | NormPnL=0.7606 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:50:00 | DEBUG | Step 1988 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1988 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1988 | [OPEN LONG] @ 104475.40 | TP: 105572.21 | SL: 103926.99 | Size: 0.0770
+2025-11-22 18:50:00 | INFO | Step 1993 | [CLOSE LONG] @ 103926.99 (sl) | PnL: $-45.42 (-0.56%) | Balance: $7994.13 | Trades: 83 | Win Rate: 27.7%
+2025-11-22 18:50:00 | WARNING | Step 1993 | WIN RATE PENALTY: -0.50 | WR=27.7% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 1993 | REWARD BREAKDOWN: Total=-2.9253 | NormPnL=-0.4253 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 1994 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1994 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1994 | [OPEN LONG] @ 102124.90 | TP: 103370.53 | SL: 101502.08 | Size: 0.0783
+2025-11-22 18:50:00 | INFO | Step 1995 | [CLOSE LONG] @ 101502.08 (sl) | PnL: $-51.93 (-0.65%) | Balance: $7939.00 | Trades: 84 | Win Rate: 27.4%
+2025-11-22 18:50:00 | WARNING | Step 1995 | WIN RATE PENALTY: -0.50 | WR=27.4% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 1995 | REWARD BREAKDOWN: Total=-2.9772 | NormPnL=-0.4772 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 1996 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1996 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | DEBUG | Step 1997 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 1997 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 1997 | [OPEN LONG] @ 101493.60 | TP: 103106.52 | SL: 100687.14 | Size: 0.0782
+2025-11-22 18:50:00 | DEBUG | Step 2000 | Q[HOLD]=-0.2672 Q[LONG]=-inf Q[SHORT]=-inf | Confidence=-inf Threshold=0.0118 | Epsilon=0.0000 | Confident=False Explore=False
+2025-11-22 18:50:00 | INFO | Step 2000 | NOT CONFIDENT → HOLD | Confidence=-inf < Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2008 | [CLOSE LONG] @ 103106.52 (tp) | PnL: $122.94 (+1.55%) | Balance: $8058.76 | Trades: 85 | Win Rate: 28.2%
+2025-11-22 18:50:00 | INFO | Step 2008 | REWARD BREAKDOWN: Total=3.8424 | NormPnL=0.8424 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:50:00 | DEBUG | Step 2009 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2009 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2009 | [OPEN LONG] @ 103555.00 | TP: 105158.20 | SL: 102753.40 | Size: 0.0778
+2025-11-22 18:50:00 | INFO | Step 2012 | [CLOSE LONG] @ 102753.40 (sl) | PnL: $-65.58 (-0.81%) | Balance: $7989.96 | Trades: 86 | Win Rate: 27.9%
+2025-11-22 18:50:00 | WARNING | Step 2012 | WIN RATE PENALTY: -0.50 | WR=27.9% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2012 | REWARD BREAKDOWN: Total=-3.0756 | NormPnL=-0.5756 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2013 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2013 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2013 | [OPEN LONG] @ 102951.20 | TP: 104583.26 | SL: 102135.18 | Size: 0.0776
+2025-11-22 18:50:00 | INFO | Step 2016 | [CLOSE LONG] @ 102135.18 (sl) | PnL: $-66.50 (-0.83%) | Balance: $7920.26 | Trades: 87 | Win Rate: 27.6%
+2025-11-22 18:50:00 | WARNING | Step 2016 | WIN RATE PENALTY: -0.50 | WR=27.6% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2016 | REWARD BREAKDOWN: Total=-3.0817 | NormPnL=-0.5817 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2017 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2017 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2017 | [OPEN LONG] @ 102823.40 | TP: 104505.95 | SL: 101982.12 | Size: 0.0770
+2025-11-22 18:50:00 | INFO | Step 2018 | [CLOSE LONG] @ 101982.12 (sl) | PnL: $-67.94 (-0.86%) | Balance: $7849.15 | Trades: 88 | Win Rate: 27.3%
+2025-11-22 18:50:00 | WARNING | Step 2018 | WIN RATE PENALTY: -0.50 | WR=27.3% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2018 | REWARD BREAKDOWN: Total=-3.0912 | NormPnL=-0.5912 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2019 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2019 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | DEBUG | Step 2020 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2020 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2020 | [OPEN LONG] @ 99601.40 | TP: 101691.94 | SL: 98556.13 | Size: 0.0788
+2025-11-22 18:50:00 | INFO | Step 2021 | [CLOSE LONG] @ 98556.13 (sl) | PnL: $-85.48 (-1.09%) | Balance: $7760.53 | Trades: 89 | Win Rate: 27.0%
+2025-11-22 18:50:00 | WARNING | Step 2021 | WIN RATE PENALTY: -0.50 | WR=27.0% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2021 | REWARD BREAKDOWN: Total=-3.1936 | NormPnL=-0.6936 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2022 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2022 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | DEBUG | Step 2023 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2023 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2023 | [OPEN LONG] @ 98131.60 | TP: 100212.26 | SL: 97091.27 | Size: 0.0791
+2025-11-22 18:50:00 | INFO | Step 2026 | [CLOSE LONG] @ 100212.26 (tp) | PnL: $161.37 (+2.08%) | Balance: $7918.80 | Trades: 90 | Win Rate: 27.8%
+2025-11-22 18:50:00 | INFO | Step 2026 | REWARD BREAKDOWN: Total=3.9237 | NormPnL=0.9237 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:50:00 | DEBUG | Step 2027 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2027 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2027 | [OPEN LONG] @ 98941.00 | TP: 101145.06 | SL: 97838.97 | Size: 0.0800
+2025-11-22 18:50:00 | INFO | Step 2031 | [CLOSE LONG] @ 97838.97 (sl) | PnL: $-91.33 (-1.15%) | Balance: $7824.30 | Trades: 91 | Win Rate: 27.5%
+2025-11-22 18:50:00 | WARNING | Step 2031 | WIN RATE PENALTY: -0.50 | WR=27.5% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2031 | REWARD BREAKDOWN: Total=-3.2227 | NormPnL=-0.7227 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2032 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2032 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2032 | [OPEN LONG] @ 97491.90 | TP: 99936.21 | SL: 96269.74 | Size: 0.0803
+2025-11-22 18:50:00 | INFO | Step 2033 | [CLOSE LONG] @ 96269.74 (sl) | PnL: $-101.18 (-1.29%) | Balance: $7719.99 | Trades: 92 | Win Rate: 27.2%
+2025-11-22 18:50:00 | WARNING | Step 2033 | WIN RATE PENALTY: -0.50 | WR=27.2% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2033 | REWARD BREAKDOWN: Total=-3.2665 | NormPnL=-0.7665 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2034 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2034 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | DEBUG | Step 2035 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2035 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2035 | [OPEN LONG] @ 97333.20 | TP: 99728.92 | SL: 96135.35 | Size: 0.0793
+2025-11-22 18:50:00 | INFO | Step 2038 | [CLOSE LONG] @ 96135.35 (sl) | PnL: $-98.06 (-1.27%) | Balance: $7618.84 | Trades: 93 | Win Rate: 26.9%
+2025-11-22 18:50:00 | WARNING | Step 2038 | WIN RATE PENALTY: -0.50 | WR=26.9% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2038 | REWARD BREAKDOWN: Total=-3.2533 | NormPnL=-0.7533 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2039 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2039 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2039 | [OPEN LONG] @ 95327.00 | TP: 97550.84 | SL: 94215.08 | Size: 0.0799
+2025-11-22 18:50:00 | INFO | Step 2047 | [CLOSE LONG] @ 94215.08 (sl) | PnL: $-91.88 (-1.21%) | Balance: $7523.92 | Trades: 94 | Win Rate: 26.6%
+2025-11-22 18:50:00 | WARNING | Step 2047 | WIN RATE PENALTY: -0.50 | WR=26.6% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2047 | REWARD BREAKDOWN: Total=-3.2253 | NormPnL=-0.7253 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2048 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2048 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2048 | [OPEN LONG] @ 95023.30 | TP: 97550.53 | SL: 93759.68 | Size: 0.0792
+2025-11-22 18:50:00 | INFO | Step 2092 | [CLOSE LONG] @ 93759.68 (sl) | PnL: $-103.02 (-1.37%) | Balance: $7417.88 | Trades: 95 | Win Rate: 26.3%
+2025-11-22 18:50:00 | WARNING | Step 2092 | WIN RATE PENALTY: -0.50 | WR=26.3% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2092 | REWARD BREAKDOWN: Total=-3.2740 | NormPnL=-0.7740 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2093 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2093 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2093 | [OPEN LONG] @ 94005.90 | TP: 95185.15 | SL: 93416.27 | Size: 0.0789
+2025-11-22 18:50:00 | INFO | Step 2096 | [CLOSE LONG] @ 93416.27 (sl) | PnL: $-49.48 (-0.67%) | Balance: $7365.44 | Trades: 96 | Win Rate: 26.0%
+2025-11-22 18:50:00 | WARNING | Step 2096 | WIN RATE PENALTY: -0.50 | WR=26.0% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2096 | REWARD BREAKDOWN: Total=-2.9580 | NormPnL=-0.4580 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2097 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2097 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2097 | [OPEN LONG] @ 94156.70 | TP: 95736.16 | SL: 93366.98 | Size: 0.0782
+2025-11-22 18:50:00 | INFO | Step 2098 | [CLOSE LONG] @ 93366.98 (sl) | PnL: $-64.70 (-0.88%) | Balance: $7297.80 | Trades: 97 | Win Rate: 25.8%
+2025-11-22 18:50:00 | WARNING | Step 2098 | WIN RATE PENALTY: -0.50 | WR=25.8% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2098 | REWARD BREAKDOWN: Total=-3.0696 | NormPnL=-0.5696 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2099 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2099 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | DEBUG | Step 2100 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2100 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2100 | [OPEN LONG] @ 94732.50 | TP: 96790.17 | SL: 93703.67 | Size: 0.0770
+2025-11-22 18:50:00 | INFO | Step 2112 | [CLOSE LONG] @ 93703.67 (sl) | PnL: $-82.14 (-1.13%) | Balance: $7212.73 | Trades: 98 | Win Rate: 25.5%
+2025-11-22 18:50:00 | WARNING | Step 2112 | WIN RATE PENALTY: -0.50 | WR=25.5% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2112 | REWARD BREAKDOWN: Total=-3.1759 | NormPnL=-0.6759 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2113 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2113 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2113 | [OPEN LONG] @ 94730.20 | TP: 96165.83 | SL: 94012.39 | Size: 0.0761
+2025-11-22 18:50:00 | INFO | Step 2114 | [CLOSE LONG] @ 94012.39 (sl) | PnL: $-57.52 (-0.80%) | Balance: $7152.33 | Trades: 99 | Win Rate: 25.3%
+2025-11-22 18:50:00 | WARNING | Step 2114 | WIN RATE PENALTY: -0.50 | WR=25.3% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2114 | REWARD BREAKDOWN: Total=-3.0191 | NormPnL=-0.5191 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2115 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2115 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | DEBUG | Step 2116 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2116 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2116 | [OPEN LONG] @ 92724.00 | TP: 94413.67 | SL: 91879.16 | Size: 0.0771
+2025-11-22 18:50:00 | INFO | Step 2118 | [CLOSE LONG] @ 91879.16 (sl) | PnL: $-68.00 (-0.95%) | Balance: $7081.47 | Trades: 100 | Win Rate: 25.0%
+2025-11-22 18:50:00 | WARNING | Step 2118 | WIN RATE PENALTY: -0.50 | WR=25.0% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2118 | REWARD BREAKDOWN: Total=-3.0915 | NormPnL=-0.5915 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2119 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2119 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2119 | [OPEN LONG] @ 91880.50 | TP: 93848.34 | SL: 90896.58 | Size: 0.0771
+2025-11-22 18:50:00 | INFO | Step 2125 | [CLOSE LONG] @ 90896.58 (sl) | PnL: $-78.64 (-1.11%) | Balance: $7000.00 | Trades: 101 | Win Rate: 24.8%
+2025-11-22 18:50:00 | WARNING | Step 2125 | WIN RATE PENALTY: -0.50 | WR=24.8% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2125 | REWARD BREAKDOWN: Total=-3.1563 | NormPnL=-0.6563 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2126 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2126 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2126 | [OPEN LONG] @ 90811.90 | TP: 93105.51 | SL: 89665.09 | Size: 0.0771
+2025-11-22 18:50:00 | INFO | Step 2127 | [CLOSE LONG] @ 89665.09 (sl) | PnL: $-91.16 (-1.30%) | Balance: $6906.04 | Trades: 102 | Win Rate: 24.5%
+2025-11-22 18:50:00 | WARNING | Step 2127 | WIN RATE PENALTY: -0.50 | WR=24.5% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2127 | REWARD BREAKDOWN: Total=-3.2219 | NormPnL=-0.7219 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2128 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2128 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | DEBUG | Step 2129 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2129 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2129 | [OPEN LONG] @ 89615.90 | TP: 91691.54 | SL: 88578.08 | Size: 0.0771
+2025-11-22 18:50:00 | INFO | Step 2135 | [CLOSE LONG] @ 91691.54 (tp) | PnL: $157.13 (+2.28%) | Balance: $7060.40 | Trades: 103 | Win Rate: 25.2%
+2025-11-22 18:50:00 | INFO | Step 2135 | REWARD BREAKDOWN: Total=3.9172 | NormPnL=0.9172 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:50:00 | DEBUG | Step 2136 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2136 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2136 | [OPEN LONG] @ 91438.40 | TP: 93219.37 | SL: 90547.91 | Size: 0.0772
+2025-11-22 18:50:00 | INFO | Step 2139 | [CLOSE LONG] @ 93219.37 (tp) | PnL: $134.64 (+1.91%) | Balance: $7192.22 | Trades: 104 | Win Rate: 26.0%
+2025-11-22 18:50:00 | INFO | Step 2139 | REWARD BREAKDOWN: Total=3.8732 | NormPnL=0.8732 | TP/SL=3.00 | WinRateBonus=0.00
+2025-11-22 18:50:00 | DEBUG | Step 2140 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2140 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2140 | [OPEN LONG] @ 93215.70 | TP: 95264.37 | SL: 92191.37 | Size: 0.0772
+2025-11-22 18:50:00 | INFO | Step 2147 | [CLOSE LONG] @ 92191.37 (sl) | PnL: $-81.88 (-1.14%) | Balance: $7107.46 | Trades: 105 | Win Rate: 25.7%
+2025-11-22 18:50:00 | WARNING | Step 2147 | WIN RATE PENALTY: -0.50 | WR=25.7% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2147 | REWARD BREAKDOWN: Total=-3.1744 | NormPnL=-0.6744 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2148 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2148 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2148 | [OPEN LONG] @ 92410.20 | TP: 94168.06 | SL: 91531.28 | Size: 0.0769
+2025-11-22 18:50:00 | INFO | Step 2151 | [CLOSE LONG] @ 91531.28 (sl) | PnL: $-70.42 (-0.99%) | Balance: $7034.20 | Trades: 106 | Win Rate: 25.5%
+2025-11-22 18:50:00 | WARNING | Step 2151 | WIN RATE PENALTY: -0.50 | WR=25.5% (Below 35%)
+2025-11-22 18:50:00 | INFO | Step 2151 | REWARD BREAKDOWN: Total=-3.1070 | NormPnL=-0.6070 | TP/SL=-2.00 | WinRateBonus=-0.50
+2025-11-22 18:50:00 | DEBUG | Step 2152 | Q[HOLD]=-0.2672 Q[LONG]=-0.2259 Q[SHORT]=-0.2568 | Confidence=0.0413 Threshold=0.0118 | Epsilon=0.0000 | Confident=True Explore=False
+2025-11-22 18:50:00 | INFO | Step 2152 | CONFIDENT + EXPLOIT → LONG | Confidence=0.0413 > Threshold=0.0118
+2025-11-22 18:50:00 | INFO | Step 2152 | [OPEN LONG] @ 90415.70 | TP: 92175.03 | SL: 89536.04 | Size: 0.0778
+2025-11-22 18:50:00 | INFO | Step 2160 | [CLOSE LONG] @ 91404.30 (timeout) | PnL: $74.07 (+1.05%) | Balance: $7105.45 | Trades: 107 | Win Rate: 26.2%
+2025-11-22 18:50:00 | INFO | ============================================================
+2025-11-22 18:50:00 | INFO | BACKTEST RESULTS
+2025-11-22 18:50:00 | INFO | Initial Balance: $10000.00
+2025-11-22 18:50:00 | INFO | Final Balance: $7105.45
+2025-11-22 18:50:00 | INFO | Total Return: -28.95%
+2025-11-22 18:50:00 | INFO | Total Trades: 107
+2025-11-22 18:50:00 | INFO | Winning Trades: 28
+2025-11-22 18:50:00 | INFO | Win Rate: 26.17%
+2025-11-22 18:50:00 | INFO | Total PnL: $-2526.46
+2025-11-22 18:50:00 | INFO | ============================================================

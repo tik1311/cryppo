@@ -123,8 +123,8 @@ class D3QNAgent:
             if training:
                 # Calculate effective exploration rate
                 # - High epsilon: Use epsilon directly (strong exploration)
-                # - Low epsilon: Use minimum 10% exploration (continuous learning)
-                effective_epsilon = max(self.epsilon, 0.10)
+                # - Low epsilon: Use minimum 5% exploration (balanced quality/exploration)
+                effective_epsilon = max(self.epsilon, 0.05)
 
                 # Forced exploration - bypass confidence check
                 if random.random() < effective_epsilon:

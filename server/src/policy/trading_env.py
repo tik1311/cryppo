@@ -46,8 +46,9 @@ class TradingEnv(gym.Env):
         reward_type: str = 'pnl',  # Changed from 'sharpe' to 'pnl' for clearer signal
         min_episode_length: int = 500,  # Reduced from 1000 to 500
         atr_period: int = 14,
-        atr_sl_multiplier: float = 1.5,
-        atr_tp_multiplier: float = 2.5,  # Reduced from 4.5 to 2.5 (better win rate)
+        atr_sl_multiplier: float = 1.0,  # IMPROVED: 1.5 → 1.0 (tighter SL, less drawdown)
+        atr_tp_multiplier: float = 2.0,  # IMPROVED: 2.5 → 2.0 (easier TP, better win rate)
+        # R:R = 2:1 → Breakeven WR = 33.3% (achievable with current 34% WR!)
         streaming_mode: bool = False,
         enable_bust_protection: bool = True,  # Disable for training, enable for backtest/paper
         logger = None  # Add logger parameter

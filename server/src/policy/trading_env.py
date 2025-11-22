@@ -208,15 +208,19 @@ class TradingEnv(gym.Env):
     def step(self, action: int) -> Tuple[Dict, float, bool, bool, dict]:
         terminated = False
         truncated = False
-        
+
+        # Entry/Exit price: Use CLOSE price of 1h candle (action happens when 1h candle closes)
         current_price = float(self.main_data[self.current_step, CLOSE_IDX])
-        high_price = float(self.main_data[self.current_step, HIGH_IDX])
-        low_price = float(self.main_data[self.current_step, LOW_IDX])
-        
+
+        # TP/SL checking: Use detail timeframe (1m) for accurate execution tracking
+        # Check all 1m candles within this 1h period to see if TP/SL was hit
+        detail_high = float(np.max(self.detail_data[self.current_step, :, HIGH_IDX]))
+        detail_low = float(np.min(self.detail_data[self.current_step, :, LOW_IDX]))
+
         reward = 0.0
         trade_reward = 0.0
-        
-        # 1. Handle Actions
+
+        # 1. Handle Actions (only executed on 1h candle close)
         if self.position is None:
             # Only allow opening if enough time passed since last trade
             if action in [1, 2] and (self.current_step - self.last_trade_step >= self.min_bars_between_trades):
@@ -236,23 +240,28 @@ class TradingEnv(gym.Env):
             # Already in position - Action is ignored (forced HOLD)
             self.hold_duration += 1
             self.consecutive_holds = 0
-            
-            # Check TP/SL
+
+            # Check TP/SL using detail timeframe (1m) for accuracy
+            # This ensures we catch TP/SL hits that happened intrabar (within the 1h candle)
             exit_price = None
             exit_reason = None
-            
+
             if self.position == 'long':
-                if low_price <= self.stop_loss:
+                # Check if SL was hit during any 1m candle in this 1h period
+                if detail_low <= self.stop_loss:
                     exit_price = self.stop_loss
                     exit_reason = 'sl'
-                elif high_price >= self.take_profit:
+                # Check if TP was hit during any 1m candle in this 1h period
+                elif detail_high >= self.take_profit:
                     exit_price = self.take_profit
                     exit_reason = 'tp'
             elif self.position == 'short':
-                if high_price >= self.stop_loss:
+                # Check if SL was hit during any 1m candle in this 1h period
+                if detail_high >= self.stop_loss:
                     exit_price = self.stop_loss
                     exit_reason = 'sl'
-                elif low_price <= self.take_profit:
+                # Check if TP was hit during any 1m candle in this 1h period
+                elif detail_low <= self.take_profit:
                     exit_price = self.take_profit
                     exit_reason = 'tp'
             

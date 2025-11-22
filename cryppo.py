@@ -24,6 +24,7 @@ from rich.layout import Layout
 sys.path.insert(0, str(Path(__file__).parent / "server"))
 
 from src.data.loader import load_multi_timeframe_data, prepare_multi_timeframe_env_data, download_and_save_data
+from src.data.realtime_fetcher import RealtimeFetcher
 from src.policy.trading_env import TradingEnv
 from src.agent.d3qn_agent import D3QNAgent
 

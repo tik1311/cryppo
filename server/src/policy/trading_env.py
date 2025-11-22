@@ -46,9 +46,11 @@ class TradingEnv(gym.Env):
         reward_type: str = 'pnl',  # Changed from 'sharpe' to 'pnl' for clearer signal
         min_episode_length: int = 500,  # Reduced from 1000 to 500
         atr_period: int = 14,
-        atr_sl_multiplier: float = 1.5,
-        atr_tp_multiplier: float = 2.5,  # Reduced from 4.5 to 2.5 (better win rate)
+        atr_sl_multiplier: float = 1.0,  # IMPROVED: 1.5 → 1.0 (tighter SL, less drawdown)
+        atr_tp_multiplier: float = 2.0,  # IMPROVED: 2.5 → 2.0 (easier TP, better win rate)
+        # R:R = 2:1 → Breakeven WR = 33.3% (achievable with current 34% WR!)
         streaming_mode: bool = False,
+        enable_bust_protection: bool = True,  # Disable for training, enable for backtest/paper
         logger = None  # Add logger parameter
     ):
         super().__init__()
@@ -67,6 +69,7 @@ class TradingEnv(gym.Env):
         self.atr_sl_multiplier = atr_sl_multiplier
         self.atr_tp_multiplier = atr_tp_multiplier
         self.streaming_mode = streaming_mode
+        self.enable_bust_protection = enable_bust_protection
 
         self.n_main_features = self.main_data.shape[1]
         self.n_detail_features = self.detail_data.shape[2]
@@ -206,15 +209,19 @@ class TradingEnv(gym.Env):
     def step(self, action: int) -> Tuple[Dict, float, bool, bool, dict]:
         terminated = False
         truncated = False
-        
+
+        # Entry/Exit price: Use CLOSE price of 1h candle (action happens when 1h candle closes)
         current_price = float(self.main_data[self.current_step, CLOSE_IDX])
-        high_price = float(self.main_data[self.current_step, HIGH_IDX])
-        low_price = float(self.main_data[self.current_step, LOW_IDX])
-        
+
+        # TP/SL checking: Use detail timeframe (1m) for accurate execution tracking
+        # Check all 1m candles within this 1h period to see if TP/SL was hit
+        detail_high = float(np.max(self.detail_data[self.current_step, :, HIGH_IDX]))
+        detail_low = float(np.min(self.detail_data[self.current_step, :, LOW_IDX]))
+
         reward = 0.0
         trade_reward = 0.0
-        
-        # 1. Handle Actions
+
+        # 1. Handle Actions (only executed on 1h candle close)
         if self.position is None:
             # Only allow opening if enough time passed since last trade
             if action in [1, 2] and (self.current_step - self.last_trade_step >= self.min_bars_between_trades):
@@ -226,31 +233,52 @@ class TradingEnv(gym.Env):
                 self.consecutive_holds = 0
                 # NO entry penalty - let model learn quality entries through TP/SL rewards
             else:
-                # HOLD or Invalid Open
+                # HOLD - neutral (no reward/penalty)
                 self.consecutive_holds += 1
-                # Tiny reward for patience (don't make it too attractive)
-                reward += 0.0001
+
+                # Log HOLD action periodically
+                if self.logger and self.current_step % 100 == 0:
+                    self.logger.debug(
+                        f"Step {self.current_step} | ACTION: HOLD | "
+                        f"Consecutive Holds: {self.consecutive_holds} | "
+                        f"Bars since last trade: {self.current_step - self.last_trade_step}"
+                    )
+
+                # Small penalty if holding too long without trading (encourages action when confident)
+                if self.consecutive_holds > 20:  # 20 hours without trade
+                    hold_penalty = -0.001
+                    reward += hold_penalty  # Small penalty for excessive patience
+                    if self.logger and self.consecutive_holds % 10 == 0:
+                        self.logger.warning(
+                            f"Step {self.current_step} | EXCESSIVE HOLD PENALTY: {hold_penalty:.4f} | "
+                            f"Consecutive Holds: {self.consecutive_holds}"
+                        )
         else:
             # Already in position - Action is ignored (forced HOLD)
             self.hold_duration += 1
             self.consecutive_holds = 0
-            
-            # Check TP/SL
+
+            # Check TP/SL using detail timeframe (1m) for accuracy
+            # This ensures we catch TP/SL hits that happened intrabar (within the 1h candle)
             exit_price = None
             exit_reason = None
-            
+
             if self.position == 'long':
-                if low_price <= self.stop_loss:
+                # Check if SL was hit during any 1m candle in this 1h period
+                if detail_low <= self.stop_loss:
                     exit_price = self.stop_loss
                     exit_reason = 'sl'
-                elif high_price >= self.take_profit:
+                # Check if TP was hit during any 1m candle in this 1h period
+                elif detail_high >= self.take_profit:
                     exit_price = self.take_profit
                     exit_reason = 'tp'
             elif self.position == 'short':
-                if high_price >= self.stop_loss:
+                # Check if SL was hit during any 1m candle in this 1h period
+                if detail_high >= self.stop_loss:
                     exit_price = self.stop_loss
                     exit_reason = 'sl'
-                elif low_price <= self.take_profit:
+                # Check if TP was hit during any 1m candle in this 1h period
+                elif detail_low <= self.take_profit:
                     exit_price = self.take_profit
                     exit_reason = 'tp'
             
@@ -260,22 +288,69 @@ class TradingEnv(gym.Env):
                 normalized_pnl = np.tanh(trade_reward / 100.0)
                 reward += normalized_pnl
 
-                # Reward structure for quality entry points:
-                # - Focus on learning WHEN to enter (quality over quantity)
-                # - TP = Good entry point → Strong positive reward
-                # - SL = Bad entry point → Moderate penalty (SL is risk management, not failure)
-                # - Win streak bonus = Consistent quality entries
+                # Detailed reward breakdown tracking
+                reward_breakdown = {
+                    'normalized_pnl': normalized_pnl,
+                    'tp_sl_reward': 0.0,
+                    'win_rate_bonus': 0.0
+                }
+
+                # Reward structure for QUALITY trading (2025 research-based):
+                # - TP = Excellent entry → VERY strong reward
+                # - SL = Poor entry → VERY strong penalty
+                # - Asymmetric rewards: Reward quality MORE than punish mistakes
                 if exit_reason == 'tp':
-                    reward += 1.0  # Strong reward for hitting TP (good entry point)
-                    # Extra bonus for maintaining win streak (quality consistency)
-                    if self.winning_trades > 0 and self.total_trades > 0:
-                        recent_win_rate = self.winning_trades / self.total_trades
-                        if recent_win_rate > 0.4:
-                            reward += 0.3  # Bonus for >40% win rate
-                        if recent_win_rate > 0.5:
-                            reward += 0.2  # Extra bonus for >50% win rate
+                    tp_reward = 3.0  # VERY strong reward for quality entry (increased from 2.0)
+                    reward += tp_reward
+                    reward_breakdown['tp_sl_reward'] = tp_reward
+
+                    # Win rate bonus (encourage consistency)
+                    if self.total_trades >= 10:  # Need enough samples
+                        win_rate = self.winning_trades / self.total_trades
+                        win_rate_bonus = 0.0
+                        if win_rate >= 0.5:  # 50%+ win rate
+                            win_rate_bonus = 1.0  # STRONG bonus for excellent consistency
+                        elif win_rate >= 0.45:  # 45-50% win rate
+                            win_rate_bonus = 0.5  # Good bonus
+                        elif win_rate >= 0.4:  # 40-45% win rate
+                            win_rate_bonus = 0.2  # Moderate bonus
+
+                        if win_rate_bonus > 0:
+                            reward += win_rate_bonus
+                            reward_breakdown['win_rate_bonus'] = win_rate_bonus
+                            if self.logger:
+                                self.logger.info(
+                                    f"Step {self.current_step} | WIN RATE BONUS: {win_rate_bonus:.2f} | "
+                                    f"WR={win_rate*100:.1f}%"
+                                )
+
                 elif exit_reason == 'sl':
-                    reward -= 0.5  # Penalty for hitting SL (poor entry point)
+                    sl_penalty = -2.0  # VERY strong penalty for poor entry (increased from 1.0)
+                    reward += sl_penalty
+                    reward_breakdown['tp_sl_reward'] = sl_penalty
+
+                    # Extra penalty if win rate is too low (discourage low-quality trading)
+                    if self.total_trades >= 10:
+                        win_rate = self.winning_trades / self.total_trades
+                        if win_rate < 0.35:  # Below 35% win rate
+                            win_rate_penalty = -0.5  # Extra penalty for poor quality
+                            reward += win_rate_penalty
+                            reward_breakdown['win_rate_bonus'] = win_rate_penalty
+                            if self.logger:
+                                self.logger.warning(
+                                    f"Step {self.current_step} | WIN RATE PENALTY: {win_rate_penalty:.2f} | "
+                                    f"WR={win_rate*100:.1f}% (Below 35%)"
+                                )
+
+                # Log detailed reward breakdown
+                if self.logger:
+                    self.logger.info(
+                        f"Step {self.current_step} | REWARD BREAKDOWN: "
+                        f"Total={reward:.4f} | "
+                        f"NormPnL={reward_breakdown['normalized_pnl']:.4f} | "
+                        f"TP/SL={reward_breakdown['tp_sl_reward']:.2f} | "
+                        f"WinRateBonus={reward_breakdown['win_rate_bonus']:.2f}"
+                    )
             
             # Time penalty to discourage holding forever
             if self.hold_duration > 100:
@@ -298,10 +373,13 @@ class TradingEnv(gym.Env):
             truncated = True
             if self.position:
                 self._close_position(current_price, 'timeout')
-        
-        if self.equity <= self.initial_balance * 0.5:  # Bust
+
+        # Bust protection (can be disabled for training to allow full episode completion)
+        if self.enable_bust_protection and self.equity <= self.initial_balance * 0.5:
             terminated = True
             reward -= 1.0
+            if hasattr(self, 'logger') and self.logger:
+                self.logger.warning(f"BUST PROTECTION TRIGGERED at step {self.current_step} (Equity: ${self.equity:.2f})")
 
         info = self._get_info()
         observation = self._get_observation()

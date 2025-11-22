@@ -24,16 +24,22 @@ from rich.layout import Layout
 sys.path.insert(0, str(Path(__file__).parent / "server"))
 
 from src.data.loader import load_multi_timeframe_data, prepare_multi_timeframe_env_data, download_and_save_data
+from src.data.realtime_fetcher import RealtimeFetcher
 from src.policy.trading_env import TradingEnv
 from src.agent.d3qn_agent import D3QNAgent
 
 console = Console()
 
-def setup_logger(mode: str) -> logging.Logger:
+def setup_logger(mode: str, debug: bool = True) -> logging.Logger:
     """
     Setup logger for train/backtest/live modes
     Creates separate log files: train.log, backtest.log, live.log
     Overwrites previous log (keeps only latest run)
+
+    Args:
+        mode: 'train', 'backtest', or 'live'
+        debug: If True, enable DEBUG level logging (detailed Q-values, confidence, etc.)
+               Default is TRUE to show all detailed decision-making logs
     """
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
@@ -42,14 +48,15 @@ def setup_logger(mode: str) -> logging.Logger:
 
     # Create logger
     logger = logging.getLogger(f"cryppo_{mode}")
-    logger.setLevel(logging.INFO)
+    log_level = logging.DEBUG if debug else logging.INFO
+    logger.setLevel(log_level)
 
     # Remove existing handlers
     logger.handlers.clear()
 
     # File handler (mode='w' to overwrite)
     file_handler = logging.FileHandler(log_file, mode='w', encoding='utf-8')
-    file_handler.setLevel(logging.INFO)
+    file_handler.setLevel(log_level)
 
     # Formatter
     formatter = logging.Formatter(
@@ -67,6 +74,29 @@ def setup_logger(mode: str) -> logging.Logger:
     logger.info("="*60)
 
     return logger
+
+def cleanup_logger(logger: logging.Logger):
+    """
+    Properly close and cleanup logger resources
+    Call this at the end of each mode (train/backtest/live)
+    """
+    if logger:
+        for handler in logger.handlers[:]:
+            handler.close()
+            logger.removeHandler(handler)
+        logging.shutdown()
+
+def cleanup_resources():
+    """
+    Clean up system resources (GPU memory, etc.)
+    Call this at the end of each mode
+    """
+    # Clear GPU cache if using CUDA
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+    # Force garbage collection
+    gc.collect()
 
 def check_system():
     """Perform system checks"""
@@ -95,27 +125,28 @@ def check_system():
         console.print("Data Directory: [yellow]Not Found (will be created)[/yellow]")
 
 def run_backtest(args):
-    """Run backtest"""
+    """Run backtest on test set (last 3 months)"""
     # Setup logger
     logger = setup_logger("backtest")
 
     console.print(f"[bold cyan]Running Backtest ({args.symbol})[/bold cyan]")
+    console.print("[dim]Testing on last 3 months (out-of-sample)[/dim]\n")
 
     # Log configuration
     logger.info(f"Symbol: {args.symbol}")
     logger.info(f"Timeframes: {args.main_tf} + {args.detail_tf}")
     logger.info(f"Initial Balance: ${args.balance:.2f}")
-    logger.info(f"Date Range: {args.start} to {args.end}")
+    logger.info(f"Testing on last 3 months (out-of-sample)")
     logger.info("")
 
-    # 1. Load Data
+    # 1. Load FULL Data
     try:
         df_main, df_detail = load_multi_timeframe_data(
             symbol=args.symbol,
             main_timeframe=args.main_tf,
             detail_timeframe=args.detail_tf,
-            start_date=args.start,
-            end_date=args.end
+            start_date=args.start if args.start else None,
+            end_date=args.end if args.end else None
         )
     except Exception as e:
         console.print(f"[red]Error loading data: {e}[/red]")
@@ -123,27 +154,45 @@ def run_backtest(args):
         return
 
     # 2. Prepare Data
-    data_dict = prepare_multi_timeframe_env_data(
-        df_main, df_detail, 
-        main_timeframe=args.main_tf, 
+    full_data = prepare_multi_timeframe_env_data(
+        df_main, df_detail,
+        main_timeframe=args.main_tf,
         detail_timeframe=args.detail_tf
     )
-    
-    # 3. Init Env
-    env = TradingEnv(data_dict, initial_balance=args.balance, logger=logger)
+
+    # 3. Use TEST split (last 3 months)
+    total_steps = len(full_data['main'])
+    test_size = min(2160, int(total_steps * 0.15))
+    train_end = total_steps - test_size
+
+    test_data = {
+        'main': full_data['main'][train_end:],
+        'detail': full_data['detail'][train_end:]
+    }
+
+    console.print(f"[cyan]Using test data:[/cyan]")
+    console.print(f"  • Test set: {len(test_data['main']):,} steps (last 3 months)")
+    console.print()
+
+    logger.info(f"Test set: {len(test_data['main'])} steps")
+    logger.info("")
+
+    # 4. Init Env with TEST data
+    env = TradingEnv(test_data, initial_balance=args.balance, logger=logger)
     logger.info(f"Environment initialized: {env.n_steps} steps")
     logger.info("")
 
     # 4. Load Agent
     obs_shape = env.observation_space['main'].shape
     detail_shape = env.observation_space['detail'].shape
-    
+
     agent = D3QNAgent(
         window_size=obs_shape[0],
         n_main_features=obs_shape[1],
         n_detail_features=detail_shape[2],
         detail_len=detail_shape[1],
-        action_dim=env.action_space.n
+        action_dim=env.action_space.n,
+        logger=logger  # Pass logger for detailed action selection logging
     )
     
     model_path = args.model_path
@@ -176,7 +225,7 @@ def run_backtest(args):
         
         while not done:
             mask = env.get_action_mask()
-            action = agent.select_action(state, training=False, action_mask=mask)
+            action = agent.select_action(state, training=False, action_mask=mask, step=env.current_step)
             next_state, reward, terminated, truncated, info = env.step(action)
             done = terminated or truncated
             state = next_state
@@ -212,29 +261,33 @@ def run_backtest(args):
 
     console.print(f"[dim]Log saved to: logs/backtest.log[/dim]")
 
+    # Cleanup resources
+    cleanup_logger(logger)
+    cleanup_resources()
+
 def run_paper_trade(args):
-    """Run paper trading simulation"""
+    """Run paper trading simulation on test set"""
     # Setup logger
     logger = setup_logger("live")
 
     console.print(Panel(f"Starting Paper Trade Simulation ({args.symbol})", style="bold red"))
-    console.print("[dim]Simulating live market execution...[/dim]")
+    console.print("[dim]Simulating live market execution on last 3 months...[/dim]\n")
 
     # Log configuration
     logger.info(f"Symbol: {args.symbol}")
     logger.info(f"Timeframes: {args.main_tf} + {args.detail_tf}")
     logger.info(f"Initial Balance: ${args.balance:.2f}")
-    logger.info(f"Date Range: {args.start} to {args.end}")
+    logger.info(f"Using test data (last 3 months)")
     logger.info("")
 
-    # 1. Load Data (Use recent data for simulation)
+    # 1. Load FULL Data
     try:
         df_main, df_detail = load_multi_timeframe_data(
             symbol=args.symbol,
             main_timeframe=args.main_tf,
             detail_timeframe=args.detail_tf,
-            start_date=args.start,
-            end_date=args.end
+            start_date=args.start if args.start else None,
+            end_date=args.end if args.end else None
         )
     except Exception as e:
         console.print(f"[red]Error loading data: {e}[/red]")
@@ -242,27 +295,45 @@ def run_paper_trade(args):
         return
 
     # 2. Prepare Data
-    data_dict = prepare_multi_timeframe_env_data(
-        df_main, df_detail, 
-        main_timeframe=args.main_tf, 
+    full_data = prepare_multi_timeframe_env_data(
+        df_main, df_detail,
+        main_timeframe=args.main_tf,
         detail_timeframe=args.detail_tf
     )
-    
-    # 3. Init Env with streaming mode
-    env = TradingEnv(data_dict, initial_balance=args.balance, streaming_mode=True, logger=logger)
+
+    # 3. Use TEST split (last 3 months)
+    total_steps = len(full_data['main'])
+    test_size = min(2160, int(total_steps * 0.15))
+    train_end = total_steps - test_size
+
+    test_data = {
+        'main': full_data['main'][train_end:],
+        'detail': full_data['detail'][train_end:]
+    }
+
+    console.print(f"[cyan]Paper trading on test data:[/cyan]")
+    console.print(f"  • Test set: {len(test_data['main']):,} steps (last 3 months)")
+    console.print()
+
+    logger.info(f"Test set: {len(test_data['main'])} steps")
+    logger.info("")
+
+    # 4. Init Env with streaming mode
+    env = TradingEnv(test_data, initial_balance=args.balance, streaming_mode=True, logger=logger)
     logger.info(f"Environment initialized: {env.n_steps} steps")
     logger.info("")
 
     # 4. Load Agent
     obs_shape = env.observation_space['main'].shape
     detail_shape = env.observation_space['detail'].shape
-    
+
     agent = D3QNAgent(
         window_size=obs_shape[0],
         n_main_features=obs_shape[1],
         n_detail_features=detail_shape[2],
         detail_len=detail_shape[1],
-        action_dim=env.action_space.n
+        action_dim=env.action_space.n,
+        logger=logger  # Pass logger for detailed action selection logging
     )
     
     model_path = args.model_path
@@ -282,30 +353,33 @@ def run_paper_trade(args):
     agent.epsilon = 0.0
     
     console.print("\n[yellow]Press Ctrl+C to stop simulation[/yellow]\n")
-    
+    console.print("[cyan]Note: Each step = 1 hour. Simulation runs at full speed (no delay).[/cyan]\n")
+
     try:
-        with Live(console=console, refresh_per_second=4) as live:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            console=console
+        ) as progress:
+            task = progress.add_task("Running paper trade simulation", total=env.n_steps)
+
             while not done:
                 mask = env.get_action_mask()
-                action = agent.select_action(state, training=False, action_mask=mask)
+                action = agent.select_action(state, training=False, action_mask=mask, step=env.current_step)
                 next_state, reward, terminated, truncated, info = env.step(action)
                 done = terminated or truncated
                 state = next_state
                 total_reward += reward
-                
-                # Update Status
-                status_text = f"""
-[bold cyan]Status[/bold cyan]
-Step: {env.current_step}/{env.n_steps}
-Balance: ${env.balance:.2f}
-Equity: ${env.equity:.2f}
-Position: {env.position if env.position else 'NONE'}
-Trades: {env.total_trades} (Wins: {env.winning_trades})
-                """
-                live.update(Panel(status_text, title="Live Simulation"))
-                
-                # Simulate delay
-                time.sleep(0.1) 
+
+                # Update progress (no delay - run at full speed!)
+                progress.update(task, advance=1)
+
+                # Print trade notifications
+                if env.total_trades > 0 and env.current_step % 100 == 0:
+                    win_rate = (env.winning_trades / env.total_trades) * 100
+                    console.print(f"[dim]Step {env.current_step}/{env.n_steps} | Trades: {env.total_trades} | WR: {win_rate:.1f}%[/dim]") 
                 
     except KeyboardInterrupt:
         console.print("\n[yellow]Simulation stopped by user.[/yellow]")
@@ -333,6 +407,10 @@ Trades: {env.total_trades} (Wins: {env.winning_trades})
 
     console.print(f"[dim]Log saved to: logs/live.log[/dim]")
 
+    # Cleanup resources
+    cleanup_logger(logger)
+    cleanup_resources()
+
 def run_train(args):
     """Run training"""
     # Setup logger
@@ -355,6 +433,7 @@ def run_train(args):
     console.print("  • NO entry penalty - Learn through TP/SL rewards")
     console.print("  • Reward: TP +1.0, SL -0.5, Hold +0.0001")
     console.print("  • Win streak bonus: >40% +0.3, >50% +0.5")
+    console.print("  • [yellow]Bust protection DISABLED[/yellow] - Train on 100% of data")
 
     console.print("\n[cyan]📊 NEW: Trend & Swing Features (Dow Theory):[/cyan]")
     console.print("  • Trend Direction: SMA 7 vs 25 crossover")
@@ -422,21 +501,23 @@ def run_train(args):
     logger.info(f"Data split: {len(train_data['main'])} train / {test_size} test")
     logger.info("")
 
-    # 3. Init Env with TRAINING data only
-    env = TradingEnv(train_data, initial_balance=args.balance, logger=logger)
+    # 3. Init Env with TRAINING data only (bust protection disabled for full episode completion)
+    env = TradingEnv(train_data, initial_balance=args.balance, enable_bust_protection=False, logger=logger)
     logger.info(f"Environment initialized: {env.n_steps} steps")
+    logger.info(f"Bust protection: DISABLED (training will complete all data even if losing)")
     logger.info("")
 
     # 4. Init Agent
     obs_shape = env.observation_space['main'].shape
     detail_shape = env.observation_space['detail'].shape
-    
+
     agent = D3QNAgent(
         window_size=obs_shape[0],
         n_main_features=obs_shape[1],
         n_detail_features=detail_shape[2],
         detail_len=detail_shape[1],
-        action_dim=env.action_space.n
+        action_dim=env.action_space.n,
+        logger=logger  # Pass logger for detailed action selection logging
     )
     
     # 5. Train Loop
@@ -470,7 +551,7 @@ def run_train(args):
 
             while not done:
                 mask = env.get_action_mask()
-                action = agent.select_action(state, action_mask=mask)
+                action = agent.select_action(state, training=True, action_mask=mask, step=env.current_step)
                 next_state, reward, terminated, truncated, _ = env.step(action)
                 done = terminated or truncated
 
@@ -550,6 +631,10 @@ def run_train(args):
     logger.info(f"Model saved to: {save_path}")
     console.print(f"[bold green]Training Complete! Model saved to {save_path}[/bold green]")
     console.print(f"[dim]Log saved to: logs/train.log[/dim]")
+
+    # Cleanup resources
+    cleanup_logger(logger)
+    cleanup_resources()
 
 def main():
     parser = argparse.ArgumentParser(description="CRYPPO Trading System")

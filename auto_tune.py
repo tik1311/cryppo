@@ -196,12 +196,14 @@ class ParameterTuner:
         """Train agent and return metrics"""
 
         # Create environment with tuned parameters
+        # Disable bust protection for training trials (to allow full episode completion)
         env = TradingEnv(
             data,
             initial_balance=10000.0,
             window_size=params['window_size'],
             atr_tp_multiplier=params['atr_tp_multiplier'],
             atr_sl_multiplier=params['atr_sl_multiplier'],
+            enable_bust_protection=(mode == 'val')  # Only enable for validation
         )
 
         # Temporarily modify min_bars_between_trades

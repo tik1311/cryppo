@@ -41,21 +41,46 @@ custom_style = Style([
 ])
 
 def print_logo():
-    """Print CRYPPO ASCII logo with beautiful border"""
-    logo = """
-╔══════════════════════════════════════════════════════╗
-║         ██████╗██████╗ ██╗   ██╗██████╗ ██████╗      ║
-║        ██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗     ║
-║        ██║     ██████╔╝ ╚████╔╝ ██████╔╝██████╔╝     ║
-║        ██║     ██╔══██╗  ╚██╔╝  ██╔═══╝ ██╔═══╝      ║
-║        ╚██████╗██║  ██║   ██║   ██║     ██║          ║
-║         ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═╝          ║
-║                                                      ║
-║        Deep RL Crypto Trading System                 ║
-║        🛡️ Risk Management: ATR-Based TP/SL            ║
-╚══════════════════════════════════════════════════════╝
-"""
-    console.print(logo, style="bold cyan")
+    """Print CRYPPO logo with beautiful Rich panel (Claude Code style)"""
+    # Create beautiful ASCII art text for "CRYPPO" (centered)
+    from rich.align import Align
+
+    logo_lines = [
+        "  ██████╗██████╗ ██╗   ██╗██████╗ ██████╗  ██████╗ ",
+        " ██╔════╝██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██╔═══██╗",
+        " ██║     ██████╔╝ ╚████╔╝ ██████╔╝██████╔╝██║   ██║",
+        " ██║     ██╔══██╗  ╚██╔╝  ██╔═══╝ ██╔═══╝ ██║   ██║",
+        " ╚██████╗██║  ██║   ██║   ██║     ██║     ╚██████╔╝",
+        "  ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═╝      ╚═════╝ ",
+        "",
+        "         Deep RL Crypto Trading System",
+        "        Risk Management: ATR-Based TP/SL"
+    ]
+
+    logo_text = Text()
+    for i, line in enumerate(logo_lines):
+        if i < 6:  # ASCII art lines
+            logo_text.append(line + "\n", style="bold cyan")
+        elif i == 6:  # Empty line
+            logo_text.append(line + "\n")
+        elif i == 7:  # Title
+            logo_text.append(line + "\n", style="bold white")
+        else:  # Subtitle
+            logo_text.append(line, style="dim")
+
+    # Center the entire content
+    centered_logo = Align.center(logo_text)
+
+    # Create full-width panel with centered content
+    panel = Panel(
+        centered_logo,
+        border_style="cyan",
+        padding=(1, 2),
+        title="[bold cyan]CRYPPO v2.0[/bold cyan]",
+        subtitle="[dim]Powered by D3QN + Multi-Timeframe[/dim]",
+        expand=True  # Full width panel
+    )
+    console.print(panel)
 
 def run_command(args):
     """Run cryppo.py with given arguments"""

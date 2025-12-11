@@ -1,0 +1,24 @@
+{
+  "best_params": {
+    "window_size": 36,
+    "atr_tp_multiplier": 4.681047152630169,
+    "atr_sl_multiplier": 1.313228611588701,
+    "min_bars_between_trades": 2,
+    "position_size_pct": 0.9875728803289979,
+    "learning_rate": 0.0002999236434092139,
+    "gamma": 0.9549931138737319,
+    "epsilon_min": 0.15332785874683194,
+    "epsilon_decay": 0.9985768040605633,
+    "batch_size": 16,
+    "update_frequency": 8,
+    "target_update_freq": 10000,
+    "reward_type": "sharpe",
+    "tp_reward_multiplier": 1.1142356270256377,
+    "sl_penalty_multiplier": 0.7044058360361912,
+    "hold_penalty_threshold": 43
+  },
+  "best_score": 508807779.8007844,
+  "n_trials": 50,
+  "symbol": "BTCUSDT",
+  "timestamp": "20251127_195943"
+}

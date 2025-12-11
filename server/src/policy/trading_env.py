@@ -52,6 +52,10 @@ class TradingEnv(gym.Env):
         # Research: Higher R:R allows lower win rate but bigger profits when right
         streaming_mode: bool = False,
         enable_bust_protection: bool = True,  # Disable for training, enable for backtest/paper
+        min_bars_between_trades: int = 3,
+        tp_reward_multiplier: float = 1.0,
+        sl_penalty_multiplier: float = 1.0,
+        hold_penalty_threshold: int = 100,
         logger = None  # Add logger parameter
     ):
         super().__init__()
@@ -69,8 +73,13 @@ class TradingEnv(gym.Env):
         self.atr_period = atr_period
         self.atr_sl_multiplier = atr_sl_multiplier
         self.atr_tp_multiplier = atr_tp_multiplier
+        self.atr_tp_multiplier = atr_tp_multiplier
         self.streaming_mode = streaming_mode
         self.enable_bust_protection = enable_bust_protection
+        self.min_bars_between_trades = min_bars_between_trades
+        self.tp_reward_multiplier = tp_reward_multiplier
+        self.sl_penalty_multiplier = sl_penalty_multiplier
+        self.hold_penalty_threshold = hold_penalty_threshold
 
         self.n_main_features = self.main_data.shape[1]
         self.n_detail_features = self.detail_data.shape[2]
@@ -152,7 +161,9 @@ class TradingEnv(gym.Env):
         # Patience / Anti-Overtrading
         self.consecutive_holds = 0
         self.last_trade_step = -100
-        self.min_bars_between_trades = 3  # Balanced: not too restrictive, prevents spam
+        self.consecutive_holds = 0
+        self.last_trade_step = -100
+        # self.min_bars_between_trades is set in __init__
 
         return self._get_observation(), self._get_info()
 
@@ -260,7 +271,7 @@ class TradingEnv(gym.Env):
                     )
 
                 # Small penalty if holding too long without trading (encourages action when confident)
-                if self.consecutive_holds > 20:  # 20 hours without trade
+                if self.consecutive_holds > self.hold_penalty_threshold:  # Use dynamic threshold
                     hold_penalty = -0.001
                     reward += hold_penalty  # Small penalty for excessive patience
                     if self.logger and self.consecutive_holds % 10 == 0:
@@ -315,7 +326,7 @@ class TradingEnv(gym.Env):
                 # - SL = Poor entry → VERY strong penalty
                 # - Asymmetric rewards: Reward quality MORE than punish mistakes
                 if exit_reason == 'tp':
-                    tp_reward = 3.0  # VERY strong reward for quality entry (increased from 2.0)
+                    tp_reward = 3.0 * self.tp_reward_multiplier  # Dynamic reward
                     reward += tp_reward
                     reward_breakdown['tp_sl_reward'] = tp_reward
 
@@ -340,7 +351,7 @@ class TradingEnv(gym.Env):
                                 )
 
                 elif exit_reason == 'sl':
-                    sl_penalty = -2.0  # VERY strong penalty for poor entry (increased from 1.0)
+                    sl_penalty = -2.0 * self.sl_penalty_multiplier  # Dynamic penalty
                     reward += sl_penalty
                     reward_breakdown['tp_sl_reward'] = sl_penalty
 

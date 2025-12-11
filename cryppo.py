@@ -178,8 +178,18 @@ def run_backtest(args):
     logger.info("")
 
     # 4. Init Env with TEST data
-    env = TradingEnv(test_data, initial_balance=args.balance, logger=logger)
+    env = TradingEnv(
+        test_data, 
+        initial_balance=args.balance, 
+        window_size=args.window_size,
+        atr_tp_multiplier=args.tp_mult,
+        atr_sl_multiplier=args.sl_mult,
+        min_bars_between_trades=args.min_bars,
+        reward_type=args.reward_type,
+        logger=logger
+    )
     logger.info(f"Environment initialized: {env.n_steps} steps")
+    logger.info(f"Params: TP={args.tp_mult}, SL={args.sl_mult}, Window={args.window_size}")
     logger.info("")
 
     # 4. Load Agent
@@ -192,6 +202,7 @@ def run_backtest(args):
         n_detail_features=detail_shape[2],
         detail_len=detail_shape[1],
         action_dim=env.action_space.n,
+        confidence_threshold=args.confidence,
         logger=logger  # Pass logger for detailed action selection logging
     )
     
@@ -319,8 +330,18 @@ def run_paper_trade(args):
     logger.info("")
 
     # 4. Init Env with streaming mode
-    env = TradingEnv(test_data, initial_balance=args.balance, streaming_mode=True, logger=logger)
+    env = TradingEnv(
+        test_data, 
+        initial_balance=args.balance, 
+        streaming_mode=True, 
+        window_size=args.window_size,
+        atr_tp_multiplier=args.tp_mult,
+        atr_sl_multiplier=args.sl_mult,
+        min_bars_between_trades=args.min_bars,
+        logger=logger
+    )
     logger.info(f"Environment initialized: {env.n_steps} steps")
+    logger.info(f"Params: TP={args.tp_mult}, SL={args.sl_mult}, Window={args.window_size}")
     logger.info("")
 
     # 4. Load Agent
@@ -333,6 +354,7 @@ def run_paper_trade(args):
         n_detail_features=detail_shape[2],
         detail_len=detail_shape[1],
         action_dim=env.action_space.n,
+        confidence_threshold=args.confidence,
         logger=logger  # Pass logger for detailed action selection logging
     )
     
@@ -503,8 +525,22 @@ def run_train(args):
     logger.info("")
 
     # 3. Init Env with TRAINING data only (bust protection disabled for full episode completion)
-    env = TradingEnv(train_data, initial_balance=args.balance, enable_bust_protection=False, logger=logger)
+    env = TradingEnv(
+        train_data, 
+        initial_balance=args.balance, 
+        enable_bust_protection=False, 
+        window_size=args.window_size,
+        atr_tp_multiplier=args.tp_mult,
+        atr_sl_multiplier=args.sl_mult,
+        min_bars_between_trades=args.min_bars,
+        reward_type=args.reward_type,
+        tp_reward_multiplier=args.tp_reward,
+        sl_penalty_multiplier=args.sl_penalty,
+        hold_penalty_threshold=args.hold_penalty,
+        logger=logger
+    )
     logger.info(f"Environment initialized: {env.n_steps} steps")
+    logger.info(f"Params: TP={args.tp_mult}, SL={args.sl_mult}, Window={args.window_size}, Reward={args.reward_type}")
     logger.info(f"Bust protection: DISABLED (training will complete all data even if losing)")
     logger.info("")
 
@@ -518,14 +554,23 @@ def run_train(args):
         n_detail_features=detail_shape[2],
         detail_len=detail_shape[1],
         action_dim=env.action_space.n,
+        learning_rate=args.lr,
+        gamma=args.gamma,
+        confidence_threshold=args.confidence,
         logger=logger  # Pass logger for detailed action selection logging
     )
+    
+    # Apply other agent params
+    agent.batch_size = args.batch_size
+    agent.target_update_freq = args.target_update_freq
+    agent.epsilon_min = args.eps_min
+    agent.epsilon_decay = args.eps_decay
     
     # 5. Train Loop
     console.print("\n[green]Starting Training Loop...[/green]")
 
     # Training optimization: Update every N steps instead of every step
-    update_frequency = 4  # Update every 4 steps for efficiency
+    update_frequency = args.update_freq  # Update every N steps for efficiency
 
     for episode in range(args.episodes):
         state, _ = env.reset()
@@ -657,10 +702,27 @@ def main():
     train_parser.add_argument("--main-tf", default="1h")
     train_parser.add_argument("--detail-tf", default="1m")
     train_parser.add_argument("--episodes", type=int, default=10)
-    train_parser.add_argument("--batch-size", type=int, default=64)
     train_parser.add_argument("--balance", type=float, default=10000.0)
     train_parser.add_argument("--start", default=None)
     train_parser.add_argument("--end", default=None)
+    
+    # Balanced Parameters Defaults (TP=3.0, SL=1.5)
+    train_parser.add_argument("--window-size", type=int, default=36)
+    train_parser.add_argument("--tp-mult", type=float, default=3.0, help="ATR TP Multiplier (Default: 3.0)")
+    train_parser.add_argument("--sl-mult", type=float, default=1.5, help="ATR SL Multiplier (Default: 1.5)")
+    train_parser.add_argument("--min-bars", type=int, default=2)
+    train_parser.add_argument("--confidence", type=float, default=0.005, help="Confidence Threshold (Default: 0.005)")
+    train_parser.add_argument("--lr", type=float, default=0.0001, help="Learning Rate (Default: 0.0001)")
+    train_parser.add_argument("--gamma", type=float, default=0.955)
+    train_parser.add_argument("--batch-size", type=int, default=16)
+    train_parser.add_argument("--update-freq", type=int, default=8)
+    train_parser.add_argument("--target-update-freq", type=int, default=10000)
+    train_parser.add_argument("--eps-min", type=float, default=0.15)
+    train_parser.add_argument("--eps-decay", type=float, default=0.9985)
+    train_parser.add_argument("--reward-type", type=str, default="sharpe")
+    train_parser.add_argument("--tp-reward", type=float, default=1.11)
+    train_parser.add_argument("--sl-penalty", type=float, default=0.70)
+    train_parser.add_argument("--hold-penalty", type=int, default=43)
 
     # 3. Backtest
     bt_parser = subparsers.add_parser("backtest", help="Backtest model")
@@ -671,6 +733,14 @@ def main():
     bt_parser.add_argument("--balance", type=float, default=10000.0)
     bt_parser.add_argument("--start", default=None)
     bt_parser.add_argument("--end", default=None)
+    
+    # Balanced Parameters Defaults
+    bt_parser.add_argument("--window-size", type=int, default=36)
+    bt_parser.add_argument("--tp-mult", type=float, default=3.0, help="ATR TP Multiplier (Default: 3.0)")
+    bt_parser.add_argument("--sl-mult", type=float, default=1.5, help="ATR SL Multiplier (Default: 1.5)")
+    bt_parser.add_argument("--min-bars", type=int, default=2)
+    bt_parser.add_argument("--confidence", type=float, default=0.005, help="Confidence Threshold (Default: 0.005)")
+    bt_parser.add_argument("--reward-type", type=str, default="sharpe")
 
     # 4. Paper Trade
     pt_parser = subparsers.add_parser("paper", help="Paper trade simulation")
@@ -681,6 +751,13 @@ def main():
     pt_parser.add_argument("--balance", type=float, default=10000.0)
     pt_parser.add_argument("--start", default=None)
     pt_parser.add_argument("--end", default=None)
+    
+    # Balanced Parameters Defaults
+    pt_parser.add_argument("--window-size", type=int, default=36)
+    pt_parser.add_argument("--tp-mult", type=float, default=3.0, help="ATR TP Multiplier (Default: 3.0)")
+    pt_parser.add_argument("--sl-mult", type=float, default=1.5, help="ATR SL Multiplier (Default: 1.5)")
+    pt_parser.add_argument("--min-bars", type=int, default=2)
+    pt_parser.add_argument("--confidence", type=float, default=0.005, help="Confidence Threshold (Default: 0.005)")
 
     # 5. Check
     subparsers.add_parser("check", help="System check")

@@ -140,7 +140,7 @@ class ParameterTuner:
             'window_size': trial.suggest_categorical('window_size', [36, 50, 72, 100]),
 
             # TP/SL Strategy (Focus on High R:R for profitability)
-            'atr_tp_multiplier': trial.suggest_float('atr_tp_multiplier', 2.5, 6.0),
+            'atr_tp_multiplier': trial.suggest_float('atr_tp_multiplier', 1.5, 3.5),  # Reduced from [2.5, 6.0] to be more realistic
             'atr_sl_multiplier': trial.suggest_float('atr_sl_multiplier', 0.8, 1.5),
             # Calculate R:R ratio for logging
             'rr_ratio': None,  # Will be calculated below
@@ -429,11 +429,11 @@ class ParameterTuner:
         if total_return < 0:
             return total_return  # Negative score for losing strategies
 
-        # Composite score (weighted)
+        # Composite score (weighted) - REVISED 2025
         score = (
-            total_return * 1.0 +      # Weight: 1.0 (most important)
+            total_return * 2.0 +      # Weight: 2.0 (Increased: Profit is King)
             win_rate * 0.5 +          # Weight: 0.5
-            sharpe * 10.0 +           # Weight: 10.0 (consistency)
+            sharpe * 2.0 +            # Weight: 2.0 (Reduced from 10.0: Don't fear volatility)
             np.log(trades) * 5.0      # Weight: 5.0 (encourage trading activity)
         )
 

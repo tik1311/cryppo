@@ -53,20 +53,23 @@ class D3QNAgent:
         learning_rate: float = 0.0003,
         gamma: float = 0.99,
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
-        confidence_threshold: float = 0.01,  # LOWERED: Was 0.05, now 0.01 (easier to pass)
+        confidence_threshold: float = 0.01,
         logger = None
     ):
+        self.window_size = window_size
+        self.n_main_features = n_main_features
+        self.n_detail_features = n_detail_features
+        self.detail_len = detail_len
         self.action_dim = action_dim
         self.gamma = gamma
+        self.learning_rate = learning_rate
         self.device = torch.device(device)
         self.epsilon = 1.0
         self.epsilon_min = 0.15
         self.epsilon_decay = 0.9998
         self.logger = logger
 
-        # Adaptive confidence-based trading:
-        # - Start with LOW threshold during exploration (allow learning)
-        # - Increase threshold as epsilon decreases (quality over quantity)
+        # Adaptive confidence-based trading
         self.base_confidence_threshold = confidence_threshold
         self.confidence_threshold = confidence_threshold
         
@@ -80,10 +83,10 @@ class D3QNAgent:
         
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)
-        self.memory = ReplayBuffer(10000)  # Reduced for efficiency
+        self.memory = ReplayBuffer(10000)
         self.steps = 0
-        self.batch_size = 32  # Reduced from 64 to 32 for efficiency
-        self.target_update_freq = 5000  # Increased from 1000 to 5000
+        self.batch_size = 32
+        self.target_update_freq = 5000
 
     def select_action(self, state: Dict[str, np.ndarray], training: bool = True, action_mask: Optional[np.ndarray] = None, step: int = 0) -> int:
         """

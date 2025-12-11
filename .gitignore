@@ -156,5 +156,6 @@ client/yarn.lock
 client/tsconfig.tsbuildinfo
 client/next-env.d.ts
 
-
+.claude/*
+.claude
 

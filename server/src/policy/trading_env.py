@@ -73,7 +73,6 @@ class TradingEnv(gym.Env):
         self.atr_period = atr_period
         self.atr_sl_multiplier = atr_sl_multiplier
         self.atr_tp_multiplier = atr_tp_multiplier
-        self.atr_tp_multiplier = atr_tp_multiplier
         self.streaming_mode = streaming_mode
         self.enable_bust_protection = enable_bust_protection
         self.min_bars_between_trades = min_bars_between_trades
@@ -91,9 +90,9 @@ class TradingEnv(gym.Env):
 
         # Observation space
         # Position info: [no_pos, long_pos, short_pos, entry_price_norm, pnl_pct, hold_duration_norm,
-        #                 capital_ratio, can_trade, bankruptcy_risk]
-        # NEW (2025): Added capital awareness features
-        self.n_pos_features = 9
+        #                 capital_ratio, can_trade, bankruptcy_risk, trend_signal]
+        # NEW (2025): Added capital awareness + trend signal
+        self.n_pos_features = 10
         
         self.observation_space = spaces.Dict({
             'main': spaces.Box(
@@ -193,8 +192,7 @@ class TradingEnv(gym.Env):
             hold_norm = 0.0
 
         # 2025 Enhancement: Capital Awareness Features
-        # These features make the agent understand the importance of capital preservation
-        capital_ratio = float(self.balance / self.initial_balance)  # 1.0 = full capital, 0.0 = bankrupt
+        capital_ratio = float(self.balance / self.initial_balance)
 
         # Check if agent has enough capital to trade
         min_position_cost = self._calculate_min_position_cost(current_price)
@@ -203,8 +201,12 @@ class TradingEnv(gym.Env):
         # Bankruptcy risk: 0.0 = safe, 1.0 = about to die
         bankruptcy_risk = max(0.0, 1.0 - capital_ratio)
 
+        # Trend Signal: Compare current price to moving average
+        # +1 = bullish (price > MA), -1 = bearish (price < MA), 0 = neutral
+        trend_signal = self._calculate_trend_signal(current_idx)
+
         pos_info = np.array([has_no_pos, has_long, has_short, entry_norm, pnl_pct, hold_norm,
-                            capital_ratio, can_trade, bankruptcy_risk])
+                            capital_ratio, can_trade, bankruptcy_risk, trend_signal])
         
         # Tile position info to match window size
         pos_info_tiled = np.tile(pos_info, (self.window_size, 1))
@@ -257,28 +259,22 @@ class TradingEnv(gym.Env):
                     self._open_position('short', current_price)
                 self.last_trade_step = self.current_step
                 self.consecutive_holds = 0
-                # NO entry penalty - let model learn quality entries through TP/SL rewards
+                # Small reward for taking action (encourages trading)
+                reward += 0.01
             else:
-                # HOLD - neutral (no reward/penalty)
+                # HOLD when no position
                 self.consecutive_holds += 1
 
                 # Log HOLD action periodically
                 if self.logger and self.current_step % 100 == 0:
                     self.logger.debug(
                         f"Step {self.current_step} | ACTION: HOLD | "
-                        f"Consecutive Holds: {self.consecutive_holds} | "
-                        f"Bars since last trade: {self.current_step - self.last_trade_step}"
+                        f"Consecutive Holds: {self.consecutive_holds}"
                     )
 
-                # Small penalty if holding too long without trading (encourages action when confident)
-                if self.consecutive_holds > self.hold_penalty_threshold:  # Use dynamic threshold
-                    hold_penalty = -0.001
-                    reward += hold_penalty  # Small penalty for excessive patience
-                    if self.logger and self.consecutive_holds % 10 == 0:
-                        self.logger.warning(
-                            f"Step {self.current_step} | EXCESSIVE HOLD PENALTY: {hold_penalty:.4f} | "
-                            f"Consecutive Holds: {self.consecutive_holds}"
-                        )
+                # Small penalty for excessive holding (encourages action)
+                if self.consecutive_holds > 50:
+                    reward -= 0.005
         else:
             # Already in position - Action is ignored (forced HOLD)
             self.hold_duration += 1
@@ -310,72 +306,19 @@ class TradingEnv(gym.Env):
             
             if exit_price:
                 trade_reward = self._close_position(exit_price, exit_reason)
-                # Normalize PnL to [-1, 1] range for stable learning
-                normalized_pnl = np.tanh(trade_reward / 100.0)
-                reward += normalized_pnl
 
-                # Detailed reward breakdown tracking
-                reward_breakdown = {
-                    'normalized_pnl': normalized_pnl,
-                    'tp_sl_reward': 0.0,
-                    'win_rate_bonus': 0.0
-                }
-
-                # Reward structure for QUALITY trading (2025 research-based):
-                # - TP = Excellent entry → VERY strong reward
-                # - SL = Poor entry → VERY strong penalty
-                # - Asymmetric rewards: Reward quality MORE than punish mistakes
+                # Simple and clear reward structure:
+                # TP hit = Positive reward (good trade)
+                # SL hit = Negative reward (bad trade)
                 if exit_reason == 'tp':
-                    tp_reward = 3.0 * self.tp_reward_multiplier  # Dynamic reward
-                    reward += tp_reward
-                    reward_breakdown['tp_sl_reward'] = tp_reward
-
-                    # Win rate bonus (encourage consistency)
-                    if self.total_trades >= 10:  # Need enough samples
-                        win_rate = self.winning_trades / self.total_trades
-                        win_rate_bonus = 0.0
-                        if win_rate >= 0.5:  # 50%+ win rate
-                            win_rate_bonus = 1.0  # STRONG bonus for excellent consistency
-                        elif win_rate >= 0.45:  # 45-50% win rate
-                            win_rate_bonus = 0.5  # Good bonus
-                        elif win_rate >= 0.4:  # 40-45% win rate
-                            win_rate_bonus = 0.2  # Moderate bonus
-
-                        if win_rate_bonus > 0:
-                            reward += win_rate_bonus
-                            reward_breakdown['win_rate_bonus'] = win_rate_bonus
-                            if self.logger:
-                                self.logger.info(
-                                    f"Step {self.current_step} | WIN RATE BONUS: {win_rate_bonus:.2f} | "
-                                    f"WR={win_rate*100:.1f}%"
-                                )
-
+                    reward += 1.0  # Clear positive signal for TP
                 elif exit_reason == 'sl':
-                    sl_penalty = -2.0 * self.sl_penalty_multiplier  # Dynamic penalty
-                    reward += sl_penalty
-                    reward_breakdown['tp_sl_reward'] = sl_penalty
+                    reward -= 0.5  # Smaller penalty for SL (asymmetric to encourage trading)
 
-                    # Extra penalty if win rate is too low (discourage low-quality trading)
-                    if self.total_trades >= 10:
-                        win_rate = self.winning_trades / self.total_trades
-                        if win_rate < 0.35:  # Below 35% win rate
-                            win_rate_penalty = -0.5  # Extra penalty for poor quality
-                            reward += win_rate_penalty
-                            reward_breakdown['win_rate_bonus'] = win_rate_penalty
-                            if self.logger:
-                                self.logger.warning(
-                                    f"Step {self.current_step} | WIN RATE PENALTY: {win_rate_penalty:.2f} | "
-                                    f"WR={win_rate*100:.1f}% (Below 35%)"
-                                )
-
-                # Log detailed reward breakdown
                 if self.logger:
                     self.logger.info(
-                        f"Step {self.current_step} | REWARD BREAKDOWN: "
-                        f"Total={reward:.4f} | "
-                        f"NormPnL={reward_breakdown['normalized_pnl']:.4f} | "
-                        f"TP/SL={reward_breakdown['tp_sl_reward']:.2f} | "
-                        f"WinRateBonus={reward_breakdown['win_rate_bonus']:.2f}"
+                        f"Step {self.current_step} | TRADE CLOSED ({exit_reason.upper()}) | "
+                        f"PnL: ${trade_reward:.2f} | Reward: {reward:.3f}"
                     )
             
             # Time penalty to discourage holding forever
@@ -384,72 +327,28 @@ class TradingEnv(gym.Env):
 
         # 2. Update State
         self.current_step += 1
-        
+
         # Update Equity
         if self.position:
             pnl = self._calculate_pnl(current_price)
             self.equity = self.balance + pnl
         else:
             self.equity = self.balance
-            
+
         self.equity_history.append(self.equity)
-        
+
         # 3. Check Termination
         if self.current_step >= self.n_steps:
             truncated = True
             if self.position:
                 self._close_position(current_price, 'timeout')
 
-        # 2025 Enhancement: Bankruptcy Detection (smarter than 50% threshold)
-        # Agent dies when it can't afford to open a position (realistic!)
-        current_price_check = float(self.main_data[min(self.current_step, self.n_steps - 1), CLOSE_IDX])
-        min_position_cost = self._calculate_min_position_cost(current_price_check)
-
-        if self.enable_bust_protection and self.balance < min_position_cost:
-            # BANKRUPTCY = DEATH → Strong signal to agent
+        # Bankruptcy check (if enabled)
+        if self.enable_bust_protection and self.balance < self.initial_balance * 0.1:
             terminated = True
-            reward -= 10.0  # SEVERE PENALTY for going bankrupt
-            if hasattr(self, 'logger') and self.logger:
-                self.logger.error(
-                    f"💀 BANKRUPTCY at step {self.current_step} | "
-                    f"Balance: ${self.balance:.2f} < Min Required: ${min_position_cost:.2f} | "
-                    f"Capital Lost: {((self.initial_balance - self.balance) / self.initial_balance * 100):.1f}%"
-                )
-
-        # Capital Depletion Penalty (2025 Research: Risk-Aware Rewards)
-        # Penalize agent as it loses capital (teach it to preserve wealth)
-        elif self.enable_bust_protection:
-            capital_ratio = self.balance / self.initial_balance
-
-            if capital_ratio < 0.3:  # Critical: < 30% capital left
-                depletion_penalty = -0.5
-                reward += depletion_penalty
-                if self.logger and self.current_step % 50 == 0:
-                    self.logger.warning(
-                        f"⚠️ CRITICAL CAPITAL DEPLETION at step {self.current_step} | "
-                        f"Balance: ${self.balance:.2f} ({capital_ratio*100:.1f}%) | "
-                        f"Penalty: {depletion_penalty:.3f}"
-                    )
-            elif capital_ratio < 0.5:  # Warning: < 50% capital left
-                depletion_penalty = -0.2
-                reward += depletion_penalty
-                if self.logger and self.current_step % 100 == 0:
-                    self.logger.warning(
-                        f"⚠️ CAPITAL DEPLETION at step {self.current_step} | "
-                        f"Balance: ${self.balance:.2f} ({capital_ratio*100:.1f}%) | "
-                        f"Penalty: {depletion_penalty:.3f}"
-                    )
-
-        # Update equity history for Sharpe calculation
-        self.equity = self.balance
-        if self.position:
-            current_price = float(self.main_data[self.current_step, CLOSE_IDX])
-            unrealized_pnl = self._calculate_pnl(current_price)
-            self.equity += unrealized_pnl
-        self.equity_history.append(self.equity)
-
-        # Apply reward type transformation (2025 Enhanced)
-        reward = self._get_reward_by_type(reward)
+            reward -= 5.0  # Penalty for going bankrupt
+            if self.logger:
+                self.logger.error(f"BANKRUPTCY at step {self.current_step} | Balance: ${self.balance:.2f}")
 
         info = self._get_info()
         observation = self._get_observation()
@@ -460,15 +359,17 @@ class TradingEnv(gym.Env):
         self.position = pos_type
         self.entry_price = price
         self.hold_duration = 0
-        
-        # Calculate Position Size (100% equity used)
-        margin = self.balance
+
+        # Risk Management: Use only 10% of capital per trade (Kelly-inspired)
+        # This allows for multiple losses without bankruptcy
+        risk_per_trade = 0.10  # 10% of capital
+        margin = self.balance * risk_per_trade
         self.position_size = (margin * self.max_leverage) / price
-        
+
         # Fee
         fee = (price * self.position_size) * self.fee_rate
         self.balance -= fee
-        
+
         # Set TP/SL based on ATR
         atr = self._calculate_atr()
         if pos_type == 'long':
@@ -477,9 +378,9 @@ class TradingEnv(gym.Env):
         else:
             self.take_profit = price - (atr * self.atr_tp_multiplier)
             self.stop_loss = price + (atr * self.atr_sl_multiplier)
-            
+
         # Log trade open
-        trade_msg = f"[OPEN {pos_type.upper()}] @ {price:.2f} | TP: {self.take_profit:.2f} | SL: {self.stop_loss:.2f} | Size: {self.position_size:.4f}"
+        trade_msg = f"[OPEN {pos_type.upper()}] @ {price:.2f} | TP: {self.take_profit:.2f} | SL: {self.stop_loss:.2f} | Size: {self.position_size:.6f}"
         if self.total_trades < 5 or self.verbose_trades:
             print(f"  {trade_msg}")
         if self.logger:
@@ -569,6 +470,35 @@ class TradingEnv(gym.Env):
         highs = self.main_data[start:step, HIGH_IDX]
         lows = self.main_data[start:step, LOW_IDX]
         return np.mean(highs - lows) if len(highs) > 0 else current_price * 0.01
+
+    def _calculate_trend_signal(self, current_idx: int) -> float:
+        """
+        Calculate trend signal based on price vs moving averages.
+        Returns: +1 (bullish), -1 (bearish), 0 (neutral)
+        """
+        if current_idx < 50:
+            return 0.0
+
+        current_price = self.main_data[current_idx, CLOSE_IDX]
+
+        # Calculate short and long term MAs
+        start_short = max(0, current_idx - 20)
+        start_long = max(0, current_idx - 50)
+
+        ma_short = np.mean(self.main_data[start_short:current_idx, CLOSE_IDX])
+        ma_long = np.mean(self.main_data[start_long:current_idx, CLOSE_IDX])
+
+        # Trend logic: Price > MA_short > MA_long = Strong Bullish
+        if current_price > ma_short > ma_long:
+            return 1.0  # Bullish
+        elif current_price < ma_short < ma_long:
+            return -1.0  # Bearish
+        elif current_price > ma_long:
+            return 0.5  # Weak bullish
+        elif current_price < ma_long:
+            return -0.5  # Weak bearish
+        else:
+            return 0.0  # Neutral
 
     def _calculate_sharpe_reward(self, window: int = 100) -> float:
         """

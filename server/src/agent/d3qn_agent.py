@@ -65,8 +65,8 @@ class D3QNAgent:
         self.learning_rate = learning_rate
         self.device = torch.device(device)
         self.epsilon = 1.0
-        self.epsilon_min = 0.15
-        self.epsilon_decay = 0.9998
+        self.epsilon_min = 0.05  # Lower minimum for better exploitation
+        self.epsilon_decay = 0.9995  # Slower decay for more exploration
         self.logger = logger
 
         # Adaptive confidence-based trading
@@ -90,15 +90,12 @@ class D3QNAgent:
 
     def select_action(self, state: Dict[str, np.ndarray], training: bool = True, action_mask: Optional[np.ndarray] = None, step: int = 0) -> int:
         """
-        Select action with ADAPTIVE confidence-based trading:
-        - Use ADAPTIVE threshold: Lower during early training, higher as model improves
-        - ALWAYS check confidence FIRST (even during exploration)
-        - If not confident → HOLD (wait for better opportunity)
-        - If confident → Explore or exploit
-        - Detailed logging for analysis
+        Select action using Q-values from the network.
+
+        Training mode: Uses epsilon-greedy exploration
+        Inference mode: Uses pure exploitation (best Q-value action)
         """
         with torch.no_grad():
-            # ALWAYS calculate Q-values FIRST
             state_tensor = {
                 'main': torch.FloatTensor(state['main']).unsqueeze(0).to(self.device),
                 'detail': torch.FloatTensor(state['detail']).unsqueeze(0).to(self.device)
@@ -106,105 +103,54 @@ class D3QNAgent:
             q_values = self.policy_net(state_tensor)
             q_values_np = q_values.cpu().numpy()[0]
 
-            # Apply action mask
+            # Apply action mask (if in position, can only HOLD)
             if action_mask is not None:
                 q_values_np[action_mask == 0] = -np.inf
 
-            # Calculate Q-values and confidence
+            # Get Q-values for each action
             hold_q = q_values_np[0]
             long_q = q_values_np[1] if action_mask is None or action_mask[1] > 0 else -np.inf
             short_q = q_values_np[2] if action_mask is None or action_mask[2] > 0 else -np.inf
 
-            best_trade_q = max(long_q, short_q)
-            best_trade_action = 1 if long_q > short_q else 2
-            confidence = best_trade_q - hold_q
+            # Best action based on Q-values
+            best_action = int(np.argmax(q_values_np))
 
-            # ===== FORCED EXPLORATION PHASE =====
-            # Problem: Cold start - model won't trade without experience → stuck in HOLD loop
-            # Solution: ALWAYS force some random trading to continuously build experience
-            # This allows model to learn from actual trades throughout training
             if training:
-                # Calculate effective exploration rate
-                # - High epsilon: Use epsilon directly (strong exploration)
-                # - Low epsilon: Use minimum 5% exploration (balanced quality/exploration)
-                effective_epsilon = max(self.epsilon, 0.05)
+                # Epsilon-greedy exploration during training
+                if random.random() < self.epsilon:
+                    # Random action (including HOLD)
+                    if action_mask is not None:
+                        valid_actions = np.where(action_mask > 0)[0]
+                        action = np.random.choice(valid_actions)
+                    else:
+                        action = random.randint(0, 2)
 
-                # Forced exploration - bypass confidence check
-                if random.random() < effective_epsilon:
-                    # Force random trading (LONG or SHORT only, no HOLD)
-                    action = random.choice([1, 2])
-                    if self.logger and step % 100 == 0:
-                        action_name = "LONG" if action == 1 else "SHORT"
-                        self.logger.info(
-                            f"Step {step} | FORCED EXPLORATION → {action_name} | "
-                            f"Epsilon={self.epsilon:.4f} Effective={effective_epsilon:.4f}"
+                    if self.logger and step % 200 == 0:
+                        action_names = ["HOLD", "LONG", "SHORT"]
+                        self.logger.debug(
+                            f"Step {step} | EXPLORE → {action_names[action]} | "
+                            f"Q[H]={hold_q:.3f} Q[L]={long_q:.3f} Q[S]={short_q:.3f} | "
+                            f"Epsilon={self.epsilon:.4f}"
                         )
                     return action
-                # Else continue to normal confidence check below
-
-            # ===== ADAPTIVE CONFIDENCE THRESHOLD =====
-            # When not in forced exploration, use confidence-based trading
-            # - epsilon=1.0 (start): threshold = 0 (very permissive)
-            # - epsilon=0.15 (end): threshold = base_threshold (0.01, selective)
-            # Formula: threshold = base * (1 - epsilon) / (1 - epsilon_min)
-            epsilon_normalized = (1.0 - self.epsilon) / (1.0 - self.epsilon_min)
-            adaptive_threshold = self.base_confidence_threshold * epsilon_normalized
-
-            # Decision logic
-            is_confident = confidence > adaptive_threshold
-            will_explore = training and random.random() < self.epsilon
-
-            # Detailed logging (every 100 steps or when trading)
-            if self.logger and (step % 100 == 0 or is_confident):
-                self.logger.debug(
-                    f"Step {step} | Q[HOLD]={hold_q:.4f} Q[LONG]={long_q:.4f} Q[SHORT]={short_q:.4f} | "
-                    f"Confidence={confidence:.4f} Threshold={adaptive_threshold:.4f} | "
-                    f"Epsilon={self.epsilon:.4f} | Confident={is_confident} Explore={will_explore}"
-                )
-
-            # If NOT confident, ALWAYS HOLD (regardless of epsilon)
-            if not is_confident:
-                if self.logger and step % 500 == 0:
-                    self.logger.info(
-                        f"Step {step} | NOT CONFIDENT → HOLD | "
-                        f"Confidence={confidence:.4f} < Threshold={adaptive_threshold:.4f}"
-                    )
-                return 0  # HOLD - wait for better opportunity
-
-            # If confident, THEN decide between exploration and exploitation
-            if will_explore:
-                # Exploration: Choose randomly among TRADING actions (not HOLD)
-                # Since we're already confident, only explore LONG vs SHORT
-                if action_mask is not None:
-                    valid_actions = np.where(action_mask > 0)[0]
-                    trade_actions = [a for a in valid_actions if a != 0]  # Exclude HOLD
-                    if trade_actions:
-                        action = np.random.choice(trade_actions)
-                        if self.logger:
-                            action_name = "LONG" if action == 1 else "SHORT"
-                            self.logger.info(
-                                f"Step {step} | CONFIDENT + EXPLORE → {action_name} | "
-                                f"Confidence={confidence:.4f} > Threshold={adaptive_threshold:.4f}"
-                            )
-                        return action
-                    return 0
-                action = random.choice([1, 2])  # Random between LONG and SHORT
-                if self.logger:
-                    action_name = "LONG" if action == 1 else "SHORT"
-                    self.logger.info(
-                        f"Step {step} | CONFIDENT + EXPLORE → {action_name} | "
-                        f"Confidence={confidence:.4f} > Threshold={adaptive_threshold:.4f}"
-                    )
-                return action
+                else:
+                    # Exploitation
+                    if self.logger and step % 200 == 0:
+                        action_names = ["HOLD", "LONG", "SHORT"]
+                        self.logger.debug(
+                            f"Step {step} | EXPLOIT → {action_names[best_action]} | "
+                            f"Q[H]={hold_q:.3f} Q[L]={long_q:.3f} Q[S]={short_q:.3f}"
+                        )
+                    return best_action
             else:
-                # Exploitation: Use best confident action
-                if self.logger:
-                    action_name = "LONG" if best_trade_action == 1 else "SHORT"
-                    self.logger.info(
-                        f"Step {step} | CONFIDENT + EXPLOIT → {action_name} | "
-                        f"Confidence={confidence:.4f} > Threshold={adaptive_threshold:.4f}"
+                # Pure exploitation during inference/backtest
+                if self.logger and step % 200 == 0:
+                    action_names = ["HOLD", "LONG", "SHORT"]
+                    self.logger.debug(
+                        f"Step {step} | INFERENCE → {action_names[best_action]} | "
+                        f"Q[H]={hold_q:.3f} Q[L]={long_q:.3f} Q[S]={short_q:.3f}"
                     )
-                return best_trade_action
+                return best_action
 
     def store_transition(self, state, action, reward, next_state, done):
         self.memory.push(state, action, reward, next_state, done)

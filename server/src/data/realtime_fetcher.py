@@ -21,7 +21,7 @@ class RealtimeFetcher:
         self,
         symbol: str = "BTCUSDT",
         main_timeframe: str = "1h",
-        detail_timeframe: str = "1m",
+        detail_timeframe: str = "1m",  # Back to 1m for TP/SL accuracy
         window_size: int = 36
     ):
         self.symbol = symbol
@@ -87,31 +87,51 @@ class RealtimeFetcher:
             print(f"[ERROR] Failed to fetch data: {e}")
             return pd.DataFrame()
 
-    def get_latest_data(self) -> Tuple[Optional[pd.DataFrame], Optional[pd.DataFrame]]:
+    def get_latest_data(self, raw: bool = False) -> Tuple[Optional[pd.DataFrame], Optional[pd.DataFrame]]:
         """
         Get latest data for both main and detail timeframes
+
+        Args:
+            raw: If True, return raw OHLCV data without indicators (for prepare_multi_timeframe_env_data)
+                 If False, add indicators (for legacy compatibility)
 
         Returns:
             Tuple of (main_df, detail_df)
         """
-        # Fetch main timeframe (1h)
-        # Need window_size + some buffer for indicators
-        main_limit = self.window_size + 100
-        df_main = self._fetch_klines(self.main_timeframe, limit=main_limit)
+        # Calculate detail ratio (e.g., 1h = 60 x 1m candles)
+        detail_ratio = self.tf_minutes[self.main_timeframe] // self.tf_minutes[self.detail_timeframe]
+
+        # For 1m detail: API limit is 1000, so we can support 1000/60 = ~16 main candles per fetch
+        # We need at least window_size (36) + buffer for indicators (50) = 86 main candles
+        # This requires 86 * 60 = 5160 detail candles = 6 API calls
+
+        # Calculate how many main candles we need
+        main_needed = self.window_size + 50  # 36 + 50 = 86
+
+        # For live trading: Limit main to what we can get in reasonable API calls
+        # We'll fetch multiple batches if needed
+        if self.detail_timeframe == '1m':
+            # Use multiple API calls to get enough 1m data
+            df_detail = self._fetch_klines_multiple(self.detail_timeframe, main_needed * detail_ratio)
+        else:
+            # For 5m or larger, single call is usually enough
+            df_detail = self._fetch_klines(self.detail_timeframe, limit=1000)
+
+        if df_detail is None or df_detail.empty:
+            return None, None
+
+        # Fetch main timeframe
+        df_main = self._fetch_klines(self.main_timeframe, limit=main_needed)
 
         if df_main.empty:
             return None, None
 
-        # Fetch detail timeframe (1m)
-        # Need enough 1m candles to cover window_size 1h candles
-        detail_ratio = self.tf_minutes[self.main_timeframe] // self.tf_minutes[self.detail_timeframe]
-        detail_limit = main_limit * detail_ratio
-        df_detail = self._fetch_klines(self.detail_timeframe, limit=min(detail_limit, 1000))
+        # If raw mode, return without indicators
+        # Let prepare_multi_timeframe_env_data handle indicators
+        if raw:
+            return df_main, df_detail
 
-        if df_detail.empty:
-            return None, None
-
-        # Add indicators
+        # Legacy mode: Add indicators here
         df_main = add_technical_indicators(df_main, verbose=False)
         df_detail = add_minimal_indicators(df_detail, verbose=False)
 
@@ -120,6 +140,66 @@ class RealtimeFetcher:
         df_detail = df_detail.dropna()
 
         return df_main, df_detail
+
+    def _fetch_klines_multiple(self, timeframe: str, total_needed: int) -> pd.DataFrame:
+        """
+        Fetch multiple batches of klines to get enough data for 1m timeframe
+        """
+        all_data = []
+        limit_per_call = 1000
+        calls_needed = (total_needed + limit_per_call - 1) // limit_per_call
+        calls_needed = min(calls_needed, 5)  # Max 5 calls to avoid rate limiting
+
+        endpoint = f"{self.base_url}/klines"
+        end_time = None
+
+        for i in range(calls_needed):
+            params = {
+                'symbol': self.symbol,
+                'interval': self.tf_map[timeframe],
+                'limit': limit_per_call
+            }
+            if end_time:
+                params['endTime'] = end_time - 1  # Avoid overlap
+
+            try:
+                response = requests.get(endpoint, params=params, timeout=10)
+                response.raise_for_status()
+                data = response.json()
+
+                if not data:
+                    break
+
+                df = pd.DataFrame(data, columns=[
+                    'timestamp', 'open', 'high', 'low', 'close', 'volume',
+                    'close_time', 'quote_volume', 'trades', 'taker_buy_base',
+                    'taker_buy_quote', 'ignore'
+                ])
+
+                df = df[['timestamp', 'open', 'high', 'low', 'close', 'volume']]
+                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+                df[['open', 'high', 'low', 'close', 'volume']] = df[['open', 'high', 'low', 'close', 'volume']].astype(float)
+
+                all_data.append(df)
+
+                # Set end_time for next batch (go further back in time)
+                end_time = int(data[0][0])  # First candle's timestamp
+
+                # Small delay to avoid rate limiting
+                time.sleep(0.1)
+
+            except Exception as e:
+                print(f"[ERROR] Failed to fetch batch {i+1}: {e}")
+                break
+
+        if not all_data:
+            return pd.DataFrame()
+
+        # Combine and sort
+        combined = pd.concat(all_data, ignore_index=True)
+        combined = combined.drop_duplicates(subset=['timestamp']).sort_values('timestamp').reset_index(drop=True)
+
+        return combined
 
     def wait_for_candle_close(self, timeframe: str = "1h") -> datetime:
         """

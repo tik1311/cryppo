@@ -150,7 +150,8 @@ def prepare_multi_timeframe_env_data(
     detail_timeframe: str = "1m",
     add_indicators: bool = True,
     normalize: bool = True,
-    use_efficient_mode: bool = True  # New parameter for optimization
+    use_efficient_mode: bool = True,  # New parameter for optimization
+    verbose: bool = True  # Control output verbosity
 ) -> Dict[str, np.ndarray]:
     """
     Prepare nested data structure for environment
@@ -159,17 +160,18 @@ def prepare_multi_timeframe_env_data(
         - 'main': [N, features] array
         - 'detail': [N, detail_len, features] array (nested sequences)
     """
-    print("\n[INFO] Preprocessing Multi-Timeframe Data...")
+    if verbose:
+        print("\n[INFO] Preprocessing Multi-Timeframe Data...")
 
     # 1. Add indicators
     if add_indicators:
         # Main timeframe: Full indicators (for decision making)
-        df_main = add_technical_indicators(df_main, verbose=True)
+        df_main = add_technical_indicators(df_main, verbose=verbose)
 
         # Detail timeframe: Minimal indicators (OHLCV + ATR only)
         # Purpose: Detail is ONLY for accurate TP/SL tracking, not for model decisions
         # User clarification: "1 นาทีใช้เป็นแค่ดีเทลเฉยๆไม่ใช่ส่วนหลักในการคำนวณหลัก"
-        df_detail = add_minimal_indicators(df_detail, verbose=True)
+        df_detail = add_minimal_indicators(df_detail, verbose=verbose)
 
         # Drop NaNs
         df_main = df_main.dropna()
@@ -189,8 +191,9 @@ def prepare_multi_timeframe_env_data(
     detail_minimal_cols = ['open', 'high', 'low', 'close', 'volume', 'atr']
     detail_cols = [c for c in detail_minimal_cols if c in df_detail.columns]
 
-    print(f"  - Main timeframe features: {len(main_cols)} ({', '.join(main_cols[:5])}...)")
-    print(f"  - Detail timeframe features: {len(detail_cols)} (OHLCV + ATR only)")
+    if verbose:
+        print(f"  - Main timeframe features: {len(main_cols)} ({', '.join(main_cols[:5])}...)")
+        print(f"  - Detail timeframe features: {len(detail_cols)} (OHLCV + ATR only)")
     
     # 3. Normalize
     if normalize:
@@ -209,7 +212,8 @@ def prepare_multi_timeframe_env_data(
     detail_mins = tf_map.get(detail_timeframe, 1)
     
     expected_detail_len = main_mins // detail_mins
-    print(f"  - Mapping: 1 {main_timeframe} candle = {expected_detail_len} {detail_timeframe} candles")
+    if verbose:
+        print(f"  - Mapping: 1 {main_timeframe} candle = {expected_detail_len} {detail_timeframe} candles")
 
     # Create arrays
     main_data = df_main[main_cols].values.astype(np.float32)
@@ -267,9 +271,10 @@ def prepare_multi_timeframe_env_data(
     # Filter only valid aligned rows
     final_main = main_data[valid_rows]
     final_detail = detail_data[valid_rows]
-    
-    print(f"  [OK] Aligned {len(final_main)}/{n_main} candles successfully.")
-    
+
+    if verbose:
+        print(f"  [OK] Aligned {len(final_main)}/{n_main} candles successfully.")
+
     return {
         'main': final_main,
         'detail': final_detail

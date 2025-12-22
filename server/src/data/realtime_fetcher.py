@@ -106,7 +106,9 @@ class RealtimeFetcher:
         # This requires 86 * 60 = 5160 detail candles = 6 API calls
 
         # Calculate how many main candles we need
-        main_needed = self.window_size + 50  # 36 + 50 = 86
+        # Need: window_size(36) + indicator_buffer(50) + safety_margin(30) = 116
+        # Round up to 150 for stability
+        main_needed = max(150, self.window_size + 80)  # Ensure enough for indicators
 
         # For live trading: Limit main to what we can get in reasonable API calls
         # We'll fetch multiple batches if needed
@@ -148,7 +150,7 @@ class RealtimeFetcher:
         all_data = []
         limit_per_call = 1000
         calls_needed = (total_needed + limit_per_call - 1) // limit_per_call
-        calls_needed = min(calls_needed, 5)  # Max 5 calls to avoid rate limiting
+        calls_needed = min(calls_needed, 10)  # Max 10 calls to support 150+ main candles
 
         endpoint = f"{self.base_url}/klines"
         end_time = None

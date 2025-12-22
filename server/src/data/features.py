@@ -1,11 +1,147 @@
 """
 Feature Engineering for 1H Crypto Trading
 Calculates technical indicators and features from OHLCV data
+
+UPDATED: December 2025
+- Added OnlineScaler for proper train/test normalization (no data leakage)
+- Fixed swing point detection to be causal (no look-ahead bias)
 """
 
 import numpy as np
 import pandas as pd
-from typing import Optional
+from typing import Optional, Dict, List
+import pickle
+from pathlib import Path
+
+
+class OnlineScaler:
+    """
+    Online Scaler that fits ONLY on training data and transforms any data.
+    Prevents data leakage by not using future information for normalization.
+
+    Usage:
+        scaler = OnlineScaler()
+        scaler.fit(train_df, columns=['rsi', 'macd', 'atr'])
+        train_normalized = scaler.transform(train_df)
+        test_normalized = scaler.transform(test_df)  # Uses train statistics!
+    """
+
+    def __init__(self, method: str = 'minmax', clip_outliers: bool = True, clip_std: float = 5.0):
+        """
+        Args:
+            method: 'minmax' for [0,1] scaling, 'zscore' for standardization
+            clip_outliers: Whether to clip outliers before scaling
+            clip_std: Number of std deviations for outlier clipping
+        """
+        self.method = method
+        self.clip_outliers = clip_outliers
+        self.clip_std = clip_std
+        self.statistics: Dict[str, Dict[str, float]] = {}
+        self.fitted = False
+        self.columns: List[str] = []
+
+    def fit(self, df: pd.DataFrame, columns: List[str]) -> 'OnlineScaler':
+        """
+        Fit scaler on training data ONLY.
+
+        Args:
+            df: Training DataFrame
+            columns: List of columns to normalize
+        """
+        self.columns = [c for c in columns if c in df.columns]
+        self.statistics = {}
+
+        for col in self.columns:
+            data = df[col].dropna()
+
+            if len(data) == 0:
+                continue
+
+            if self.method == 'minmax':
+                self.statistics[col] = {
+                    'min': float(data.min()),
+                    'max': float(data.max()),
+                    'range': float(data.max() - data.min())
+                }
+            elif self.method == 'zscore':
+                self.statistics[col] = {
+                    'mean': float(data.mean()),
+                    'std': float(data.std()) if data.std() > 0 else 1.0
+                }
+
+        self.fitted = True
+        return self
+
+    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Transform data using fitted statistics.
+
+        Args:
+            df: DataFrame to transform (can be train, val, or test)
+
+        Returns:
+            Transformed DataFrame
+        """
+        if not self.fitted:
+            raise ValueError("Scaler not fitted! Call fit() first with training data.")
+
+        df = df.copy()
+
+        for col in self.columns:
+            if col not in df.columns or col not in self.statistics:
+                continue
+
+            stats = self.statistics[col]
+
+            if self.method == 'minmax':
+                if stats['range'] > 0:
+                    df[col] = (df[col] - stats['min']) / stats['range']
+                else:
+                    df[col] = 0.5  # Constant column
+                # Clip to [0, 1] for test data that may exceed train range
+                df[col] = df[col].clip(0, 1)
+
+            elif self.method == 'zscore':
+                df[col] = (df[col] - stats['mean']) / stats['std']
+                # Clip extreme values
+                if self.clip_outliers:
+                    df[col] = df[col].clip(-self.clip_std, self.clip_std)
+
+        return df
+
+    def fit_transform(self, df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
+        """Fit and transform in one step (for training data only)."""
+        self.fit(df, columns)
+        return self.transform(df)
+
+    def save(self, path: str):
+        """Save scaler to file."""
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        with open(path, 'wb') as f:
+            pickle.dump({
+                'method': self.method,
+                'clip_outliers': self.clip_outliers,
+                'clip_std': self.clip_std,
+                'statistics': self.statistics,
+                'columns': self.columns,
+                'fitted': self.fitted
+            }, f)
+
+    @classmethod
+    def load(cls, path: str) -> 'OnlineScaler':
+        """Load scaler from file."""
+        with open(path, 'rb') as f:
+            data = pickle.load(f)
+
+        scaler = cls(
+            method=data['method'],
+            clip_outliers=data['clip_outliers'],
+            clip_std=data['clip_std']
+        )
+        scaler.statistics = data['statistics']
+        scaler.columns = data['columns']
+        scaler.fitted = data['fitted']
+        return scaler
 
 
 def calculate_sma(data: np.ndarray, period: int) -> np.ndarray:
@@ -118,25 +254,51 @@ def detect_trend(sma_fast: np.ndarray, sma_slow: np.ndarray) -> np.ndarray:
 
 def detect_swing_points(high: np.ndarray, low: np.ndarray, period: int = 5) -> tuple:
     """
-    Detect swing highs and swing lows
-    Swing High: highest point in surrounding period
-    Swing Low: lowest point in surrounding period
+    Detect swing highs and swing lows using CAUSAL method (no look-ahead bias).
+
+    FIXED: Now uses only PAST data to detect swing points with confirmation delay.
+    A swing high is confirmed when the high at position (i-period) is the highest
+    in the past window AND subsequent bars have lower highs.
+
     Returns: (swing_highs, swing_lows) as boolean arrays
     """
     n = len(high)
     swing_highs = np.zeros(n, dtype=bool)
     swing_lows = np.zeros(n, dtype=bool)
 
-    for i in range(period, n - period):
-        # Check if current high is highest in window
-        window_high = high[i-period:i+period+1]
-        if high[i] == np.max(window_high):
-            swing_highs[i] = True
+    # Need at least 2*period bars for proper detection with confirmation
+    min_lookback = period * 2
 
-        # Check if current low is lowest in window
-        window_low = low[i-period:i+period+1]
-        if low[i] == np.min(window_low):
-            swing_lows[i] = True
+    for i in range(min_lookback, n):
+        # Look at past window only: [i - 2*period : i]
+        # Check if bar at (i - period) is a swing point with confirmation
+
+        candidate_idx = i - period
+        window_start = max(0, candidate_idx - period)
+        window_end = i  # Current bar (exclusive, so up to i-1 for confirmation)
+
+        # Window for checking swing: from (candidate - period) to (candidate + period)
+        # But we only use data up to current bar i
+        past_window = slice(window_start, candidate_idx + 1)
+        confirm_window = slice(candidate_idx, i)
+
+        # Swing High: candidate is highest in past window AND confirmed by lower highs after
+        past_high_max = np.max(high[past_window])
+        if high[candidate_idx] == past_high_max and high[candidate_idx] > 0:
+            # Confirmation: all bars after candidate have lower highs
+            if i > candidate_idx + 1:
+                confirm_highs = high[candidate_idx + 1:i]
+                if len(confirm_highs) > 0 and np.all(confirm_highs < high[candidate_idx]):
+                    swing_highs[candidate_idx] = True
+
+        # Swing Low: candidate is lowest in past window AND confirmed by higher lows after
+        past_low_min = np.min(low[past_window])
+        if low[candidate_idx] == past_low_min and low[candidate_idx] > 0:
+            # Confirmation: all bars after candidate have higher lows
+            if i > candidate_idx + 1:
+                confirm_lows = low[candidate_idx + 1:i]
+                if len(confirm_lows) > 0 and np.all(confirm_lows > low[candidate_idx]):
+                    swing_lows[candidate_idx] = True
 
     return swing_highs, swing_lows
 
@@ -370,38 +532,34 @@ def add_technical_indicators(df: pd.DataFrame, verbose: bool = True) -> pd.DataF
     return df
 
 
-def normalize_features(df: pd.DataFrame, feature_cols: list, method: str = 'minmax') -> pd.DataFrame:
+def normalize_features(df: pd.DataFrame, feature_cols: list, method: str = 'minmax',
+                       scaler: Optional[OnlineScaler] = None) -> pd.DataFrame:
     """
-    Normalize features
+    Normalize features using OnlineScaler to prevent data leakage.
+
+    UPDATED: Now uses OnlineScaler for proper train/test separation.
 
     Args:
         df: DataFrame with features
         feature_cols: List of columns to normalize
         method: 'minmax' or 'zscore'
+        scaler: Optional pre-fitted OnlineScaler. If None, creates new one (for training).
 
     Returns:
         DataFrame with normalized features
+
+    WARNING: If scaler is None, this will fit on the provided data.
+             For proper train/test split, pass a pre-fitted scaler for test data.
     """
     df = df.copy()
 
-    for col in feature_cols:
-        if col not in df.columns:
-            continue
-
-        if method == 'minmax':
-            # Min-Max scaling to [0, 1]
-            min_val = df[col].min()
-            max_val = df[col].max()
-            if max_val - min_val > 0:
-                df[col] = (df[col] - min_val) / (max_val - min_val)
-        elif method == 'zscore':
-            # Z-score normalization
-            mean_val = df[col].mean()
-            std_val = df[col].std()
-            if std_val > 0:
-                df[col] = (df[col] - mean_val) / std_val
-
-    return df
+    if scaler is not None and scaler.fitted:
+        # Use pre-fitted scaler (for validation/test data)
+        return scaler.transform(df)
+    else:
+        # Create new scaler and fit on this data (for training data)
+        new_scaler = OnlineScaler(method=method)
+        return new_scaler.fit_transform(df, feature_cols)
 
 
 def create_sequences(df: pd.DataFrame, feature_cols: list, window_size: int = 72) -> tuple:

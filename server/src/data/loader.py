@@ -1,6 +1,11 @@
 """
 Data Loader for Market Data
 Loads and preprocesses OHLCV data for training (Multi-Timeframe Support)
+
+UPDATED: December 2025
+- Proper train/test split BEFORE normalization (no data leakage)
+- Uses OnlineScaler for consistent normalization
+- Supports scaler saving/loading for live trading
 """
 
 import numpy as np
@@ -9,7 +14,7 @@ import glob
 import os
 from pathlib import Path
 from typing import Optional, Tuple, Dict, List
-from .features import add_technical_indicators, add_minimal_indicators, normalize_features
+from .features import add_technical_indicators, add_minimal_indicators, normalize_features, OnlineScaler
 
 
 def get_project_root() -> Path:
@@ -150,30 +155,39 @@ def prepare_multi_timeframe_env_data(
     detail_timeframe: str = "1m",
     add_indicators: bool = True,
     normalize: bool = True,
-    use_efficient_mode: bool = True,  # New parameter for optimization
-    verbose: bool = True  # Control output verbosity
+    use_efficient_mode: bool = True,
+    verbose: bool = True,
+    scaler: Optional[OnlineScaler] = None,  # NEW: Use pre-fitted scaler for val/test
+    return_scaler: bool = False  # NEW: Return fitted scaler for saving
 ) -> Dict[str, np.ndarray]:
     """
     Prepare nested data structure for environment
+
+    UPDATED: Now properly handles normalization with OnlineScaler to prevent data leakage.
+
+    Args:
+        df_main: Main timeframe DataFrame
+        df_detail: Detail timeframe DataFrame
+        main_timeframe: Main timeframe string (e.g., '1h')
+        detail_timeframe: Detail timeframe string (e.g., '1m')
+        add_indicators: Whether to add technical indicators
+        normalize: Whether to normalize features
+        scaler: Pre-fitted OnlineScaler (for validation/test data)
+        return_scaler: Whether to return the fitted scaler (for training data)
+
     Returns:
         Dict with:
         - 'main': [N, features] array
         - 'detail': [N, detail_len, features] array (nested sequences)
+        - 'scaler': OnlineScaler (only if return_scaler=True)
     """
     if verbose:
         print("\n[INFO] Preprocessing Multi-Timeframe Data...")
 
     # 1. Add indicators
     if add_indicators:
-        # Main timeframe: Full indicators (for decision making)
         df_main = add_technical_indicators(df_main, verbose=verbose)
-
-        # Detail timeframe: Minimal indicators (OHLCV + ATR only)
-        # Purpose: Detail is ONLY for accurate TP/SL tracking, not for model decisions
-        # User clarification: "1 นาทีใช้เป็นแค่ดีเทลเฉยๆไม่ใช่ส่วนหลักในการคำนวณหลัก"
         df_detail = add_minimal_indicators(df_detail, verbose=verbose)
-
-        # Drop NaNs
         df_main = df_main.dropna()
         df_detail = df_detail.dropna()
 
@@ -184,101 +198,95 @@ def prepare_multi_timeframe_env_data(
         'atr', 'stoch_k', 'stoch_d', 'volume_ratio', 'volatility'
     ]
 
-    # Main timeframe: All indicators
     main_cols = [c for c in (price_cols + main_indicator_cols) if c in df_main.columns]
-
-    # Detail timeframe: ONLY OHLCV + ATR (for TP/SL tracking)
     detail_minimal_cols = ['open', 'high', 'low', 'close', 'volume', 'atr']
     detail_cols = [c for c in detail_minimal_cols if c in df_detail.columns]
 
     if verbose:
         print(f"  - Main timeframe features: {len(main_cols)} ({', '.join(main_cols[:5])}...)")
         print(f"  - Detail timeframe features: {len(detail_cols)} (OHLCV + ATR only)")
-    
-    # 3. Normalize
+
+    # 3. Normalize (UPDATED: Proper handling with OnlineScaler)
+    fitted_scaler = None
     if normalize:
         norm_cols_main = [c for c in main_cols if c not in price_cols]
         norm_cols_detail = [c for c in detail_cols if c not in price_cols]
-        
-        df_main = normalize_features(df_main, norm_cols_main)
-        df_detail = normalize_features(df_detail, norm_cols_detail)
 
-    # 4. Align Data (Crucial Step)
-    # We need to map each Main candle to a sequence of Detail candles
-    
-    # Parse timeframe to minutes
+        if scaler is not None and scaler.fitted:
+            # Use pre-fitted scaler (for validation/test)
+            if verbose:
+                print("  - Using pre-fitted scaler (no leakage)")
+            df_main = scaler.transform(df_main)
+            # Detail uses same scaler for consistency (ATR normalization)
+            df_detail = scaler.transform(df_detail)
+        else:
+            # Create and fit new scaler (for training)
+            if verbose:
+                print("  - Fitting new scaler on this data")
+            fitted_scaler = OnlineScaler(method='minmax')
+            fitted_scaler.fit(df_main, norm_cols_main)
+            df_main = fitted_scaler.transform(df_main)
+            df_detail = fitted_scaler.transform(df_detail)
+
+    # 4. Align Data
     tf_map = {'1m': 1, '5m': 5, '15m': 15, '30m': 30, '1h': 60, '4h': 240, '1d': 1440}
     main_mins = tf_map.get(main_timeframe, 60)
     detail_mins = tf_map.get(detail_timeframe, 1)
-    
     expected_detail_len = main_mins // detail_mins
+
     if verbose:
         print(f"  - Mapping: 1 {main_timeframe} candle = {expected_detail_len} {detail_timeframe} candles")
 
-    # Create arrays
     main_data = df_main[main_cols].values.astype(np.float32)
-    
-    # Pre-allocate detail array: [N_main, expected_len, n_features]
     n_main = len(df_main)
     n_detail_features = len(detail_cols)
     detail_data = np.zeros((n_main, expected_detail_len, n_detail_features), dtype=np.float32)
-    
-    # Efficient alignment using searchsorted
+
     main_timestamps = df_main['timestamp'].values
     detail_timestamps = df_detail['timestamp'].values
     detail_values = df_detail[detail_cols].values
-    
-    # Convert to nanoseconds for searchsorted
+
     main_ts_int = main_timestamps.astype(np.int64)
     detail_ts_int = detail_timestamps.astype(np.int64)
-    
-    # Calculate end timestamps for main candles
     main_duration = pd.Timedelta(main_timeframe).value
     main_end_ts_int = main_ts_int + main_duration
-    
-    # Find indices
+
     start_indices = np.searchsorted(detail_ts_int, main_ts_int)
     end_indices = np.searchsorted(detail_ts_int, main_end_ts_int)
-    
+
     valid_rows = []
-    
     for i in range(n_main):
         start = start_indices[i]
         end = end_indices[i]
-        
-        # Get slice
         slice_data = detail_values[start:end]
-        
-        # Handle missing/extra data
         current_len = len(slice_data)
-        
+
         if current_len == expected_detail_len:
             detail_data[i] = slice_data
             valid_rows.append(i)
         elif current_len > 0:
-            # Pad or truncate
             if current_len > expected_detail_len:
                 detail_data[i] = slice_data[:expected_detail_len]
             else:
-                # Pad with last value
                 detail_data[i, :current_len] = slice_data
                 detail_data[i, current_len:] = slice_data[-1]
             valid_rows.append(i)
-        else:
-            # No detail data found for this main candle
-            pass
 
-    # Filter only valid aligned rows
     final_main = main_data[valid_rows]
     final_detail = detail_data[valid_rows]
 
     if verbose:
         print(f"  [OK] Aligned {len(final_main)}/{n_main} candles successfully.")
 
-    return {
+    result = {
         'main': final_main,
         'detail': final_detail
     }
+
+    if return_scaler and fitted_scaler is not None:
+        result['scaler'] = fitted_scaler
+
+    return result
 
 
 def split_train_test_multi(

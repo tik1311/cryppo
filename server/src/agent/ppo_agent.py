@@ -1,6 +1,10 @@
 """
 PPO Agent for Cryptocurrency Trading
 REDESIGNED FOR PROFITABILITY: Better exploration, stable learning, and market-aware decisions
+
+Supports two architectures:
+1. LSTM+Attention (legacy)
+2. PatchTST (new, recommended)
 """
 
 import torch
@@ -12,6 +16,13 @@ import numpy as np
 from typing import Dict, List, Tuple, Optional
 from collections import deque
 import os
+
+# Import PatchTST model
+try:
+    from .patch_tst import PatchTSTActorCritic
+    PATCHTST_AVAILABLE = True
+except ImportError:
+    PATCHTST_AVAILABLE = False
 
 
 class ActorCritic(nn.Module):
@@ -234,6 +245,10 @@ class PPOAgent:
     - Adaptive learning rate
     - Reward normalization
     - Early stopping on poor performance
+
+    Supports two architectures:
+    - 'lstm': LSTM+Attention (legacy)
+    - 'patchtst': PatchTST Transformer (recommended)
     """
 
     def __init__(
@@ -243,17 +258,18 @@ class PPOAgent:
         n_detail_features: int,
         detail_len: int,
         action_dim: int = 3,
-        learning_rate: float = 1e-4,  # Lower LR for stability
-        gamma: float = 0.99,
+        learning_rate: float = 3e-4,  # Higher LR for faster learning
+        gamma: float = 0.995,
         gae_lambda: float = 0.95,
         clip_epsilon: float = 0.2,
-        value_coef: float = 0.5,
-        entropy_coef: float = 0.05,  # Higher entropy for more exploration (was 0.02)
+        value_coef: float = 0.25,    # Balanced (not too low to ignore value, not too high)
+        entropy_coef: float = 0.05,  # Moderate entropy for balanced exploration
         max_grad_norm: float = 0.5,
-        n_epochs: int = 4,  # Fewer epochs to prevent overfitting (was 10)
-        batch_size: int = 128,  # Larger batch for stability (was 64)
-        target_kl: float = 0.02,  # Slightly higher KL threshold (was 0.01)
+        n_epochs: int = 3,  # Reduce to 3 to prevent overfitting (was 4)
+        batch_size: int = 128,  # Larger batch for stability
+        target_kl: float = 0.015,  # Tighter KL constraint for stability
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
+        architecture: str = "patchtst",  # NEW: 'lstm' or 'patchtst'
         logger=None
     ):
         self.window_size = window_size
@@ -271,16 +287,40 @@ class PPOAgent:
         self.batch_size = batch_size
         self.target_kl = target_kl
         self.device = torch.device(device)
+        self.architecture = architecture
         self.logger = logger
 
-        # Actor-Critic Network
-        self.policy = ActorCritic(
-            window_size=window_size,
-            n_main_features=n_main_features,
-            n_detail_features=n_detail_features,
-            detail_len=detail_len,
-            action_dim=action_dim
-        ).to(self.device)
+        # Actor-Critic Network - Select architecture
+        if architecture == "patchtst" and PATCHTST_AVAILABLE:
+            if self.logger:
+                self.logger.info("Using PatchTST architecture")
+            self.policy = PatchTSTActorCritic(
+                window_size=window_size,
+                n_main_features=n_main_features,
+                n_detail_features=n_detail_features,
+                detail_len=detail_len,
+                action_dim=action_dim,
+                patch_len=6,
+                stride=3,
+                d_model=128,
+                n_heads=4,
+                n_layers=3,
+                d_ff=256,
+                dropout=0.1
+            ).to(self.device)
+        else:
+            if architecture == "patchtst" and not PATCHTST_AVAILABLE:
+                if self.logger:
+                    self.logger.warning("PatchTST not available, falling back to LSTM")
+            if self.logger:
+                self.logger.info("Using LSTM+Attention architecture")
+            self.policy = ActorCritic(
+                window_size=window_size,
+                n_main_features=n_main_features,
+                n_detail_features=n_detail_features,
+                detail_len=detail_len,
+                action_dim=action_dim
+            ).to(self.device)
 
         # Optimizer with weight decay
         self.optimizer = optim.AdamW(
@@ -333,14 +373,14 @@ class PPOAgent:
 
             action_logits, value = self.policy(state_tensor, mask_tensor)
 
-            # Apply softmax with temperature for better exploration during training
+            # Apply softmax with temperature for exploration
             if training:
-                # Higher temperature early, lower later (but never too low)
-                temperature = max(0.7, 1.2 - self.total_updates * 0.0005)  # Slower annealing
+                # Standard temperature during training
+                temperature = max(0.8, 1.0 - self.total_updates * 0.0002)
                 probs = F.softmax(action_logits / temperature, dim=-1)
             else:
-                # During inference: slightly higher temperature to encourage trading
-                probs = F.softmax(action_logits / 0.8, dim=-1)
+                # During inference: lower temperature for more confident decisions
+                probs = F.softmax(action_logits / 0.5, dim=-1)  # More greedy
 
             dist = Categorical(probs)
 
@@ -389,10 +429,11 @@ class PPOAgent:
             max(self.reward_count, 1)
         )
 
-        # Normalize reward (but don't modify original)
-        # normalized_reward = (reward - self.reward_mean) / max(self.reward_std, 1e-8)
+        # Normalize reward for stable learning (ENABLED)
+        normalized_reward = (reward - self.reward_mean) / max(self.reward_std, 1e-8)
+        normalized_reward = np.clip(normalized_reward, -10.0, 10.0)  # Clip extreme values
 
-        self.buffer.add(state, action, reward, done, log_prob, value, action_mask)
+        self.buffer.add(state, action, normalized_reward, done, log_prob, value, action_mask)
 
     def compute_gae(self, rewards, values, dones, next_value):
         """
@@ -570,11 +611,12 @@ class PPOAgent:
                 'n_detail_features': self.n_detail_features,
                 'detail_len': self.detail_len,
                 'action_dim': self.action_dim,
+                'architecture': self.architecture,  # NEW: Save architecture type
             }
         }, path)
 
         if self.logger:
-            self.logger.info(f"Model saved to {path}")
+            self.logger.info(f"Model saved to {path} (architecture: {self.architecture})")
 
     def load(self, path: str):
         """Load model checkpoint."""
